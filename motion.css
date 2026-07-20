@@ -1,0 +1,60 @@
+/* ============================================================
+   motion.css — camada de movimento (fluidez)
+   Acompanha motion.js. Só aparência/animação; dados e lógica intactos.
+   Carregar DEPOIS de style.css.
+   ============================================================ */
+
+:root{
+  --spring:cubic-bezier(.34,1.5,.5,1);
+  --ease-soft:cubic-bezier(.2,.7,.2,1);
+}
+
+/* o motion.js controla a entrada do conteúdo; desligamos a cascata
+   antiga baseada em CSS para evitar "re-piscar" a cada ação */
+.page-header,
+.stat-card,.house-card,.panel,.field-card,.list-card,.detail-grid,
+.report-row-wrap,.cal-grid,.finance-table,.summary-pill,.tab-summary,
+.tab-summary-row,.empty-state{animation:none !important;}
+
+/* ---------- barra de navegação: pílula deslizante ---------- */
+.topbar-nav{position:relative;}
+.topbar-link{position:relative;z-index:1;background:transparent !important;transition:color .3s var(--ease-soft);}
+.topbar-link.active{background:transparent !important;color:#fff;}
+.nav-pill{position:absolute;left:0;top:0;height:0;width:0;border-radius:8px;
+  background:var(--cover-light);box-shadow:0 4px 12px rgba(0,0,0,.18);opacity:0;z-index:0;
+  transition:transform .42s var(--spring),width .42s var(--spring),height .25s,top .25s,opacity .3s;}
+
+/* ---------- abas do detalhe: indicador deslizante ---------- */
+.tabs{position:relative;}
+.tab.active{border-bottom-color:transparent !important;}
+.tab-ind{position:absolute;bottom:-1px;left:0;width:0;height:3px;border-radius:3px;
+  background:var(--brass);opacity:0;
+  transition:transform .4s var(--spring),width .4s var(--spring),opacity .3s;}
+
+/* ---------- gráfico: barras crescem de baixo ---------- */
+.chart-svg rect{transform-box:fill-box;transform-origin:bottom;}
+
+/* ---------- modal e toast com mola ---------- */
+@keyframes aluOverlayIn{from{opacity:0;}to{opacity:1;}}
+@keyframes aluModalIn{from{opacity:0;transform:scale(.92) translateY(12px);}to{opacity:1;transform:none;}}
+@keyframes aluToastIn{from{opacity:0;transform:translateX(44px) scale(.9);}to{opacity:1;transform:none;}}
+.modal-overlay{animation:aluOverlayIn .28s ease both;}
+.modal-box{animation:aluModalIn .42s var(--spring) both;}
+.toast{animation:aluToastIn .42s var(--spring) both;}
+
+/* ---------- ripple (resposta ao toque) ---------- */
+.alu-ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.18;
+  pointer-events:none;transform:scale(0);}
+
+/* ---------- microinterações reforçadas ---------- */
+.btn{transition:transform .14s var(--spring),background .18s var(--ease-soft),box-shadow .2s;}
+.btn:active{transform:scale(.96);}
+.house-card,.stat-card,.alert-row,.ledger-row,.filter-chip,.chip,.summary-pill{
+  transition:transform .2s var(--ease-soft),box-shadow .2s var(--ease-soft),
+             background .2s var(--ease-soft),border-color .2s var(--ease-soft);}
+.filter-chip:active,.tab:active{transform:scale(.95);}
+
+@media (prefers-reduced-motion: reduce){
+  .nav-pill,.tab-ind{transition:none;}
+  .modal-overlay,.modal-box,.toast{animation:none;}
+}

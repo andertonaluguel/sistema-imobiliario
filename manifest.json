@@ -1,0 +1,17 @@
+{
+  "name": "Aluguel — Gestão de Casas",
+  "short_name": "Aluguel",
+  "description": "Gestão de aluguéis: casas, inquilinos, pagamentos, despesas e calendário.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "background_color": "#F7F6F2",
+  "theme_color": "#14322A",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

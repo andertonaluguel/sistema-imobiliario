@@ -1,0 +1,302 @@
+/* ============================================================
+   tenants.js — Inquilinos (cadastro central reutilizável)
+   O mesmo inquilino pode mudar de casa ao longo do tempo.
+   Ao vincular a uma nova casa, a casa anterior fica vaga.
+   ============================================================ */
+
+function houseOf(tenantId){ return state.houses.find(function(h){ return h.tenantId===tenantId; }); }
+function housesOf(tenantId){ return state.houses.filter(function(h){ return h.tenantId===tenantId; }); }
+
+/* ---------- listagem ---------- */
+function renderTenantCard(t){
+  const casas = housesOf(t.id);
+  const n = casas.length;
+  const nomes = casas.map(function(h){ return h.nome; });
+  const status = n>0 ? 'com' : 'sem';
+  const searchData = (t.nome+' '+(t.telefone||'')+' '+(t.email||'')+' '+nomes.join(' ')).toLowerCase();
+  const chipTxt = n===0 ? 'SEM CASA' : (n===1 ? '1 IMÓVEL' : n+' IMÓVEIS');
+  const bottom = n===0 ? 'Disponível para vincular'
+    : (n===1 ? ('Mora em '+esc(nomes[0])) : ('Imóveis: '+nomes.map(esc).join(', ')));
+  return '<div class="house-card tab-'+(n>0?'brass':'slate')+'" data-status="'+status+'" data-search="'+esc(searchData)+'" onclick="openEditTenantModal(\''+t.id+'\')">'+
+    '<div class="house-card-top"><div>'+
+      '<div class="house-name">'+esc(t.nome)+'</div>'+
+      '<div class="house-address">'+(t.telefone?esc(t.telefone):'Sem telefone cadastrado')+'</div>'+
+    '</div><span class="chip chip-'+(n>0?'brass':'slate')+'">'+chipTxt+'</span></div>'+
+    '<div class="house-card-bottom"><div class="house-tenant">'+bottom+'</div></div>'+
+  '</div>';
+}
+
+/* busca + filtro de inquilinos */
+function setInqBusca(v){ state.inqBusca = v; aplicarFiltroInq(); }
+function setInqFiltro(f){ state.inqFiltro = f; aplicarFiltroInq(); }
+function aplicarFiltroInq(){
+  const grid = document.getElementById('inqGrid');
+  if(!grid) return;
+  const q = (state.inqBusca||'').trim().toLowerCase();
+  const f = state.inqFiltro||'todos';
+  let visiveis = 0;
+  grid.querySelectorAll('.house-card').forEach(function(card){
+    const status = card.getAttribute('data-status');
+    const search = card.getAttribute('data-search')||'';
+    let ok = true;
+    if(f==='com' && status!=='com') ok=false;
+    else if(f==='sem' && status!=='sem') ok=false;
+    if(ok && q && search.indexOf(q)===-1) ok=false;
+    card.style.display = ok ? '' : 'none';
+    if(ok) visiveis++;
+  });
+  const empty = document.getElementById('inqEmpty');
+  if(empty) empty.style.display = visiveis===0 ? '' : 'none';
+  document.querySelectorAll('#inqToolbar .filter-chip').forEach(function(ch){
+    ch.classList.toggle('active', ch.getAttribute('data-filtro')===f);
+  });
+}
+function renderInquilinosView(){
+  const header = '<div class="page-header"><div>'+
+      '<div class="eyebrow">INQUILINOS</div>'+
+      pageTitleWithIcon(tenantIconSvg(), state.tenants.length+' inquilino(s) cadastrado(s)')+
+    '</div><button class="btn btn-primary btn-sm" onclick="openAddTenantModal()">+ Novo inquilino</button></div>';
+  if(state.tenants.length===0){
+    return header + emptyState('Nenhum inquilino cadastrado ainda. Cadastre aqui, ou diretamente ao vincular um inquilino a uma casa.', tenantIconSvg());
+  }
+  const filtros = [['todos','Todos'],['com','Com casa'],['sem','Sem casa']];
+  const chips = filtros.map(function(f){
+    return '<button class="filter-chip'+(state.inqFiltro===f[0]?' active':'')+'" data-filtro="'+f[0]+'" onclick="setInqFiltro(\''+f[0]+'\')">'+f[1]+'</button>';
+  }).join('');
+  const toolbar = '<div class="toolbar" id="inqToolbar">'+
+      '<div class="search-wrap"><span class="search-ico">'+FICO.search+'</span>'+
+        '<input id="inqBuscaInput" class="search-input" placeholder="Buscar por nome, telefone ou casa…" value="'+esc(state.inqBusca||'')+'" oninput="setInqBusca(this.value)"></div>'+
+      '<div class="filter-chips">'+chips+'</div>'+
+    '</div>';
+  const grid = '<div class="house-grid" id="inqGrid">'+state.tenants.map(renderTenantCard).join('')+'</div>'+
+    '<div class="empty-state" id="inqEmpty" style="display:none">Nenhum inquilino encontrado com esse filtro.</div>';
+  return header + toolbar + grid;
+}
+
+/* ---------- cadastro independente ---------- */
+function openAddTenantModal(){
+  openModal(
+    '<h3 class="modal-title">Novo inquilino</h3>'+
+    '<label class="field"><span>Nome</span><input id="f_nome" placeholder="Nome completo"></label>'+
+    '<div class="field-row">'+
+      '<label class="field"><span>Telefone/WhatsApp</span><input id="f_tel" placeholder="DDD + número"></label>'+
+      '<label class="field"><span>E-mail</span><input id="f_email" type="email"></label>'+
+    '</div>'+
+    '<div class="field-row">'+
+      '<label class="field"><span>CPF/RG</span><input id="f_doc"></label>'+
+      '<label class="field"><span>Contato de emergência</span><input id="f_emerg" placeholder="Nome e telefone"></label>'+
+    '</div>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="saveNewTenant()">Cadastrar</button>'+
+    '</div></div>'
+  );
+}
+async function saveNewTenant(){
+  const nome = document.getElementById('f_nome').value.trim();
+  if(!nome){ showToast('Informe o nome do inquilino.', 'error'); return; }
+  try{
+    const novo = await db.insertTenant({
+      nome:nome,
+      telefone: document.getElementById('f_tel').value.trim(),
+      email: document.getElementById('f_email').value.trim(),
+      documento: document.getElementById('f_doc').value.trim(),
+      emergenciaNome: document.getElementById('f_emerg').value.trim()
+    });
+    state.tenants.push(novo);
+    closeModal(); render();
+    showToast('Inquilino cadastrado.', 'success');
+  }catch(e){ console.error(e); showToast('Erro ao cadastrar.', 'error'); }
+}
+function openEditTenantModal(tenantId){
+  const t = state.tenants.find(function(x){ return x.id===tenantId; });
+  const casas = housesOf(tenantId);
+  const moraTxt = casas.length===0
+    ? 'Sem casa vinculada no momento.'
+    : (casas.length===1
+        ? ('Atualmente em <strong>'+esc(casas[0].nome)+'</strong>.')
+        : ('Atualmente em <strong>'+casas.length+' imóveis</strong>: '+casas.map(function(h){ return esc(h.nome); }).join(', ')+'.'));
+  openModal(
+    '<h3 class="modal-title">Editar inquilino</h3>'+
+    '<label class="field"><span>Nome</span><input id="f_nome" value="'+esc(t.nome)+'"></label>'+
+    '<div class="field-row">'+
+      '<label class="field"><span>Telefone/WhatsApp</span><input id="f_tel" value="'+esc(t.telefone)+'"></label>'+
+      '<label class="field"><span>E-mail</span><input id="f_email" type="email" value="'+esc(t.email)+'"></label>'+
+    '</div>'+
+    '<div class="field-row">'+
+      '<label class="field"><span>CPF/RG</span><input id="f_doc" value="'+esc(t.documento)+'"></label>'+
+      '<label class="field"><span>Contato de emergência</span><input id="f_emerg" value="'+esc(t.emergenciaNome)+'"></label>'+
+    '</div>'+
+    '<p class="modal-text">'+moraTxt+'</p>'+
+    '<div class="modal-actions">'+
+      '<button class="btn btn-danger" onclick="confirmDeleteTenant(\''+tenantId+'\')">Excluir inquilino</button>'+
+      '<div class="modal-actions-right">'+
+        '<button class="btn btn-ghost" onclick="openAssignHouseModal(\''+tenantId+'\')">'+(casas.length?'Vincular a outra casa':'Vincular a uma casa')+'</button>'+
+        '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+        '<button class="btn btn-primary" onclick="saveTenantEdit(\''+tenantId+'\')">Salvar</button>'+
+      '</div>'+
+    '</div>'
+  );
+}
+async function saveTenantEdit(tenantId){
+  const t = state.tenants.find(function(x){ return x.id===tenantId; });
+  t.nome = document.getElementById('f_nome').value.trim() || t.nome;
+  t.telefone = document.getElementById('f_tel').value.trim();
+  t.email = document.getElementById('f_email').value.trim();
+  t.documento = document.getElementById('f_doc').value.trim();
+  t.emergenciaNome = document.getElementById('f_emerg').value.trim();
+  try{ await db.updateTenant(t); closeModal(); render(); }
+  catch(e){ console.error(e); showToast('Erro ao salvar.', 'error'); }
+}
+function confirmDeleteTenant(tenantId){
+  const t = state.tenants.find(function(x){ return x.id===tenantId; });
+  const casas = housesOf(tenantId);
+  const txt = casas.length===0 ? ''
+    : (casas.length===1
+        ? ('A casa '+esc(casas[0].nome)+' ficará marcada como vaga. ')
+        : ('As casas '+casas.map(function(h){ return esc(h.nome); }).join(', ')+' ficarão marcadas como vagas. '));
+  openModal(
+    '<h3 class="modal-title">Excluir '+esc(t.nome)+'?</h3>'+
+    '<p class="modal-text">'+txt+'Essa ação não pode ser desfeita.</p>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+    '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn btn-danger" onclick="deleteTenant(\''+tenantId+'\')">Excluir</button>'+
+    '</div></div>'
+  );
+}
+async function deleteTenant(tenantId){
+  try{
+    // casas que apontavam para ele ficam vagas (com histórico)
+    const afetadas = state.houses.filter(function(h){ return h.tenantId===tenantId; });
+    for(const h of afetadas){
+      h.tenantId=''; h.status='vaga'; h.contratoInicio=''; h.contratoFim='';
+      recordStatusChange(h);
+      await db.updateHouse(h);
+      await db.replaceStatusHistory(h.id, h.statusHistorico);
+    }
+    await db.deleteTenant(tenantId);
+    state.tenants = state.tenants.filter(function(x){ return x.id!==tenantId; });
+    closeModal(); render();
+  }catch(e){ console.error(e); showToast('Erro ao excluir o inquilino.', 'error'); }
+}
+
+/* ---------- vínculo casa <-> inquilino ---------- */
+async function assignTenantToHouse(tenantId, houseId, contratoInicio, contratoFim){
+  // um inquilino pode ter vários imóveis ao mesmo tempo: vincular a esta casa
+  // NÃO desvincula as outras casas do mesmo inquilino.
+  const target = state.houses.find(function(h){ return h.id===houseId; });
+  target.tenantId = tenantId;
+  target.status = 'alugada';
+  target.contratoInicio = contratoInicio||'';
+  target.contratoFim = contratoFim||'';
+  recordStatusChange(target, contratoInicio||todayISO());
+  await db.updateHouse(target);
+  await db.replaceStatusHistory(target.id, target.statusHistorico);
+  showToast('Inquilino vinculado a '+target.nome+'.', 'success');
+}
+async function unassignTenant(houseId){
+  const h = state.houses.find(function(x){ return x.id===houseId; });
+  h.tenantId=''; h.contratoInicio=''; h.contratoFim=''; h.status='vaga';
+  recordStatusChange(h);
+  try{
+    await db.updateHouse(h);
+    await db.replaceStatusHistory(h.id, h.statusHistorico);
+    render();
+    showToast('Inquilino desvinculado. Casa marcada como vaga.', 'success');
+  }catch(e){ console.error(e); showToast('Erro ao desvincular.', 'error'); }
+}
+function openAssignTenantModal(houseId){
+  const options = state.tenants.map(function(t){ return '<option value="'+t.id+'">'+esc(t.nome)+(t.telefone?(' — '+esc(t.telefone)):'')+'</option>'; }).join('');
+  openModal(
+    '<h3 class="modal-title">Vincular inquilino</h3>'+
+    '<label class="field"><span>Selecionar inquilino existente</span><select id="f_tenant_select">'+
+      '<option value="">— Cadastrar novo inquilino —</option>'+options+
+    '</select></label>'+
+    '<div id="newTenantFields">'+
+      '<label class="field"><span>Nome</span><input id="f_nome" placeholder="Nome do novo inquilino"></label>'+
+      '<div class="field-row">'+
+        '<label class="field"><span>Telefone/WhatsApp</span><input id="f_tel"></label>'+
+        '<label class="field"><span>E-mail</span><input id="f_email" type="email"></label>'+
+      '</div>'+
+      '<div class="field-row">'+
+        '<label class="field"><span>CPF/RG</span><input id="f_doc"></label>'+
+        '<label class="field"><span>Contato de emergência</span><input id="f_emerg" placeholder="Nome e telefone"></label>'+
+      '</div>'+
+    '</div>'+
+    '<div class="field-row">'+
+      '<label class="field"><span>Início do contrato</span><input id="f_ini" type="date" value="'+todayISO()+'"></label>'+
+      '<label class="field"><span>Fim do contrato</span><input id="f_fim" type="date"></label>'+
+    '</div>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="saveAssignTenant(\''+houseId+'\')">Vincular</button>'+
+    '</div></div>'
+  );
+  const sel = document.getElementById('f_tenant_select');
+  const fields = document.getElementById('newTenantFields');
+  if(sel && fields){
+    sel.addEventListener('change', function(){ fields.style.display = this.value ? 'none' : 'block'; });
+  }
+}
+async function saveAssignTenant(houseId){
+  const selectedId = document.getElementById('f_tenant_select').value;
+  const ini = document.getElementById('f_ini').value;
+  const fim = document.getElementById('f_fim').value;
+  let tenantId = selectedId;
+  try{
+    if(!tenantId){
+      const nome = document.getElementById('f_nome').value.trim();
+      if(!nome){ showToast('Informe o nome do inquilino ou selecione um existente.', 'error'); return; }
+      const novo = await db.insertTenant({
+        nome:nome,
+        telefone: document.getElementById('f_tel').value.trim(),
+        email: document.getElementById('f_email').value.trim(),
+        documento: document.getElementById('f_doc').value.trim(),
+        emergenciaNome: document.getElementById('f_emerg').value.trim()
+      });
+      state.tenants.push(novo);
+      tenantId = novo.id;
+    }
+    await assignTenantToHouse(tenantId, houseId, ini, fim);
+    closeModal(); render();
+  }catch(e){ console.error(e); showToast('Erro ao vincular.', 'error'); }
+}
+function openAssignHouseModal(tenantId){
+  const t = state.tenants.find(function(x){ return x.id===tenantId; });
+  if(!state.houses.length){
+    openModal('<h3 class="modal-title">Sem casas</h3><p class="modal-text">Cadastre uma casa antes de vincular um inquilino.</p>'+
+      '<div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-primary" onclick="closeModal()">Ok</button></div></div>');
+    return;
+  }
+  const jaDele = housesOf(tenantId).map(function(h){ return h.id; });
+  // candidatas: casas vagas que ainda não são deste inquilino
+  const disponiveis = state.houses.filter(function(h){ return !h.tenantId && jaDele.indexOf(h.id)<0; });
+  if(!disponiveis.length){
+    openModal('<h3 class="modal-title">Sem casas disponíveis</h3><p class="modal-text">Todas as casas já estão ocupadas. Para colocar '+esc(t.nome)+' numa casa que tem outro inquilino, abra a casa e vincule por lá (o inquilino atual dela será desvinculado dessa casa).</p>'+
+      '<div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-primary" onclick="closeModal()">Ok</button></div></div>');
+    return;
+  }
+  const options = disponiveis.map(function(h){ return '<option value="'+h.id+'">'+esc(h.nome)+(h.endereco?(' — '+esc(h.endereco)):'')+'</option>'; }).join('');
+  openModal(
+    '<h3 class="modal-title">Vincular '+esc(t.nome)+' a uma casa</h3>'+
+    '<label class="field"><span>Casa (somente vagas)</span><select id="f_house_select">'+options+'</select></label>'+
+    '<div class="field-row">'+
+      '<label class="field"><span>Início do contrato</span><input id="f_ini" type="date" value="'+todayISO()+'"></label>'+
+      '<label class="field"><span>Fim do contrato</span><input id="f_fim" type="date"></label>'+
+    '</div>'+
+    '<p class="modal-text">As outras casas deste inquilino continuam vinculadas — ele pode ter vários imóveis ao mesmo tempo.</p>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="saveAssignHouse(\''+tenantId+'\')">Vincular</button>'+
+    '</div></div>'
+  );
+}
+async function saveAssignHouse(tenantId){
+  const houseId = document.getElementById('f_house_select').value;
+  const ini = document.getElementById('f_ini').value;
+  const fim = document.getElementById('f_fim').value;
+  try{
+    await assignTenantToHouse(tenantId, houseId, ini, fim);
+    closeModal(); render();
+  }catch(e){ console.error(e); showToast('Erro ao vincular.', 'error'); }
+}

@@ -1,0 +1,35 @@
+# ============================================================
+# netlify.toml — configuração de publicação no Netlify
+# Como o app é estático (HTML/CSS/JS), não há build.
+# Publicamos a própria pasta do projeto.
+# ============================================================
+
+[build]
+  publish = "."
+  command = ""
+
+# Como é um app de página única, qualquer rota cai no index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Cabeçalhos de segurança básicos
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# O service worker deve ser sempre revalidado (para updates chegarem rápido)
+[[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# Tipo correto do manifest
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"

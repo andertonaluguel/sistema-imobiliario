@@ -1,0 +1,18 @@
+# Arquivos gerados para publicacao
+dist/
+.netlify/
+
+# Backups e dados pessoais nunca devem entrar no repositorio
+backups/
+*-backup-*.json
+*.backup.json
+
+# Configuracoes locais e segredos futuros
+.env
+.env.*
+!.env.example
+
+# Arquivos do sistema/editor
+.DS_Store
+Thumbs.db
+*.log

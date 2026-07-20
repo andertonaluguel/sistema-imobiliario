@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#14322A">
+<title>Aluguel — Gestão de Casas</title>
+
+<!-- Fontes -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Estilos -->
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="motion.css">
+
+<!-- PWA: instalável e offline -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Aluguel">
+<meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+  <div id="app"></div>
+  <div id="modalRoot"></div>
+  <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+  <input type="file" id="importInput" accept="application/json,.json" hidden>
+  <input type="file" id="photoInput" accept="image/*" multiple hidden>
+
+  <!-- Biblioteca do Supabase (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- jsPDF para recibos -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Módulos do app (a ordem importa) -->
+  <script src="config.js"></script>
+  <script src="utils.js"></script>
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="houses.js"></script>
+  <script src="tenants.js"></script>
+  <script src="finance.js"></script>
+  <script src="photos.js"></script>
+  <script src="reports.js"></script>
+  <script src="calendar.js"></script>
+  <script src="backup.js"></script>
+  <script src="app.js"></script>
+  <!-- Camada de movimento (fluidez) — depois de app.js -->
+  <script src="motion.js"></script>
+
+  <!-- Liga os inputs de arquivo -->
+  <script>
+    document.getElementById('importInput').addEventListener('change', function(){
+      if(this.files && this.files[0]) handleImportFile(this.files[0]);
+      this.value = '';
+    });
+    document.getElementById('photoInput').addEventListener('change', function(){
+      const houseId = this.dataset.houseId;
+      if(houseId && this.files.length) handlePhotoFiles(houseId, this.files);
+      this.value = '';
+    });
+
+    // Registra o service worker (PWA: instalável e abre offline)
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', function(){
+        navigator.serviceWorker.register('service-worker.js').catch(function(err){
+          console.warn('Service worker não registrou:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

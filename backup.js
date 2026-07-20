@@ -1,0 +1,136 @@
+/* ============================================================
+   backup.js — Exportar / Importar backup (JSON)
+   É a ponte de migração: exporte do app antigo e importe aqui.
+   ============================================================ */
+
+async function doExportBackup(){
+  try{
+    const payload = await db.exportAll();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'aluguel-backup-'+todayISO()+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Backup exportado.', 'success');
+  }catch(e){
+    console.error(e);
+    showToast('Erro ao exportar backup.', 'error');
+  }
+}
+
+function triggerImport(){ document.getElementById('importInput').click(); }
+
+function handleImportFile(file){
+  const reader = new FileReader();
+  reader.onload = function(e){
+    let data;
+    try{ data = JSON.parse(e.target.result); }
+    catch(err){ showToast('Arquivo inválido.', 'error'); return; }
+    if(!data || !Array.isArray(data.houses)){
+      showToast('Esse arquivo não parece ser um backup do Aluguel.', 'error'); return;
+    }
+    confirmImport(data);
+  };
+  reader.onerror = function(){ showToast('Erro ao ler o arquivo.', 'error'); };
+  reader.readAsText(file);
+}
+
+function confirmImport(data){
+  window.__pendingImport = data;
+  const nCasas = data.houses.length;
+  const nInq = (data.tenants||[]).length;
+  openModal(
+    '<h3 class="modal-title">Importar backup?</h3>'+
+    '<p class="modal-text">O arquivo tem <strong>'+nCasas+' casa(s)</strong> e <strong>'+nInq+' inquilino(s)</strong>. '+
+    'Eles serão <strong>adicionados</strong> à sua conta. Se você já importou antes, pode acabar duplicando — use "Apagar todos os dados" antes se quiser começar limpo.</p>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="applyImport()">Importar</button>'+
+    '</div></div>'
+  );
+}
+
+async function applyImport(){
+  const data = window.__pendingImport;
+  if(!data) return;
+  closeModal();
+  showToast('Importando…', 'success');
+  try{
+    await db.importBackup(data);
+    window.__pendingImport = null;
+    await loadData();
+    state.view = 'casas';
+    render();
+    showToast('Backup importado com sucesso.', 'success');
+  }catch(e){
+    console.error(e);
+    showToast('Erro ao importar. Nada foi alterado pela metade? Confira e tente de novo.', 'error');
+  }
+}
+
+/* ============================================================
+   Backup automático (snapshot diário no Supabase) + restauração
+   ============================================================ */
+
+/* Cria um retrato dos dados no máximo 1x por dia (chamado ao abrir o app). */
+async function ensureDailySnapshot(){
+  try{
+    const last = await db.lastSnapshotDate();
+    const hoje = todayISO();
+    if(!last || String(last).slice(0,10) !== hoje){
+      await db.makeSnapshot();
+    }
+  }catch(e){ console.warn('Snapshot diário não foi criado agora:', e); }
+}
+
+async function openBackupsModal(){
+  openModal('<h3 class="modal-title">Backups automáticos</h3><p class="modal-text">Carregando…</p>');
+  let lista;
+  try{ lista = await db.getBackups(); }
+  catch(e){
+    openModal('<h3 class="modal-title">Backups automáticos</h3><p class="modal-text">Não foi possível carregar os backups agora.</p>'+
+      '<div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button></div></div>');
+    return;
+  }
+  const rows = lista.length ? lista.map(function(b){
+    const dt = new Date(b.criado_em);
+    const quando = fmtDateBR(String(b.criado_em).slice(0,10))+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+    return '<div class="ledger-row"><div class="ledger-row-main">'+quando+'</div>'+
+      '<button class="btn btn-ghost btn-sm" onclick="confirmRestore(\''+b.id+'\',\''+quando+'\')">Restaurar</button></div>';
+  }).join('') : '<div class="empty-state">Ainda não há backups. Eles são criados automaticamente, uma vez por dia, quando você abre o app.</div>';
+  openModal(
+    '<h3 class="modal-title">Backups automáticos</h3>'+
+    '<p class="modal-text">Guardamos os últimos 7 dias. Restaurar substitui seus dados atuais pelos do backup escolhido. As fotos não entram no backup automático (use “Exportar backup” para um arquivo completo com fotos).</p>'+
+    '<div class="ledger">'+rows+'</div>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button></div></div>'
+  );
+}
+
+function confirmRestore(id, quando){
+  window.__restoreId = id;
+  openModal(
+    '<h3 class="modal-title">Restaurar backup de '+quando+'?</h3>'+
+    '<p class="modal-text">Isso <strong>apaga seus dados atuais</strong> e coloca no lugar os dados desse backup. As fotos atuais serão removidas (o backup automático não inclui fotos). Não dá para desfazer.</p>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-ghost" onclick="openBackupsModal()">Voltar</button>'+
+      '<button class="btn btn-danger" onclick="doRestore()">Restaurar</button>'+
+    '</div></div>'
+  );
+}
+async function doRestore(){
+  const id = window.__restoreId;
+  if(!id) return;
+  closeModal();
+  showToast('Restaurando…', 'success');
+  try{
+    const payload = await db.getBackup(id);
+    await db.wipeAll();
+    await db.importBackup(payload);
+    window.__restoreId = null;
+    await loadData();
+    state.view = 'casas';
+    render();
+    showToast('Backup restaurado.', 'success');
+  }catch(e){ console.error(e); showToast('Erro ao restaurar o backup.', 'error'); }
+}

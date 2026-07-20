@@ -2,6 +2,14 @@
 
 Este guia considera uma instalação nova, usando o e-mail `andertonaluguel@gmail.com`.
 
+## Ambiente atual — 20/07/2026
+
+- Aplicativo: <https://aluguel-casas-anderton.netlify.app>
+- Site Netlify: `aluguel-casas-anderton`
+- Projeto Supabase: `Aluguel Casas` (`tdpoafmvqajxatxtshau`), região São Paulo
+- Dados migrados e conferidos: 10 imóveis, 9 inquilinos e 63 pagamentos
+- URL principal e retorno de autenticação configurados no Supabase
+
 ## Antes de começar
 
 - O backup com os dados reais fica em `../backups/`, fora da pasta do site.

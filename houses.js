@@ -181,7 +181,7 @@ function renderGeralTab(h){
   const enerVal = energiaValorMes(h, cur);
   const enerKwh = energiaKwhMes(h, cur);
   const enerSt = energiaStatus(h, cur);
-  const totalMes = (Number(h.aluguelValor)||0) + enerVal;
+  const totalMes = aluguelValorMes(h, cur) + enerVal;
   const enerChip = enerSt==='pago'?'brass':enerSt==='atrasado'?'rust':enerSt==='pendente'?'warn':'slate';
   const enerLbl = enerSt==='pago'?'PAGA':enerSt==='atrasado'?'ATRASADA':enerSt==='pendente'?'PENDENTE':enerSt==='sem_registro'?'NÃO LANÇADA':'—';
   const totalAno = h.pagamentos.filter(function(p){ return p.mes.slice(0,4)===cur.slice(0,4); }).reduce(function(s,p){ return s+(Number(p.valorPago)||0); },0);
@@ -293,7 +293,7 @@ function renderPagamentosTab(h){
       const st = paymentStatus(h, mes);
       const rec = h.pagamentos.find(function(p){ return p.mes===mes; });
       const chipClass = st==='pago'?'brass':st==='atrasado'?'rust':'slate';
-      const valorTxt = rec ? fmtMoney(rec.valorPago) : fmtMoney(h.aluguelValor);
+      const valorTxt = rec ? fmtMoney(rec.valorPago) : fmtMoney(aluguelValorMes(h, mes));
       return '<div class="ledger-row'+(st==='atrasado'?' rust-row':'')+'" onclick="openPaymentModal(\''+h.id+'\',\''+mes+'\')">'+
         '<span class="row-ico" style="color:'+payIcoColor(st)+'">'+payIcon(st)+'</span>'+
         '<div class="ledger-row-main">'+monthLabel(mes)+'</div>'+
@@ -413,7 +413,7 @@ function openEditHouseModal(houseId){
       '<label class="field"><span>Aluguel mensal (R$)</span><input id="f_aluguel" type="number" step="0.01" value="'+(h.aluguelValor||0)+'"></label>'+
     '</div>'+
     '<div class="field-row">'+
-      '<label class="field"><span>Dia de vencimento</span><input id="f_dia" type="number" min="1" max="28" value="'+(h.diaVencimento||5)+'"></label>'+
+      '<label class="field"><span>Dia de vencimento</span><input id="f_dia" type="number" min="1" max="31" value="'+(h.diaVencimento||5)+'"></label>'+
       '<label class="field"><span>Última vistoria</span><input id="f_vist" type="date" value="'+(h.ultimaVistoria||'')+'"></label>'+
     '</div>'+
     '<div class="modal-actions">'+
@@ -432,7 +432,7 @@ async function saveHouseEdit(id){
   h.endereco = document.getElementById('f_endereco').value.trim();
   h.status = document.getElementById('f_status').value;
   h.aluguelValor = parseFloat(document.getElementById('f_aluguel').value)||0;
-  h.diaVencimento = parseInt(document.getElementById('f_dia').value,10)||5;
+  h.diaVencimento = Math.min(31, Math.max(1, parseInt(document.getElementById('f_dia').value,10)||5));
   h.ultimaVistoria = document.getElementById('f_vist').value;
   if(h.status!=='alugada' && h.tenantId){ h.tenantId=''; h.contratoInicio=''; h.contratoFim=''; }
   recordStatusChange(h);
@@ -485,7 +485,7 @@ function openPaymentModal(houseId, mes){
   const h = state.houses.find(function(x){ return x.id===houseId; });
   const rec = h.pagamentos.find(function(p){ return p.mes===mes; });
   const st = paymentStatus(h, mes);
-  const valorSugerido = rec ? rec.valorPago : h.aluguelValor;
+  const valorSugerido = rec ? rec.valorPago : aluguelValorMes(h, mes);
   openModal(
     '<h3 class="modal-title">'+monthLabel(mes)+'</h3>'+
     '<label class="field"><span>Valor pago (R$)</span><input id="f_valor" type="number" step="0.01" value="'+valorSugerido+'"></label>'+
@@ -583,7 +583,7 @@ function buildWhatsAppUrl(house, mes){
   const t = tenantOf(house) || {};
   let phone = (t.telefone||'').replace(/\D/g,'');
   if(phone && phone.length<=11) phone = '55'+phone;
-  const msg = 'Olá'+(t.nome?(' '+t.nome):'')+'! Passando para lembrar do aluguel de '+(house.endereco||house.nome)+' referente a '+monthLabel(mes)+', no valor de '+fmtMoney(house.aluguelValor)+' (vencimento dia '+(house.diaVencimento||5)+'). Qualquer dúvida me chama por aqui!';
+  const msg = 'Olá'+(t.nome?(' '+t.nome):'')+'! Passando para lembrar do aluguel de '+(house.endereco||house.nome)+' referente a '+monthLabel(mes)+', no valor de '+fmtMoney(aluguelValorMes(house, mes))+' (vencimento dia '+dueDayForMonth(mes, house.diaVencimento||5)+'). Qualquer dúvida me chama por aqui!';
   return 'https://wa.me/'+phone+'?text='+encodeURIComponent(msg);
 }
 function cobrarWhatsApp(houseId, mes){
@@ -610,7 +610,7 @@ function cobrarAlerta(houseId){
   const itens = [];
   if(temAluguel){
     itens.push(cob.meses.length===1
-      ? ('o aluguel de '+monthLabel(cob.meses[0])+' ('+fmtMoney(h.aluguelValor)+')')
+      ? ('o aluguel de '+monthLabel(cob.meses[0])+' ('+fmtMoney(aluguelValorMes(h, cob.meses[0]))+')')
       : ('os aluguéis de '+cob.meses.map(monthLabel).join(', ')+' ('+fmtMoney(cob.aluguelTotal)+')'));
   }
   if(temEnergia){
@@ -621,7 +621,7 @@ function cobrarAlerta(houseId){
   let msg;
   if(cob.tipo==='proximo'){
     const extra = temEnergia ? (' e a energia ('+fmtMoney(cob.energiaTotal)+')') : '';
-    msg = 'Olá'+nome+'! Passando para lembrar que o aluguel de '+local+' referente a '+monthLabel(cob.meses[0])+' ('+fmtMoney(h.aluguelValor)+')'+extra+' vence dia '+(h.diaVencimento||5)+' (em '+cob.dias+' dia(s)). Qualquer dúvida me chama por aqui!';
+    msg = 'Olá'+nome+'! Passando para lembrar que o aluguel de '+local+' referente a '+monthLabel(cob.meses[0])+' ('+fmtMoney(aluguelValorMes(h, cob.meses[0]))+')'+extra+' vence dia '+dueDayForMonth(cob.meses[0], h.diaVencimento||5)+' (em '+cob.dias+' dia(s)). Qualquer dúvida me chama por aqui!';
   } else if(itens.length===1){
     msg = 'Olá'+nome+'! Notei que '+itens[0]+' de '+local+' consta em aberto. Pode dar uma olhada? Qualquer dúvida me chama por aqui!';
   } else {

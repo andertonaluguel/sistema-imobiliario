@@ -22,14 +22,17 @@ async function doExportBackup(){
 function triggerImport(){ document.getElementById('importInput').click(); }
 
 function handleImportFile(file){
+  if(file.size > 40*1024*1024){
+    showToast('O backup é grande demais para importar com segurança.', 'error');
+    return;
+  }
   const reader = new FileReader();
   reader.onload = function(e){
     let data;
     try{ data = JSON.parse(e.target.result); }
     catch(err){ showToast('Arquivo inválido.', 'error'); return; }
-    if(!data || !Array.isArray(data.houses)){
-      showToast('Esse arquivo não parece ser um backup do Aluguel.', 'error'); return;
-    }
+    try{ normalizeBackupForImport(data); }
+    catch(err){ showToast(err.message || 'Backup inválido.', 'error'); return; }
     confirmImport(data);
   };
   reader.onerror = function(){ showToast('Erro ao ler o arquivo.', 'error'); };
@@ -57,7 +60,7 @@ async function applyImport(){
   closeModal();
   showToast('Importando…', 'success');
   try{
-    await db.importBackup(data);
+    await db.importBackup(data, { replace:false });
     window.__pendingImport = null;
     await loadData();
     state.view = 'casas';
@@ -65,7 +68,7 @@ async function applyImport(){
     showToast('Backup importado com sucesso.', 'success');
   }catch(e){
     console.error(e);
-    showToast('Erro ao importar. Nada foi alterado pela metade? Confira e tente de novo.', 'error');
+    showToast('Erro ao importar. Seus dados anteriores foram preservados.', 'error');
   }
 }
 
@@ -76,9 +79,9 @@ async function applyImport(){
 /* Cria um retrato dos dados no máximo 1x por dia (chamado ao abrir o app). */
 async function ensureDailySnapshot(){
   try{
-    const last = await db.lastSnapshotDate();
+    const last = await db.lastSnapshotDay();
     const hoje = todayISO();
-    if(!last || String(last).slice(0,10) !== hoje){
+    if(!last || String(last) !== hoje){
       await db.makeSnapshot();
     }
   }catch(e){ console.warn('Snapshot diário não foi criado agora:', e); }
@@ -125,8 +128,8 @@ async function doRestore(){
   showToast('Restaurando…', 'success');
   try{
     const payload = await db.getBackup(id);
-    await db.wipeAll();
-    await db.importBackup(payload);
+    normalizeBackupForImport(payload);
+    await db.importBackup(payload, { replace:true });
     window.__restoreId = null;
     await loadData();
     state.view = 'casas';

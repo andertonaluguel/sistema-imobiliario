@@ -25,6 +25,11 @@ function compressImage(file, maxWidth, quality){
   });
 }
 
+function safePhotoSrc(value){
+  const src = String(value||'');
+  return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(src) ? src : '';
+}
+
 async function ensurePhotosLoaded(houseId){
   if(state.photoCache[houseId] !== undefined) return;
   try{
@@ -44,6 +49,9 @@ async function handlePhotoFiles(houseId, fileList){
     const compressed = [];
     for(const f of files){
       if(current.length + compressed.length >= 6) break;
+      if(!/^image\/(jpeg|png|webp)$/i.test(f.type||'') || f.size>15*1024*1024){
+        throw new Error('Formato ou tamanho de foto não permitido.');
+      }
       compressed.push(await compressImage(f, 480, 0.6));
     }
     const novas = await db.addPhotos(houseId, compressed, current.length);
@@ -71,12 +79,13 @@ function triggerPhotoUpload(houseId){
 }
 
 function renderFotosTab(h){
-  const photos = state.photoCache[h.id];
-  if(photos===undefined) return '<div class="empty-state">Carregando fotos…</div>';
+  const rawPhotos = state.photoCache[h.id];
+  if(rawPhotos===undefined) return '<div class="empty-state">Carregando fotos…</div>';
+  const photos = rawPhotos.filter(function(p){ return !!safePhotoSrc(p.dados); });
   return '<div class="tab-summary-row"><div>'+photos.length+' de 6 fotos</div>'+
     '<button class="btn btn-primary btn-sm" '+(photos.length>=6?'disabled':'')+' onclick="triggerPhotoUpload(\''+h.id+'\')">+ Adicionar fotos</button></div>'+
     '<div class="photo-grid">'+(photos.length===0?emptyState('Nenhuma foto adicionada ainda.', photoIconSvg()):photos.map(function(p){
-      return '<div class="photo-thumb"><img src="'+p.dados+'" alt="Foto da casa '+esc(h.nome)+'">'+
+      return '<div class="photo-thumb"><img src="'+esc(safePhotoSrc(p.dados))+'" alt="Foto da casa '+esc(h.nome)+'">'+
         '<button class="photo-delete" onclick="deletePhoto(\''+h.id+'\',\''+p.id+'\')" aria-label="Remover foto">×</button></div>';
     }).join(''))+'</div>';
 }

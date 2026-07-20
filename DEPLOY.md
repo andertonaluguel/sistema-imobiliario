@@ -1,94 +1,91 @@
-# Aluguel — Guia de publicação (núcleo completo)
+# Aluguel — criação das novas contas e publicação
 
-Este bloco é a **fundação**: banco, login e painel já funcionando, com importação do seu backup atual. Siga na ordem.
+Este guia considera uma instalação nova, usando o e-mail `andertonaluguel@gmail.com`.
 
----
+## Antes de começar
 
-## 1. Criar o projeto no Supabase
+- O backup com os dados reais fica em `../backups/`, fora da pasta do site.
+- Nunca coloque arquivos `*-backup-*.json` dentro de `dist/` nem faça upload deles no Netlify.
+- O projeto gera uma pasta `dist/` contendo somente os arquivos públicos permitidos.
 
-1. Acesse **https://supabase.com** → entre/crie conta → **New project**.
-2. Dê um nome (ex.: `talao`), defina uma senha de banco (guarde) e crie.
-3. Espere ~1 minuto até o projeto subir.
+## 1. Criar o novo projeto Supabase
 
-## 2. Criar as tabelas
+1. Acesse <https://supabase.com> e crie a conta com `andertonaluguel@gmail.com`.
+2. Confirme o e-mail e crie um projeto chamado, por exemplo, `aluguel`.
+3. Guarde a senha do banco em um gerenciador de senhas.
+4. No **SQL Editor**, abra uma consulta nova.
+5. Copie todo o arquivo `schema.sql`, cole no editor e execute uma única vez.
 
-1. No projeto, abra **SQL Editor** (menu lateral) → **New query**.
-2. Abra o arquivo **`schema.sql`** deste projeto, copie **todo** o conteúdo e cole no editor.
-3. Clique **Run**. Deve aparecer "Success".
-   - Isso cria todas as tabelas e ativa a segurança por usuário (RLS).
+O `schema.sql` atual já contém todas as tabelas, regras de segurança, validações e a restauração transacional. Em uma conta nova não é necessário executar os arquivos antigos de migração.
 
-## 3. Pegar as chaves de acesso
+## 2. Configurar a chave pública
 
-1. Vá em **Project Settings** (engrenagem) → **API**.
-2. Copie:
-   - **Project URL** (algo como `https://xxxx.supabase.co`)
-   - **anon public** key (uma chave longa)
-
-## 4. Preencher o `config.js`
-
-Abra **`config.js`** e substitua os dois valores:
+1. No Supabase, abra **Project Settings → API**.
+2. Copie a **Project URL** e a chave **Publishable key** (`sb_publishable_...`).
+3. Preencha em `config.js`:
 
 ```js
-SUPABASE_URL: 'https://xxxx.supabase.co',
-SUPABASE_ANON_KEY: 'sua-chave-anon-public',
+SUPABASE_URL: 'https://SEU-PROJETO.supabase.co',
+SUPABASE_ANON_KEY: 'sb_publishable_SUA-CHAVE',
 ```
 
-> A chave `anon` é pública por natureza — pode ficar no front-end. Quem protege os dados é o RLS (passo 2).
+A chave publicável pode estar no aplicativo. A segurança dos dados é feita pelo login e pelas políticas RLS. Nunca coloque uma chave `secret` ou `service_role` no projeto.
 
-## 5. (Recomendado p/ começar rápido) E-mail de confirmação
+## 3. Preparar a publicação
 
-Por padrão o Supabase pede confirmação de e-mail no cadastro.
-Para testar sem isso:
+Na pasta do projeto, execute:
 
-- **Authentication** → **Providers** → **Email** → desligue **"Confirm email"** → **Save**.
+```text
+node build.mjs
+```
 
-Depois, em produção, você pode religar.
+Isso recria `dist/`, atualiza automaticamente a versão do cache e copia somente os arquivos públicos. Confirme que `dist/` não contém backups, SQL ou documentação.
 
-## 6. Publicar no Netlify
+## 4. Criar e publicar no Netlify
 
-**Opção A — arrastar a pasta (mais simples):**
-1. Acesse **https://app.netlify.com** → **Add new site** → **Deploy manually**.
-2. Arraste a pasta inteira do projeto (já com o `config.js` preenchido).
-3. Pronto: o Netlify te dá um endereço `https://....netlify.app`.
+1. Acesse <https://app.netlify.com> e crie a conta com `andertonaluguel@gmail.com`.
+2. Confirme o e-mail.
+3. Para a primeira publicação manual, envie somente a pasta `dist/`.
+4. Guarde o endereço `https://...netlify.app` fornecido pelo Netlify.
 
-**Opção B — via Git:** suba a pasta para um repositório e conecte no Netlify. O `netlify.toml` já está configurado (sem build, redirect de SPA).
+Os arquivos `_headers` e `_redirects` dentro de `dist/` aplicam a proteção do site, desativam cache da configuração e fazem as rotas abrirem o aplicativo corretamente.
 
-## 7. Primeiro acesso e migração dos seus dados
+## 5. Configurar os endereços de autenticação
 
-1. Abra o endereço do Netlify → tela de login.
-2. **Criar conta** com seu e-mail e senha.
-3. Entre. O painel aparece vazio.
-4. No app antigo, exporte seu backup (JSON).
-5. No novo, toque no menu **⋯** → **Importar backup** → selecione o arquivo.
-6. Suas casas, inquilinos, pagamentos, despesas e fotos são carregados.
+Depois de obter o endereço do Netlify:
 
-> Importar **adiciona** dados. Se importar duas vezes, duplica. Para recomeçar limpo, use **⋯ → Apagar todos os dados** antes.
+1. No Supabase, abra **Authentication → URL Configuration**.
+2. Defina **Site URL** como o endereço final do Netlify.
+3. Adicione o mesmo endereço em **Redirect URLs**, incluindo a versão com `/**` quando o painel permitir.
 
----
+Isso é necessário para recuperação de senha e confirmação de e-mail voltarem ao aplicativo correto.
 
-## O que já funciona
-- Login, cadastro e recuperação de senha (cada conta só vê os próprios dados).
-- Importação/exportação de backup (migração sem perder nada).
-- Painel: receita do mês, recebido, falta receber, casas alugadas/vagas/em manutenção, contratos vencendo, gráfico dos últimos 12 meses, alertas e últimas movimentações.
-- **Casas**: grade com status e tela completa do imóvel, com abas **Geral, Inquilino, Pagamentos, Despesas e Fotos**. Dá para editar a casa, registrar vistoria, marcar/desfazer pagamento por mês, lançar despesas/chamados e cobrar pelo WhatsApp.
-- **Inquilinos**: cadastro central reutilizável; vincular/desvincular de casas (ao trocar de casa, a anterior fica vaga automaticamente).
-- **Financeiro**: projeção mensal e anual, gráfico de 12 meses e relatório anual por casa (recebido, despesas por categoria, dias vago/manutenção e períodos de contrato).
-- **Fotos** das casas (comprimidas no aparelho, salvas no banco) e **recibo de aluguel em PDF**.
-- **Calendário** mensal: mostra os vencimentos de cada casa por dia, com cor por status (pago/atrasado/pendente), e permite lembretes manuais por dia.
-- **App instalável (PWA)**: dá para instalar no celular ou no computador e abrir como um aplicativo; o app abre mesmo sem internet (os dados sincronizam quando a conexão volta).
-- **Histórico de valor do aluguel** (aba "Reajustes" na casa): guarda os valores e desde quando valeram, com adicionar, editar e excluir. Quando você muda o aluguel em "Editar dados", o reajuste é registrado sozinho.
-- **Backup automático diário** no Supabase, com restauração: o app salva um retrato dos seus dados uma vez por dia; em ⋯ → "Backups automáticos" você vê os últimos 7 e pode restaurar. (O backup automático guarda os dados, não as fotos — para um arquivo completo com fotos use "Exportar backup".)
+## 6. Criar a conta do proprietário no aplicativo
 
-## Atualização do Bloco B — rodar o SQL uma vez
-Diferente das atualizações anteriores, esta precisa de duas tabelas novas no banco:
-1. No Supabase, abra **SQL Editor → New query**.
-2. Cole todo o conteúdo de **`migracao-bloco-B.sql`** e clique **Run** (pode rodar de novo sem problema; é idempotente).
-3. Depois, substitua os arquivos no Netlify (mantendo o `config.js` preenchido) e recarregue com Ctrl+F5.
+1. Abra o endereço do Netlify.
+2. Clique em **Criar conta**.
+3. Use o e-mail desejado para entrar no aplicativo e confirme a mensagem recebida.
+4. Entre no sistema.
 
-## Instalar no celular / computador
-Depois de publicar, abra o endereço do app no navegador:
-- **Android (Chrome):** menu (⋮) → "Adicionar à tela inicial" / "Instalar app".
-- **iPhone (Safari):** botão Compartilhar → "Adicionar à Tela de Início".
-- **Computador (Chrome/Edge):** ícone de instalar na barra de endereço.
+## 7. Restaurar os dados
 
-O ícone do Aluguel aparece junto dos outros apps e abre em tela cheia.
+1. No menu **⋯**, escolha **Importar backup**.
+2. Selecione `../backups/aluguel-backup-2026-07-20.json`.
+3. Confira a quantidade informada: 10 casas e 9 inquilinos.
+4. Confirme a importação.
+
+A importação agora é transacional: se alguma etapa falhar, nenhuma parte é gravada. O backup disponível contém casas, inquilinos, 63 pagamentos e reajustes. Ele não contém fotos, despesas, lembretes nem registros de energia.
+
+## Backups e funcionamento sem internet
+
+- O app cria um retrato diário quando é aberto com internet e mantém os sete mais recentes no Supabase.
+- Esses retratos não substituem o backup JSON baixado, pois ficam no mesmo projeto Supabase e não incluem fotos.
+- A interface básica pode abrir pelo cache, mas consultar e alterar os dados exige conexão. Ainda não existe sincronização offline de alterações.
+
+## Publicações futuras
+
+1. Faça as alterações no projeto.
+2. Execute os testes.
+3. Execute `node build.mjs`.
+4. Publique novamente somente `dist/`.
+5. Verifique login, painel, importação e cabeçalhos de segurança.

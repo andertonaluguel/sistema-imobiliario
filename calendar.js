@@ -14,7 +14,7 @@ function calHoje(){ state.calMes = currentMonthStr(); render(); }
 /* casas alugadas que vencem em determinado dia do mês */
 function vencimentosDoDia(mesStr, dia){
   return state.houses.filter(function(h){
-    return h.status==='alugada' && (h.diaVencimento||5)===dia;
+    return h.status==='alugada' && dueDayForMonth(mesStr, h.diaVencimento||5)===dia;
   });
 }
 

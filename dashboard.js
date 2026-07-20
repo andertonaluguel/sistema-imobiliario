@@ -21,7 +21,7 @@ function computeCobrancaCasa(h){
     if(h.pagamentos.find(function(p){ return p.mes===mes; })) continue;
     let vencido;
     if(mes < cur) vencido = true;                 // mês passado: já venceu
-    else if(mes===cur) vencido = hojeDia >= diaVenc; // mês atual: vence no dia (chegou o dia => atraso)
+    else if(mes===cur) vencido = hoje > dueDateForMonth(cur, diaVenc);
     else vencido = false;
     if(vencido) mesesAtraso.push(mes);
   }
@@ -35,26 +35,30 @@ function computeCobrancaCasa(h){
     if(energiaStatus(h, mes)==='atrasado'){ energiaMeses.push(mes); energiaTotal += energiaValorMes(h, mes); }
   }
   energiaMeses.sort();
-  const aluguelTotal = (Number(h.aluguelValor)||0)*mesesAtraso.length;
+  const aluguelTotal = mesesAtraso.reduce(function(total, mes){
+    return total + aluguelValorMes(h, mes);
+  }, 0);
 
   if(mesesAtraso.length || energiaMeses.length){
     // dias de atraso contados do vencimento mais antigo (entre aluguel e energia)
     const refMes = (mesesAtraso[0] && energiaMeses[0])
       ? (mesesAtraso[0]<energiaMeses[0]?mesesAtraso[0]:energiaMeses[0])
       : (mesesAtraso[0]||energiaMeses[0]);
-    const p0 = refMes.split('-').map(Number);
-    const due0 = new Date(p0[0], p0[1]-1, diaVenc);
-    const dias = Math.max(0, Math.round((hoje - due0)/86400000));
+    const due0 = dueDateForMonth(refMes, diaVenc);
+    due0.setHours(0,0,0,0);
+    const hoje0 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const dias = Math.max(0, Math.round((hoje0 - due0)/86400000));
     return { houseId:h.id, tipo:'atraso', meses:mesesAtraso, aluguelTotal:aluguelTotal,
       energiaMeses:energiaMeses, energiaTotal:energiaTotal, total:aluguelTotal+energiaTotal, dias:dias };
   }
   // próximo do vencimento (mês atual ainda no prazo, faltando 7 dias ou menos)
   if(!h.pagamentos.find(function(p){ return p.mes===cur; }) && (!inicio || cur>=inicio)){
-    const diasAteVenc = diaVenc - hojeDia;
+    const diasAteVenc = dueDayForMonth(cur, diaVenc) - hojeDia;
     if(diasAteVenc>=1 && diasAteVenc<=7){
       const enerPend = energiaStatus(h,cur)==='pendente' ? energiaValorMes(h,cur) : 0;
-      return { houseId:h.id, tipo:'proximo', meses:[cur], aluguelTotal:Number(h.aluguelValor)||0,
-        energiaMeses:enerPend?[cur]:[], energiaTotal:enerPend, total:(Number(h.aluguelValor)||0)+enerPend, dias:diasAteVenc };
+      const aluguelMes = aluguelValorMes(h, cur);
+      return { houseId:h.id, tipo:'proximo', meses:[cur], aluguelTotal:aluguelMes,
+        energiaMeses:enerPend?[cur]:[], energiaTotal:enerPend, total:aluguelMes+enerPend, dias:diasAteVenc };
     }
   }
   return null;
@@ -70,7 +74,7 @@ function computeOverview(){
   state.houses.forEach(function(h){
     if(h.status==='alugada'){
       alugadas++;
-      receitaMensal += Number(h.aluguelValor)||0;
+      receitaMensal += aluguelValorMes(h, cur);
       const recCur = h.pagamentos.find(function(p){ return p.mes===cur; });
       if(recCur) recebidoMes += Number(recCur.valorPago)||0;
       energiaMes += energiaValorMes(h, cur);
@@ -92,7 +96,8 @@ function computeOverview(){
   });
 
   return {
-    receitaMensal, recebidoMes, faltaReceber: Math.max(0, receitaMensal-recebidoMes),
+    receitaMensal, recebidoMes,
+    faltaReceber: Math.max(0, receitaMensal-recebidoMes) + Math.max(0, energiaMes-energiaRecebida),
     energiaMes, energiaRecebida, totalMes: receitaMensal+energiaMes,
     alugadas, vagas, manutencao,
     cobrancas,
@@ -201,7 +206,7 @@ function statCard(label, value, sub, tone){
 }
 
 function countAlerts(o){
-  return o.cobrancas.length;
+  return o.cobrancas.length + o.contratosVencendo.length + o.manutList.length;
 }
 function renderAlerts(o){
   const items = [];
@@ -231,6 +236,21 @@ function renderAlerts(o){
         btn+
         '<div class="ledger-row-value num warn">'+fmtMoney(g.total)+'</div></div>');
     }
+  });
+  o.contratosVencendo.forEach(function(c){
+    const h = state.houses.find(function(x){ return x.id===c.houseId; });
+    if(!h) return;
+    const situacao = c.dias<0 ? ('vencido há '+Math.abs(c.dias)+' dia(s)')
+      : c.dias===0 ? 'vence hoje' : ('vence em '+c.dias+' dia(s)');
+    items.push('<div class="alert-row alert-contrato" onclick="openHouse(\''+h.id+'\',\'inquilino\')">'+
+      '<span class="chip">'+(c.dias<0?'VENCIDO':'CONTRATO')+'</span>'+
+      '<div class="ledger-row-main">'+esc(h.nome)+' — contrato '+situacao+'</div>'+
+      '<div class="ledger-row-value num">'+fmtDateBR(h.contratoFim)+'</div></div>');
+  });
+  o.manutList.forEach(function(h){
+    items.push('<div class="alert-row alert-manut" onclick="openHouse(\''+h.id+'\',\'geral\')">'+
+      '<span class="chip">MANUTENÇÃO</span>'+
+      '<div class="ledger-row-main">'+esc(h.nome)+' está marcada como em manutenção</div></div>');
   });
   if(!items.length) return '<div class="empty-state">Tudo certo por aqui — nenhuma cobrança ou pendência no momento.</div>';
   return items.join('');

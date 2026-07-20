@@ -51,6 +51,171 @@ function rowToTenant(r){
   };
 }
 
+/* ---------- validação e normalização de backups ---------- */
+function _backupText(value, max, fallback){
+  const text = String(value==null ? (fallback||'') : value).trim();
+  return text.slice(0, max||500);
+}
+function _backupNumber(value, label){
+  if(value==null || value==='') return 0;
+  const n = Number(value);
+  if(!Number.isFinite(n) || n < 0) throw new Error((label||'Valor')+' inválido no backup.');
+  return Math.round(n*100)/100;
+}
+function _backupDate(value, label){
+  if(value==null || value==='') return null;
+  const s = String(value);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) throw new Error((label||'Data')+' inválida no backup.');
+  const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+  if(d.getFullYear()!==Number(m[1]) || d.getMonth()!==Number(m[2])-1 || d.getDate()!==Number(m[3])){
+    throw new Error((label||'Data')+' inválida no backup.');
+  }
+  return s;
+}
+function _backupMonth(value){
+  const s = String(value||'');
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(s)) throw new Error('Mês inválido no backup.');
+  return s;
+}
+function _backupId(value, label){
+  const s = _backupText(value, 160);
+  if(!s) throw new Error((label||'ID')+' ausente no backup.');
+  return s;
+}
+function _newImportId(){ return (crypto.randomUUID && crypto.randomUUID()) || _uuid(); }
+
+function normalizeBackupForImport(data){
+  if(!data || typeof data!=='object' || !Array.isArray(data.houses)){
+    throw new Error('Esse arquivo não parece ser um backup do Aluguel.');
+  }
+  const housesIn = data.houses;
+  const tenantsIn = Array.isArray(data.tenants) ? data.tenants : [];
+  const eventsIn = Array.isArray(data.eventos) ? data.eventos : [];
+  if(housesIn.length>500 || tenantsIn.length>2000 || eventsIn.length>10000){
+    throw new Error('O backup ultrapassa o limite seguro de registros.');
+  }
+
+  const tenantIdMap = {};
+  const embeddedTenantByHouse = {};
+  const seenTenantIds = {};
+  const seenHouseIds = {};
+  const tenantRows = [];
+
+  tenantsIn.forEach(function(t){
+    const oldId = _backupId(t && t.id, 'ID do inquilino');
+    if(seenTenantIds[oldId]) throw new Error('Há inquilinos duplicados no backup.');
+    seenTenantIds[oldId] = true;
+    const id = _newImportId(); tenantIdMap[oldId] = id;
+    tenantRows.push({ id:id, nome:_backupText(t.nome,160,'(sem nome)')||'(sem nome)',
+      telefone:_backupText(t.telefone,40), email:_backupText(t.email,180),
+      documento:_backupText(t.documento,80), emergencia_nome:_backupText(t.emergenciaNome,220) });
+  });
+
+  housesIn.forEach(function(h){
+    const oldHouseId = _backupId(h && h.id, 'ID da casa');
+    if(seenHouseIds[oldHouseId]) throw new Error('Há casas duplicadas no backup.');
+    seenHouseIds[oldHouseId] = true;
+    if(!h.tenantId && h.inquilino && h.inquilino.nome){
+      const id = _newImportId(); embeddedTenantByHouse[oldHouseId] = id;
+      tenantRows.push({ id:id, nome:_backupText(h.inquilino.nome,160,'(sem nome)')||'(sem nome)',
+        telefone:_backupText(h.inquilino.telefone,40), email:_backupText(h.inquilino.email,180),
+        documento:_backupText(h.inquilino.documento,80), emergencia_nome:_backupText(h.inquilino.emergenciaNome,220) });
+    }
+  });
+
+  const houseIdMap = {};
+  const houseRows=[], pagRows=[], despRows=[], histRows=[], fotoRows=[], reajRows=[], enerRows=[];
+  const allowedHouseStatus = ['alugada','vaga','manutencao'];
+  const allowedExpenseStatus = CONFIG.DESPESA_STATUS;
+  const allowedCategories = CONFIG.CATEGORIAS;
+
+  housesIn.forEach(function(h){
+    const oldId = _backupId(h.id, 'ID da casa');
+    const id = _newImportId(); houseIdMap[oldId] = id;
+    const status = allowedHouseStatus.includes(h.status) ? h.status : 'vaga';
+    const dueDay = Number(h.diaVencimento==null ? 5 : h.diaVencimento);
+    if(!Number.isInteger(dueDay) || dueDay<1 || dueDay>31) throw new Error('Dia de vencimento fora do intervalo de 1 a 31.');
+    const oldTenantId = h.tenantId ? _backupId(h.tenantId, 'ID do inquilino vinculado') : '';
+    const tenantId = oldTenantId ? tenantIdMap[oldTenantId] : embeddedTenantByHouse[oldId];
+    if(oldTenantId && !tenantId) throw new Error('Uma casa aponta para um inquilino inexistente.');
+    const contratoInicio = _backupDate(h.contratoInicio, 'Início do contrato');
+    const contratoFim = _backupDate(h.contratoFim, 'Fim do contrato');
+    if(contratoInicio && contratoFim && contratoFim<contratoInicio) throw new Error('Há contrato terminando antes da data de início.');
+    houseRows.push({ id:id, nome:_backupText(h.nome,160,'Casa')||'Casa', endereco:_backupText(h.endereco,400),
+      status:status, aluguel_valor:_backupNumber(h.aluguelValor,'Aluguel'), dia_vencimento:dueDay,
+      ultima_vistoria:_backupDate(h.ultimaVistoria,'Última vistoria'), tenant_id:tenantId||null,
+      contrato_inicio:contratoInicio, contrato_fim:contratoFim });
+
+    const seenMonths = {};
+    (Array.isArray(h.pagamentos)?h.pagamentos:[]).forEach(function(p){
+      const mes = _backupMonth(p.mes);
+      if(seenMonths[mes]) throw new Error('Há pagamentos duplicados para a mesma casa e mês.');
+      seenMonths[mes] = true;
+      pagRows.push({ imovel_id:id, mes:mes, valor_pago:_backupNumber(p.valorPago,'Pagamento'),
+        data_pagamento:_backupDate(p.dataPagamento,'Data do pagamento') });
+    });
+    (Array.isArray(h.despesas)?h.despesas:[]).forEach(function(e){
+      const categoria = allowedCategories.includes(e.categoria) ? e.categoria : 'Outro';
+      const despStatus = allowedExpenseStatus.includes(e.status) ? e.status : 'Concluído';
+      despRows.push({ imovel_id:id, descricao:_backupText(e.descricao,300,'Despesa')||'Despesa',
+        categoria:categoria, valor:_backupNumber(e.valor,'Despesa'), data:_backupDate(e.data,'Data da despesa'),
+        prestador:_backupText(e.prestador,180), status:despStatus });
+    });
+    (Array.isArray(h.statusHistorico)?h.statusHistorico:[]).forEach(function(s){
+      const histStatus = allowedHouseStatus.includes(s.status) ? s.status : 'vaga';
+      const oldHistTenant = s.tenantId ? _backupId(s.tenantId,'ID do inquilino no histórico') : '';
+      const histTenant = oldHistTenant ? tenantIdMap[oldHistTenant] : null;
+      if(oldHistTenant && !histTenant) throw new Error('O histórico aponta para um inquilino inexistente.');
+      histRows.push({ imovel_id:id, data:_backupDate(s.data,'Data do histórico')||todayISO(),
+        status:histStatus, tenant_id:histTenant });
+    });
+    (Array.isArray(h.aluguelHistorico)?h.aluguelHistorico:[]).forEach(function(rj){
+      reajRows.push({ imovel_id:id, valor:_backupNumber(rj.valor,'Reajuste'),
+        data_inicio:_backupDate(rj.dataInicio,'Data do reajuste')||todayISO() });
+    });
+    const seenEnergyMonths = {};
+    (Array.isArray(h.energias)?h.energias:[]).forEach(function(en){
+      const mes = _backupMonth(en.mes);
+      if(seenEnergyMonths[mes]) throw new Error('Há registros de energia duplicados para a mesma casa e mês.');
+      seenEnergyMonths[mes] = true;
+      enerRows.push({ imovel_id:id, mes:mes, valor:_backupNumber(en.valor,'Energia'),
+        kwh:_backupNumber(en.kwh,'Consumo de energia'), pago:!!en.pago,
+        data_pagamento:en.pago?_backupDate(en.dataPagamento,'Data do pagamento da energia'):null });
+    });
+  });
+
+  if(pagRows.length>50000 || despRows.length>50000 || histRows.length>50000 || reajRows.length>50000 || enerRows.length>50000){
+    throw new Error('O backup ultrapassa o limite seguro de movimentações.');
+  }
+
+  const photos = data.photos && typeof data.photos==='object' ? data.photos : {};
+  Object.keys(photos).forEach(function(oldHouseId){
+    const houseId = houseIdMap[String(oldHouseId)];
+    if(!houseId) return;
+    const list = Array.isArray(photos[oldHouseId]) ? photos[oldHouseId].slice(0,6) : [];
+    list.forEach(function(dataUrl, i){
+      const safe = String(dataUrl||'');
+      if(safe.length>2500000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(safe)){
+        throw new Error('O backup contém uma foto inválida ou grande demais.');
+      }
+      fotoRows.push({ imovel_id:houseId, dados:safe, ordem:i });
+    });
+  });
+
+  const eventRows = eventsIn.map(function(ev){
+    return { data:_backupDate(ev.data,'Data do lembrete')||todayISO(), texto:_backupText(ev.texto,500) };
+  });
+  const cfg = data.config && typeof data.config==='object' ? {
+    locador_nome:_backupText(data.config.locadorNome,180),
+    locador_documento:_backupText(data.config.locadorDocumento,80)
+  } : null;
+
+  return { tenants:tenantRows, houses:houseRows, payments:pagRows, expenses:despRows,
+    history:histRows, photos:fotoRows, adjustments:reajRows, energy:enerRows,
+    events:eventRows, config:cfg };
+}
+
 const db = {
   /* Carrega tudo do usuário logado e monta o estado em memória. */
   async loadAll(){
@@ -143,95 +308,15 @@ const db = {
              config:base.config, eventos:base.eventos||[] };
   },
 
-  /* Importa um backup JSON (do app antigo ou novo), reescrevendo os IDs
-     antigos como UUIDs e preservando os vínculos casa <-> inquilino.
-     Os inquilinos são SEMPRE inseridos antes dos imóveis (respeita a FK). */
-  async importBackup(data){
-    const uidUser = await _userId();
-    const newId = function(){ return (crypto.randomUUID && crypto.randomUUID()) || _uuid(); };
-
-    // 1) monta inquilinos (cadastro central + eventuais embutidos em casas antigas)
-    const tenantIdMap = {};           // id antigo de inquilino -> uuid novo
-    const embeddedTenantByHouse = {}; // id antigo da casa -> uuid do inquilino criado
-    const tenantRows = [];
-    (data.tenants||[]).forEach(function(t){
-      const id = newId(); tenantIdMap[t.id] = id;
-      tenantRows.push({ id:id, user_id:uidUser, nome:t.nome||'(sem nome)', telefone:t.telefone||'',
-        email:t.email||'', documento:t.documento||'', emergencia_nome:t.emergenciaNome||'' });
+  /* Importa tudo em uma única transação no PostgreSQL. Se qualquer etapa
+     falhar, nenhuma linha é gravada e uma restauração não apaga o estado atual. */
+  async importBackup(data, options){
+    const payload = normalizeBackupForImport(data);
+    const { error } = await sb.rpc('importar_backup_atomico', {
+      p_payload: payload,
+      p_substituir: !!(options && options.replace)
     });
-    (data.houses||[]).forEach(function(h){
-      if(!h.tenantId && h.inquilino && h.inquilino.nome){
-        const id = newId(); embeddedTenantByHouse[h.id] = id;
-        tenantRows.push({ id:id, user_id:uidUser, nome:h.inquilino.nome, telefone:h.inquilino.telefone||'',
-          email:h.inquilino.email||'', documento:h.inquilino.documento||'', emergencia_nome:h.inquilino.emergenciaNome||'' });
-      }
-    });
-    if(tenantRows.length){ const r=await sb.from('inquilinos').insert(tenantRows); if(r.error) throw r.error; }
-
-    // 2) imóveis + filhos
-    const houseIdMap = {};
-    const houseRows=[], pagRows=[], despRows=[], histRows=[], fotoRows=[], reajRows=[], enerRows=[];
-    (data.houses||[]).forEach(function(h){
-      const id = newId(); houseIdMap[h.id] = id;
-      const tId = h.tenantId ? (tenantIdMap[h.tenantId]||null) : (embeddedTenantByHouse[h.id]||null);
-      houseRows.push({ id:id, user_id:uidUser, nome:h.nome||'Casa',
-        endereco:h.endereco||'', status:h.status||'vaga', aluguel_valor:Number(h.aluguelValor)||0,
-        dia_vencimento:h.diaVencimento||5, ultima_vistoria:h.ultimaVistoria||null,
-        tenant_id:tId, contrato_inicio:h.contratoInicio||null, contrato_fim:h.contratoFim||null });
-
-      (h.pagamentos||[]).forEach(function(p){
-        pagRows.push({ user_id:uidUser, imovel_id:id, mes:p.mes,
-          valor_pago:Number(p.valorPago)||0, data_pagamento:p.dataPagamento||null });
-      });
-      (h.despesas||[]).forEach(function(e){
-        despRows.push({ user_id:uidUser, imovel_id:id, descricao:e.descricao||'',
-          categoria:e.categoria||'Outro', valor:Number(e.valor)||0, data:e.data||null,
-          prestador:e.prestador||'', status:e.status||'Concluído' });
-      });
-      (h.statusHistorico||[]).forEach(function(s){
-        histRows.push({ user_id:uidUser, imovel_id:id, data:s.data,
-          status:s.status, tenant_id:s.tenantId?(tenantIdMap[s.tenantId]||null):null });
-      });
-      (h.aluguelHistorico||[]).forEach(function(rj){
-        reajRows.push({ user_id:uidUser, imovel_id:id, valor:Number(rj.valor)||0, data_inicio:rj.dataInicio });
-      });
-      (h.energias||[]).forEach(function(en){
-        enerRows.push({ user_id:uidUser, imovel_id:id, mes:en.mes, valor:Number(en.valor)||0,
-          kwh:Number(en.kwh)||0, pago:!!en.pago, data_pagamento:en.dataPagamento||null });
-      });
-    });
-
-    if(houseRows.length){ const r=await sb.from('imoveis').insert(houseRows); if(r.error) throw r.error; }
-    if(pagRows.length){ const r=await sb.from('pagamentos').insert(pagRows); if(r.error) throw r.error; }
-    if(despRows.length){ const r=await sb.from('despesas').insert(despRows); if(r.error) throw r.error; }
-    if(histRows.length){ const r=await sb.from('historico_status').insert(histRows); if(r.error) throw r.error; }
-    if(reajRows.length){ const r=await sb.from('aluguel_historico').insert(reajRows); if(r.error) throw r.error; }
-    if(enerRows.length){ const r=await sb.from('energia').insert(enerRows); if(r.error) throw r.error; }
-
-    // 3) fotos (mapa: idAntigoDaCasa -> [base64])
-    const photos = data.photos || {};
-    Object.keys(photos).forEach(function(oldHouseId){
-      const nh = houseIdMap[oldHouseId];
-      if(!nh) return;
-      (photos[oldHouseId]||[]).forEach(function(dataUrl, i){
-        fotoRows.push({ user_id:uidUser, imovel_id:nh, dados:dataUrl, ordem:i });
-      });
-    });
-    if(fotoRows.length){ const r=await sb.from('fotos').insert(fotoRows); if(r.error) throw r.error; }
-
-    // 4) config
-    if(data.config){
-      await this.saveConfig({ locadorNome:data.config.locadorNome||'',
-                              locadorDocumento:data.config.locadorDocumento||'' });
-    }
-
-    // 5) eventos do calendário (sem FK com imóvel; ids novos gerados pelo banco)
-    if(Array.isArray(data.eventos) && data.eventos.length){
-      const evRows = data.eventos.map(function(ev){
-        return { user_id:uidUser, data:ev.data, texto:ev.texto||'' };
-      });
-      const r = await sb.from('eventos').insert(evRows); if(r.error) throw r.error;
-    }
+    if(error) throw error;
   },
 
   /* ---------------- ESCRITAS ---------------- */
@@ -393,7 +478,8 @@ const db = {
     const payload = { version:3, exportedAt:new Date().toISOString(),
       houses:base.houses, tenants:base.tenants, config:base.config,
       eventos:base.eventos, photos:{} };
-    const ins = await sb.from('backups').insert({ user_id:uid, dados:payload });
+    const ins = await sb.from('backups').upsert({ user_id:uid, dados:payload, dia:todayISO(), criado_em:new Date().toISOString() },
+      { onConflict:'user_id,dia' });
     if(ins.error) throw ins.error;
     // mantém apenas os 7 mais recentes
     const { data } = await sb.from('backups').select('id,criado_em').order('criado_em', {ascending:false});
@@ -402,9 +488,9 @@ const db = {
       await sb.from('backups').delete().in('id', excedentes);
     }
   },
-  async lastSnapshotDate(){
-    const { data } = await sb.from('backups').select('criado_em').order('criado_em', {ascending:false}).limit(1);
-    return (data && data[0]) ? data[0].criado_em : null;
+  async lastSnapshotDay(){
+    const { data } = await sb.from('backups').select('dia').order('dia', {ascending:false}).limit(1);
+    return (data && data[0]) ? data[0].dia : null;
   },
   async getBackups(){
     const { data, error } = await sb.from('backups').select('id,criado_em').order('criado_em', {ascending:false});

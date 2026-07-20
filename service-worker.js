@@ -1,11 +1,11 @@
 /* ============================================================
    service-worker.js — Aluguel PWA
    Estratégia:
-   - app shell (HTML/CSS/JS/ícones) fica em cache para abrir offline;
+   - app shell (HTML/CSS/JS/ícones) fica em cache;
    - navegação: rede primeiro, cai para o cache se estiver offline;
    - demais arquivos do app: responde do cache e atualiza em segundo plano;
-   - requisições ao Supabase/fontes/CDN (cross-origin) e POST passam direto.
-   Ao publicar uma nova versão do app, suba o número do cache (talao-vN).
+   - Supabase/fontes/CDN e operações de dados exigem internet.
+   O build.mjs troca automaticamente a versão do cache em cada publicação.
    ============================================================ */
 const CACHE = 'aluguel-v4';
 const ASSETS = [

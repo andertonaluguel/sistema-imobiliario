@@ -402,6 +402,12 @@ a{color:inherit;}
 .alert-proximo{background:var(--warn-soft);border-color:transparent;}
 .alert-proximo .ledger-row-main{color:var(--warn-deep);}
 .alert-proximo .chip{background:var(--warn);color:#3D2C00;}
+.alert-contrato{background:var(--brass-soft);border-color:transparent;}
+.alert-contrato .ledger-row-main{color:var(--brass-deep);}
+.alert-contrato .chip{background:var(--brass);color:#fff;}
+.alert-manut{background:var(--manut-soft);border-color:transparent;}
+.alert-manut .ledger-row-main{color:var(--manut);}
+.alert-manut .chip{background:var(--manut);color:#fff;}
 .warn{color:var(--warn-deep);}
 .btn-cobrar{display:inline-flex;align-items:center;gap:5px;background:var(--cover);color:#fff;border:none;border-radius:8px;padding:6px 11px;font-family:var(--font-body);font-size:11px;font-weight:600;flex-shrink:0;transition:background .15s var(--ease);}
 .btn-cobrar:hover{background:var(--cover-light);}

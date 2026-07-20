@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="motion.css">
 
-<!-- PWA: instalável e offline -->
+<!-- PWA: instalável; mantém a interface básica em cache -->
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,7 +32,7 @@
   <input type="file" id="photoInput" accept="image/*" multiple hidden>
 
   <!-- Biblioteca do Supabase (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
   <!-- jsPDF para recibos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -65,7 +65,7 @@
       this.value = '';
     });
 
-    // Registra o service worker (PWA: instalável e abre offline)
+    // Registra o service worker (PWA instalável e cache da interface)
     if('serviceWorker' in navigator){
       window.addEventListener('load', function(){
         navigator.serviceWorker.register('service-worker.js').catch(function(err){

@@ -28,6 +28,28 @@ function addMonths(mesStr, delta){
 }
 function monthLabel(mesStr){ const p=mesStr.split('-').map(Number); return monthNamesPt[p[1]-1]+'/'+p[0]; }
 
+/* Dia de vencimento efetivo no mes.
+   Ex.: dia 31 vira 30 em abril e 28/29 em fevereiro. */
+function dueDayForMonth(mesStr, requestedDay){
+  const p = mesStr.split('-').map(Number);
+  const lastDay = new Date(p[0], p[1], 0).getDate();
+  const configured = Math.min(31, Math.max(1, parseInt(requestedDay,10)||5));
+  return Math.min(configured, lastDay);
+}
+function dueDateForMonth(mesStr, requestedDay){
+  const p = mesStr.split('-').map(Number);
+  return new Date(p[0], p[1]-1, dueDayForMonth(mesStr, requestedDay), 23, 59, 59);
+}
+
+/* Valor vigente do aluguel em um mes, respeitando os reajustes cadastrados. */
+function aluguelValorMes(house, mesStr){
+  const hist = (house.aluguelHistorico||[]).filter(function(r){
+    return r && r.dataInicio && r.dataInicio.slice(0,7) <= mesStr;
+  }).sort(function(a,b){ return a.dataInicio.localeCompare(b.dataInicio); });
+  if(hist.length) return Number(hist[hist.length-1].valor)||0;
+  return Number(house.aluguelValor)||0;
+}
+
 /* ---------- formatação ---------- */
 function fmtMoney(n){ return (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
 function fmtDateBR(iso){ if(!iso) return '—'; const p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
@@ -46,8 +68,7 @@ function paymentStatus(house, mesStr){
   // meses anteriores ao início do contrato vigente não geram cobrança nem atraso
   // (a casa ainda não estava alugada a este inquilino)
   if(house.contratoInicio && mesStr < house.contratoInicio.slice(0,7)) return 'pendente';
-  const p = mesStr.split('-').map(Number);
-  const due = new Date(p[0], p[1]-1, house.diaVencimento||5, 23,59,59);
+  const due = dueDateForMonth(mesStr, house.diaVencimento||5);
   return (new Date() > due) ? 'atrasado' : 'pendente';
 }
 
@@ -71,8 +92,7 @@ function energiaStatus(h, mes){
   if(!e) return 'sem_registro';
   if(e.pago) return 'pago';
   if(h.contratoInicio && mes < h.contratoInicio.slice(0,7)) return 'pendente';
-  const p = mes.split('-').map(Number);
-  const due = new Date(p[0], p[1]-1, h.diaVencimento||5, 23,59,59);
+  const due = dueDateForMonth(mes, h.diaVencimento||5);
   return (new Date() > due) ? 'atrasado' : 'pendente';
 }
 

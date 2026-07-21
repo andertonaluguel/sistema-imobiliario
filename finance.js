@@ -38,7 +38,7 @@ function computeHouseAnnualReport(h, year){
     const dias = diffDaysInclusive(clipStart, clipEnd);
     if(p.status==='vaga') diasVago += dias;
     else if(p.status==='manutencao') diasManutencao += dias;
-    else if(p.status==='alugada'){
+    else if(p.status==='alugada'&&!(h.contracts||[]).length){
       const tenant = p.tenantId ? state.tenants.find(function(t){ return t.id===p.tenantId; }) : null;
       const recebidoPeriodo = h.pagamentos.filter(function(pg){
         return pg.mes >= clipStart.slice(0,7) && pg.mes <= clipEnd.slice(0,7);
@@ -50,10 +50,19 @@ function computeHouseAnnualReport(h, year){
       });
     }
   });
+  (h.contracts||[]).forEach(function(c){
+    const cEnd=c.fim||todayISO(),clipStart=c.inicio<yearStart?yearStart:c.inicio,clipEnd=cEnd>yearEnd?yearEnd:cEnd;
+    if(!c.inicio||clipStart>clipEnd) return;
+    const tenant=contractTenant(c);
+    const recebido=h.pagamentos.filter(function(pg){return pg.contractId===c.id&&pg.mes>=clipStart.slice(0,7)&&pg.mes<=clipEnd.slice(0,7);})
+      .reduce(function(s,pg){return s+(Number(pg.valorPago)||0);},0)+(c.proporcionalPago&&c.inicio.slice(0,4)===String(year)?contractProrataValue(c):0);
+    contratosNoAno.push({tenantNome:tenant?tenant.nome:'Inquilino removido',inicio:clipStart,fim:clipEnd,ongoing:!c.fim,recebido:recebido});
+  });
   const despesasAno = h.despesas.filter(function(e){ return e.data && e.data.slice(0,4)===String(year); });
   const despesasPorCategoria = {};
   despesasAno.forEach(function(e){ despesasPorCategoria[e.categoria] = (despesasPorCategoria[e.categoria]||0) + (Number(e.valor)||0); });
-  const recebidoAno = h.pagamentos.filter(function(p){ return p.mes.slice(0,4)===String(year); }).reduce(function(s,p){ return s+(Number(p.valorPago)||0); },0);
+  const recebidoAno = h.pagamentos.filter(function(p){ return p.mes.slice(0,4)===String(year); }).reduce(function(s,p){ return s+(Number(p.valorPago)||0); },0)+
+    (h.contracts||[]).filter(function(c){return c.proporcionalPago&&c.inicio&&c.inicio.slice(0,4)===String(year);}).reduce(function(s,c){return s+contractProrataValue(c);},0);
   const energiaAno = (h.energias||[]).filter(function(e){ return e.pago && e.mes.slice(0,4)===String(year); }).reduce(function(s,e){ return s+(Number(e.valor)||0); },0);
   const despesasTotal = despesasAno.reduce(function(s,e){ return s+(Number(e.valor)||0); },0);
   return {
@@ -116,6 +125,10 @@ function computeAnnualTotals(year){
 }
 
 function houseRentedInMonth(h,mes){
+  if((h.contracts||[]).length) return h.contracts.some(function(c){
+    const start=mes+'-01',end=addDaysISO(addMonths(mes,1)+'-01',-1),cEnd=c.fim||'9999-12-31';
+    return c.inicio<=end&&cEnd>=start;
+  });
   const start=mes+'-01', end=addDaysISO(addMonths(mes,1)+'-01',-1);
   return buildStatusTimeline(h).some(function(p){
     const pEnd=p.fim||todayISO();
@@ -125,14 +138,17 @@ function houseRentedInMonth(h,mes){
 
 function computeMonthlyFinance(mes){
   const rows=state.houses.map(function(h){
-    const expected=houseRentedInMonth(h,mes)?aluguelValorMes(h,mes):0;
-    const pay=(h.pagamentos||[]).find(function(p){return p.mes===mes;});
-    const en=energiaDoMes(h,mes);
+    const contracts=(h.contracts||[]).filter(function(c){return contractCoversMonth(c,mes);});
+    const expectedMonthly=contracts.length?contracts.reduce(function(s,c){return s+contractExpectedRent(c,mes);},0):(houseRentedInMonth(h,mes)?aluguelValorMes(h,mes):0);
+    const expectedProrata=(h.contracts||[]).filter(function(c){return c.inicio&&c.inicio.slice(0,7)===mes;}).reduce(function(s,c){return s+contractProrataValue(c);},0);
+    const expected=expectedMonthly+expectedProrata;
+    const pays=(h.pagamentos||[]).filter(function(p){return p.mes===mes;});
+    const energyRows=(h.energias||[]).filter(function(e){return e.mes===mes;});
     const expenses=(h.despesas||[]).filter(function(e){return e.data&&e.data.slice(0,7)===mes;})
       .reduce(function(s,e){return s+(Number(e.valor)||0);},0);
-    const receivedRent=pay?Number(pay.valorPago)||0:0;
-    const energyBilled=en?Number(en.valor)||0:0;
-    const energyReceived=en&&en.pago?energyBilled:0;
+    const receivedRent=pays.reduce(function(s,p){return s+(Number(p.valorPago)||0);},0)+(h.contracts||[]).filter(function(c){return c.inicio&&c.inicio.slice(0,7)===mes&&c.proporcionalPago;}).reduce(function(s,c){return s+contractProrataValue(c);},0);
+    const energyBilled=energyRows.reduce(function(s,e){return s+(Number(e.valor)||0);},0);
+    const energyReceived=energyRows.filter(function(e){return e.pago;}).reduce(function(s,e){return s+(Number(e.valor)||0);},0);
     return {house:h,expected:expected,receivedRent:receivedRent,energyBilled:energyBilled,
       energyReceived:energyReceived,expenses:expenses,
       balance:receivedRent+energyReceived-expenses,

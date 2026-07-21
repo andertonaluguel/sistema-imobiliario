@@ -8,17 +8,20 @@
    - null: nada a cobrar agora */
 function computeCobrancaCasa(h){
   if(h.status!=='alugada') return null;
+  const contract=activeContract(h);
+  if(!contract) return null;
   const cur = currentMonthStr();
-  const diaVenc = h.diaVencimento||5;
+  const diaVenc = contractBillingDay(contract);
   const hoje = new Date();
   const hojeDia = hoje.getDate();
-  const inicio = h.contratoInicio ? h.contratoInicio.slice(0,7) : null;
+  const inicio = contractFirstFullMonth(contract);
   // aluguel: meses vencidos e não pagos (do contrato até agora)
   const mesesAtraso = [];
   for(let i=0;i<24;i++){
     const mes = addMonths(cur, -i);
     if(inicio && mes < inicio) break;
-    if(h.pagamentos.find(function(p){ return p.mes===mes; })) continue;
+    if(!contractCoversMonth(contract,mes)) continue;
+    if(paymentForMonth(h,mes,contract.id)) continue;
     let vencido;
     if(mes < cur) vencido = true;                 // mês passado: já venceu
     else if(mes===cur) vencido = hoje > dueDateForMonth(cur, diaVenc);
@@ -32,32 +35,36 @@ function computeCobrancaCasa(h){
   for(let i=0;i<24;i++){
     const mes = addMonths(cur, -i);
     if(inicio && mes < inicio) break;
-    if(energiaStatus(h, mes)==='atrasado'){ energiaMeses.push(mes); energiaTotal += energiaValorMes(h, mes); }
+    if(energiaStatus(h,mes,contract.id)==='atrasado'){ energiaMeses.push(mes); energiaTotal+=energiaValorMes(h,mes,contract.id); }
   }
   energiaMeses.sort();
   const aluguelTotal = mesesAtraso.reduce(function(total, mes){
-    return total + aluguelValorMes(h, mes);
+    return total + contractExpectedRent(contract,mes);
   }, 0);
 
-  if(mesesAtraso.length || energiaMeses.length){
+  const proporcionalValor=contractProrataValue(contract);
+  const proporcionalPendente=proporcionalValor>0&&!contract.proporcionalPago;
+
+  if(mesesAtraso.length || energiaMeses.length || proporcionalPendente){
     // dias de atraso contados do vencimento mais antigo (entre aluguel e energia)
     const refMes = (mesesAtraso[0] && energiaMeses[0])
       ? (mesesAtraso[0]<energiaMeses[0]?mesesAtraso[0]:energiaMeses[0])
       : (mesesAtraso[0]||energiaMeses[0]);
-    const due0 = dueDateForMonth(refMes, diaVenc);
+    const due0 = refMes?dueDateForMonth(refMes,diaVenc):new Date(contract.inicio+'T23:59:59');
     due0.setHours(0,0,0,0);
     const hoje0 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const dias = Math.max(0, Math.round((hoje0 - due0)/86400000));
-    return { houseId:h.id, tipo:'atraso', meses:mesesAtraso, aluguelTotal:aluguelTotal,
-      energiaMeses:energiaMeses, energiaTotal:energiaTotal, total:aluguelTotal+energiaTotal, dias:dias };
+    return { houseId:h.id, contractId:contract.id,tipo:'atraso', meses:mesesAtraso, aluguelTotal:aluguelTotal,
+      energiaMeses:energiaMeses, energiaTotal:energiaTotal, proporcional:proporcionalPendente?proporcionalValor:0,
+      total:aluguelTotal+energiaTotal+(proporcionalPendente?proporcionalValor:0), dias:dias };
   }
   // próximo do vencimento (mês atual ainda no prazo, faltando 7 dias ou menos)
-  if(!h.pagamentos.find(function(p){ return p.mes===cur; }) && (!inicio || cur>=inicio)){
+  if(contractCoversMonth(contract,cur)&&!paymentForMonth(h,cur,contract.id)){
     const diasAteVenc = dueDayForMonth(cur, diaVenc) - hojeDia;
     if(diasAteVenc>=1 && diasAteVenc<=7){
-      const enerPend = energiaStatus(h,cur)==='pendente' ? energiaValorMes(h,cur) : 0;
-      const aluguelMes = aluguelValorMes(h, cur);
-      return { houseId:h.id, tipo:'proximo', meses:[cur], aluguelTotal:aluguelMes,
+      const enerPend = energiaStatus(h,cur,contract.id)==='pendente' ? energiaValorMes(h,cur,contract.id) : 0;
+      const aluguelMes = contractExpectedRent(contract,cur);
+      return { houseId:h.id,contractId:contract.id,tipo:'proximo', meses:[cur], aluguelTotal:aluguelMes,
         energiaMeses:enerPend?[cur]:[], energiaTotal:enerPend, total:aluguelMes+enerPend, dias:diasAteVenc };
     }
   }
@@ -74,11 +81,15 @@ function computeOverview(){
   state.houses.forEach(function(h){
     if(h.status==='alugada'){
       alugadas++;
-      receitaMensal += aluguelValorMes(h, cur);
-      const recCur = h.pagamentos.find(function(p){ return p.mes===cur; });
+      const contract=activeContract(h);
+      const mensal=contract?contractExpectedRent(contract,cur):aluguelValorMes(h,cur);
+      const proporcionalMes=contract&&contract.inicio&&contract.inicio.slice(0,7)===cur?contractProrataValue(contract):0;
+      receitaMensal+=mensal+proporcionalMes;
+      const recCur = contract?paymentForMonth(h,cur,contract.id):null;
       if(recCur) recebidoMes += Number(recCur.valorPago)||0;
-      energiaMes += energiaValorMes(h, cur);
-      if(energiaPagaMes(h, cur)) energiaRecebida += energiaValorMes(h, cur);
+      if(contract&&proporcionalMes&&contract.proporcionalPago) recebidoMes+=proporcionalMes;
+      energiaMes += energiaValorMes(h,cur,contract&&contract.id);
+      if(energiaPagaMes(h,cur,contract&&contract.id)) energiaRecebida+=energiaValorMes(h,cur,contract&&contract.id);
       const cob = computeCobrancaCasa(h);
       if(cob) cobrancas.push(cob);
       if(h.contratoFim){
@@ -114,8 +125,11 @@ function computeChartData12(){
   return months.map(function(mes){
     let recebido=0;
     state.houses.forEach(function(h){
-      const rec = h.pagamentos.find(function(p){ return p.mes===mes; });
-      if(rec) recebido += Number(rec.valorPago)||0;
+      recebido += h.pagamentos.filter(function(p){ return p.mes===mes; })
+        .reduce(function(total,p){ return total+(Number(p.valorPago)||0); },0);
+      recebido += (h.contracts||[]).filter(function(c){
+        return c.proporcionalPago&&c.inicio&&c.inicio.slice(0,7)===mes;
+      }).reduce(function(total,c){ return total+contractProrataValue(c); },0);
     });
     return { mes, recebido };
   });
@@ -216,24 +230,26 @@ function renderAlerts(o){
     const btn = (t && t.telefone)
       ? '<button class="btn-cobrar" onclick="event.stopPropagation();cobrarAlerta(\''+g.houseId+'\')" title="Cobrar no WhatsApp">'+FICO.phone+'<span>Cobrar</span></button>'
       : '';
+    const registerBtn='<button class="btn-register-payment" onclick="event.stopPropagation();openAlertPaymentChooser(\''+g.houseId+'\')" title="Registrar pagamento">'+FICO.money+'<span>Registrar</span></button>';
     const temAluguel = g.meses.length>0;
     const temEnergia = g.energiaMeses && g.energiaMeses.length>0;
     if(g.tipo==='atraso'){
       const partes = [];
       if(temAluguel) partes.push(g.meses.length===1 ? ('aluguel de '+monthLabel(g.meses[0])) : (g.meses.length+' meses de aluguel'));
       if(temEnergia) partes.push(g.energiaMeses.length===1 ? ('energia de '+monthLabel(g.energiaMeses[0])) : (g.energiaMeses.length+' de energia'));
+      if(g.proporcional) partes.push('ajuste inicial do contrato');
       const txt = partes.join(' + ')+' — atrasado há '+g.dias+' dia(s)';
       items.push('<div class="alert-row alert-atraso" onclick="openHouse(\''+g.houseId+'\',\''+(temAluguel?'pagamentos':'energia')+'\')">'+
         '<span class="chip">ATRASADO</span>'+
         '<div class="ledger-row-main">'+esc(h.nome)+' — '+txt+'</div>'+
-        btn+
+        '<div class="alert-actions">'+btn+registerBtn+'</div>'+
         '<div class="ledger-row-value num rust">'+fmtMoney(g.total)+'</div></div>');
     } else {
       const extra = temEnergia ? ' + energia' : '';
       items.push('<div class="alert-row alert-proximo" onclick="openHouse(\''+g.houseId+'\',\'pagamentos\')">'+
         '<span class="chip">PRÓXIMO</span>'+
         '<div class="ledger-row-main">'+esc(h.nome)+' — aluguel'+extra+' vence em '+g.dias+' dia(s) ('+monthLabel(g.meses[0])+')</div>'+
-        btn+
+        '<div class="alert-actions">'+btn+registerBtn+'</div>'+
         '<div class="ledger-row-value num warn">'+fmtMoney(g.total)+'</div></div>');
     }
   });
@@ -256,6 +272,24 @@ function renderAlerts(o){
   return items.join('');
 }
 
+function openAlertPaymentChooser(houseId){
+  const h=state.houses.find(function(x){return x.id===houseId;});
+  const charge=h?computeCobrancaCasa(h):null;
+  if(!h||!charge){showToast('Não há pagamento pendente nesta casa.','success');return;}
+  const contract=activeContract(h),rows=[];
+  if(charge.proporcional&&contract){
+    rows.push('<button class="payment-choice" onclick="openProrataPaymentModal(\''+h.id+'\',\''+contract.id+'\')"><span>Ajuste inicial do contrato</span><strong class="num">'+fmtMoney(charge.proporcional)+'</strong></button>');
+  }
+  (charge.meses||[]).forEach(function(mes){
+    rows.push('<button class="payment-choice" onclick="openPaymentModal(\''+h.id+'\',\''+mes+'\',\''+(contract?contract.id:'')+'\')"><span>Aluguel · '+monthLabel(mes)+'</span><strong class="num">'+fmtMoney(contract?contractExpectedRent(contract,mes):aluguelValorMes(h,mes))+'</strong></button>');
+  });
+  (charge.energiaMeses||[]).forEach(function(mes){
+    rows.push('<button class="payment-choice" onclick="openEnergiaModal(\''+h.id+'\',\''+mes+'\',\''+(contract?contract.id:'')+'\')"><span>Energia · '+monthLabel(mes)+'</span><strong class="num">'+fmtMoney(energiaValorMes(h,mes,contract&&contract.id))+'</strong></button>');
+  });
+  openModal('<h3 class="modal-title">Registrar pagamento</h3><p class="modal-text">'+esc(h.nome)+' — escolha o que foi recebido.</p><div class="payment-choice-list">'+rows.join('')+'</div>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button></div></div>');
+}
+
 function renderRecentes(){
   const recs = computeRecentes(6);
   if(!recs.length) return '<div class="empty-state">Sem movimentações registradas ainda.</div>';
@@ -267,6 +301,17 @@ function renderRecentes(){
       '<div class="ledger-row-main">'+esc(m.texto)+'<div class="ledger-row-sub">'+fmtDateBR(m.data)+'</div></div>'+
       '<div class="ledger-row-value num '+cls+'">'+sign+' '+fmtMoney(m.valor)+'</div></div>';
   }).join('')+'</div>';
+}
+
+function renderOccupancySummary(o){
+  const total=state.houses.length;
+  const pct=total?Math.round((o.alugadas/total)*100):0;
+  const unavailable=o.vagas+o.manutencao;
+  const headline=total&&pct===100?'100% das casas estão alugadas':pct+'% das casas estão alugadas';
+  const detail=unavailable===0?(o.alugadas+' de '+total+' ocupadas'):
+    (unavailable+' desocupada(s) · '+o.vagas+' vaga(s)'+(o.manutencao?' · '+o.manutencao+' em manutenção':''));
+  return '<div class="occupancy-card"><div class="occupancy-copy"><span>OCUPAÇÃO</span><strong>'+headline+'</strong><small>'+detail+'</small></div>'+
+    '<div class="occupancy-meter" role="img" aria-label="'+pct+'% das casas alugadas"><span style="width:'+pct+'%"></span></div></div>';
 }
 
 function renderDashboard(){
@@ -292,11 +337,9 @@ function renderDashboard(){
       statCard('Recebido', fmtMoney(o.recebidoMes + o.energiaRecebida), 'aluguel + energia até agora', null)+
     '</div>'+
 
-    '<div class="stat-grid stat-grid-mini">'+
+    '<div class="dashboard-status-row">'+
       statCard('Falta receber', fmtMoney(o.faltaReceber), o.nAtraso+' em atraso', o.faltaReceber>0?'rust':null)+
-      statCard('Alugadas', o.alugadas, '', 'brass')+
-      statCard('Vagas', o.vagas, '', 'slate')+
-      statCard('Manutenção', o.manutencao, '', 'manut')+
+      renderOccupancySummary(o)+
     '</div>'+
 
     '<div class="panel panel-collapsible">'+

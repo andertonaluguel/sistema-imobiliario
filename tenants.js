@@ -209,9 +209,11 @@ async function deleteTenant(tenantId){
     // casas que apontavam para ele ficam vagas (com histórico)
     const afetadas = state.houses.filter(function(h){ return h.tenantId===tenantId; });
     for(const h of afetadas){
+      const current=activeContract(h);
       h.tenantId=''; h.status='vaga'; h.contratoInicio=''; h.contratoFim='';
       recordStatusChange(h);
-      await db.updateHouse(h);
+      if(current){await db.finishContract(h.id,current.id,todayISO(),'vaga');current.ativo=false;current.fim=todayISO();}
+      else await db.updateHouse(h);
       await db.replaceStatusHistory(h.id, h.statusHistorico);
     }
     await db.deleteTenant(tenantId);
@@ -221,25 +223,40 @@ async function deleteTenant(tenantId){
 }
 
 /* ---------- vínculo casa <-> inquilino ---------- */
-async function assignTenantToHouse(tenantId, houseId, contratoInicio, contratoFim){
+async function assignTenantToHouse(tenantId, houseId, contratoInicio, contratoFim,contractDraft){
   // um inquilino pode ter vários imóveis ao mesmo tempo: vincular a esta casa
   // NÃO desvincula as outras casas do mesmo inquilino.
   const target = state.houses.find(function(h){ return h.id===houseId; });
+  const previous=activeContract(target);
+  const draft=Object.assign({inicio:contratoInicio||todayISO(),fim:contratoFim||'',
+    valor:target.aluguelValor||0,diaVencimento:target.diaVencimento||5,modalidade:'fixo'},contractDraft||{});
+  const validation=validateContractDraft(target,draft,previous&&previous.id);
+  if(validation) throw new Error(validation);
+  if(draft.inicio>todayISO()) throw new Error('Para vincular o inquilino agora, o início não pode estar no futuro.');
+  if(draft.fim&&draft.fim<todayISO()) throw new Error('Para vincular o inquilino agora, o fim do contrato não pode estar no passado.');
+  if(previous&&draft.inicio<=previous.inicio) throw new Error('O novo contrato deve começar depois do contrato atual. Edite o contrato atual para corrigir sua data.');
+  const novoContrato=await db.startContract(houseId,tenantId,draft);
+  if(previous){previous.ativo=false;previous.fim=addDaysISO(draft.inicio,-1);}
+  if(!target.contracts) target.contracts=[];
+  target.contracts.push(novoContrato);
   target.tenantId = tenantId;
   target.status = 'alugada';
-  target.contratoInicio = contratoInicio||'';
-  target.contratoFim = contratoFim||'';
-  recordStatusChange(target, contratoInicio||todayISO());
-  await db.updateHouse(target);
+  target.contratoInicio = draft.inicio;
+  target.contratoFim = draft.fim||'';
+  target.aluguelValor=draft.valor;
+  target.diaVencimento=contractBillingDay(draft);
+  recordStatusChange(target, draft.inicio);
   await db.replaceStatusHistory(target.id, target.statusHistorico);
   showToast('Inquilino vinculado a '+target.nome+'.', 'success');
 }
 async function unassignTenant(houseId){
   const h = state.houses.find(function(x){ return x.id===houseId; });
+  const current=activeContract(h);
   h.tenantId=''; h.contratoInicio=''; h.contratoFim=''; h.status='vaga';
   recordStatusChange(h);
   try{
-    await db.updateHouse(h);
+    if(current){await db.finishContract(h.id,current.id,todayISO(),'vaga');current.ativo=false;current.fim=todayISO();}
+    else await db.updateHouse(h);
     await db.replaceStatusHistory(h.id, h.statusHistorico);
     render();
     showToast('Inquilino desvinculado. Casa marcada como vaga.', 'success');
@@ -263,10 +280,8 @@ function openAssignTenantModal(houseId){
         '<label class="field"><span>Contato de emergência</span><input id="f_emerg" placeholder="Nome e telefone"></label>'+
       '</div>'+
     '</div>'+
-    '<div class="field-row">'+
-      '<label class="field"><span>Início do contrato</span><input id="f_ini" type="date" value="'+todayISO()+'"></label>'+
-      '<label class="field"><span>Fim do contrato</span><input id="f_fim" type="date"></label>'+
-    '</div>'+
+    contractFormFieldsHtml({inicio:todayISO(),valor:(state.houses.find(function(h){return h.id===houseId;})||{}).aluguelValor||0,
+      diaVencimento:(state.houses.find(function(h){return h.id===houseId;})||{}).diaVencimento||5,modalidade:'fixo'})+
     '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
       '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
       '<button class="btn btn-primary" onclick="saveAssignTenant(\''+houseId+'\')">Vincular</button>'+
@@ -277,11 +292,12 @@ function openAssignTenantModal(houseId){
   if(sel && fields){
     sel.addEventListener('change', function(){ fields.style.display = this.value ? 'none' : 'block'; });
   }
+  updateContractFormPreview();
 }
 async function saveAssignTenant(houseId){
   const selectedId = document.getElementById('f_tenant_select').value;
-  const ini = document.getElementById('f_ini').value;
-  const fim = document.getElementById('f_fim').value;
+  const draft=readContractForm();
+  const ini=draft.inicio,fim=draft.fim;
   let tenantId = selectedId;
   try{
     if(!tenantId){
@@ -297,9 +313,9 @@ async function saveAssignTenant(houseId){
       state.tenants.push(novo);
       tenantId = novo.id;
     }
-    await assignTenantToHouse(tenantId, houseId, ini, fim);
+    await assignTenantToHouse(tenantId, houseId, ini, fim,draft);
     closeModal(); render();
-  }catch(e){ console.error(e); showToast('Erro ao vincular.', 'error'); }
+  }catch(e){ console.error(e); showToast(e&&e.message?e.message:'Erro ao vincular.', 'error'); }
 }
 function openAssignHouseModal(tenantId){
   const t = state.tenants.find(function(x){ return x.id===tenantId; });
@@ -319,24 +335,32 @@ function openAssignHouseModal(tenantId){
   const options = disponiveis.map(function(h){ return '<option value="'+h.id+'">'+esc(h.nome)+(h.endereco?(' — '+esc(h.endereco)):'')+'</option>'; }).join('');
   openModal(
     '<h3 class="modal-title">Vincular '+esc(t.nome)+' a uma casa</h3>'+
-    '<label class="field"><span>Casa (somente vagas)</span><select id="f_house_select">'+options+'</select></label>'+
-    '<div class="field-row">'+
-      '<label class="field"><span>Início do contrato</span><input id="f_ini" type="date" value="'+todayISO()+'"></label>'+
-      '<label class="field"><span>Fim do contrato</span><input id="f_fim" type="date"></label>'+
-    '</div>'+
+    '<label class="field"><span>Casa (somente vagas)</span><select id="f_house_select" onchange="syncAssignHouseContractDefaults()">'+options+'</select></label>'+
+    contractFormFieldsHtml({inicio:todayISO(),valor:(disponiveis[0]&&disponiveis[0].aluguelValor)||0,
+      diaVencimento:(disponiveis[0]&&disponiveis[0].diaVencimento)||5,modalidade:'fixo'})+
     '<p class="modal-text">As outras casas deste inquilino continuam vinculadas — ele pode ter vários imóveis ao mesmo tempo.</p>'+
     '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
       '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
       '<button class="btn btn-primary" onclick="saveAssignHouse(\''+tenantId+'\')">Vincular</button>'+
     '</div></div>'
   );
+  updateContractFormPreview();
+}
+function syncAssignHouseContractDefaults(){
+  const select=document.getElementById('f_house_select');
+  const h=select&&state.houses.find(function(x){return x.id===select.value;});
+  const value=document.getElementById('f_contract_valor'),due=document.getElementById('f_contract_dia');
+  if(!h) return;
+  if(value) value.value=String(Number(h.aluguelValor)||0);
+  if(due) due.value=String(h.diaVencimento||5);
+  updateContractFormPreview();
 }
 async function saveAssignHouse(tenantId){
   const houseId = document.getElementById('f_house_select').value;
-  const ini = document.getElementById('f_ini').value;
-  const fim = document.getElementById('f_fim').value;
+  const draft=readContractForm();
+  const ini=draft.inicio,fim=draft.fim;
   try{
-    await assignTenantToHouse(tenantId, houseId, ini, fim);
+    await assignTenantToHouse(tenantId, houseId, ini, fim,draft);
     closeModal(); render();
-  }catch(e){ console.error(e); showToast('Erro ao vincular.', 'error'); }
+  }catch(e){ console.error(e); showToast(e&&e.message?e.message:'Erro ao vincular.', 'error'); }
 }

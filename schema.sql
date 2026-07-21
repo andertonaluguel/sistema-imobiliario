@@ -51,8 +51,7 @@ create table if not exists public.pagamentos (
   mes             text not null check (mes ~ '^\d{4}-(0[1-9]|1[0-2])$'),
   valor_pago      numeric(12,2) default 0 check (valor_pago >= 0),
   data_pagamento  date,
-  created_at      timestamptz default now(),
-  unique (imovel_id, mes)
+  created_at      timestamptz default now()
 );
 
 -- ------------------------------------------------------------
@@ -67,8 +66,7 @@ create table if not exists public.energia (
   kwh             numeric(12,2) default 0 check (kwh >= 0),
   pago            boolean default false,
   data_pagamento  date,
-  created_at      timestamptz default now(),
-  unique (imovel_id, mes)
+  created_at      timestamptz default now()
 );
 
 -- ------------------------------------------------------------
@@ -124,9 +122,28 @@ create table if not exists public.contratos (
   inicio          date,
   fim             date,
   valor           numeric(12,2) default 0,
+  dia_vencimento  int not null default 5 check (dia_vencimento between 1 and 31),
+  modalidade_vencimento text not null default 'fixo' check (modalidade_vencimento in ('entrada','fixo')),
+  proporcional_dias int not null default 0,
+  proporcional_valor numeric(12,2) not null default 0,
+  proporcional_pago boolean not null default false,
+  proporcional_data_pagamento date,
   ativo           boolean default true,
-  created_at      timestamptz default now()
+  created_at      timestamptz default now(),
+  updated_at      timestamptz default now()
 );
+
+alter table public.pagamentos add column if not exists contrato_id uuid references public.contratos(id) on delete set null;
+alter table public.energia add column if not exists contrato_id uuid references public.contratos(id) on delete set null;
+do $$
+begin
+  if not exists(select 1 from pg_constraint where conname='pagamentos_contrato_mes_key') then
+    alter table public.pagamentos add constraint pagamentos_contrato_mes_key unique(contrato_id,mes);
+  end if;
+  if not exists(select 1 from pg_constraint where conname='energia_contrato_mes_key') then
+    alter table public.energia add constraint energia_contrato_mes_key unique(contrato_id,mes);
+  end if;
+end $$;
 
 -- ------------------------------------------------------------
 -- DOCUMENTOS  (base64 — módulo entra na Fase 2)

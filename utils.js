@@ -50,6 +50,105 @@ function aluguelValorMes(house, mesStr){
   return Number(house.aluguelValor)||0;
 }
 
+/* ---------- contratos e ciclos de cobrança ---------- */
+function activeContract(house){
+  const list=(house&&house.contracts||[]).slice().sort(function(a,b){
+    return String(b.inicio||'').localeCompare(String(a.inicio||''));
+  });
+  return list.find(function(c){return c.ativo;})||null;
+}
+function contractBillingDay(contract){
+  return Math.min(31,Math.max(1,parseInt(contract&&contract.diaVencimento,10)||5));
+}
+function contractMode(contract){ return contract&&contract.modalidade==='entrada'?'entrada':'fixo'; }
+function contractProrataDays(contract){
+  if(!contract||!contract.inicio||contractMode(contract)!=='fixo') return 0;
+  const startDay=Number(contract.inicio.slice(8,10))||1;
+  const due=contractBillingDay(contract);
+  if(startDay===due) return 0;
+  return due>startDay ? due-startDay : 30-startDay+due;
+}
+function contractProrataValue(contract){
+  if(!contract) return 0;
+  if(contract.proporcionalValor!=null) return Number(contract.proporcionalValor)||0;
+  return Math.round(((Number(contract.valor)||0)/30)*contractProrataDays(contract)*100)/100;
+}
+function contractFirstFullMonth(contract){
+  if(!contract||!contract.inicio) return null;
+  const startMonth=contract.inicio.slice(0,7);
+  if(contractMode(contract)==='entrada') return startMonth;
+  const startDay=Number(contract.inicio.slice(8,10))||1;
+  return contractBillingDay(contract)>startDay ? startMonth : addMonths(startMonth,1);
+}
+function contractDueDate(contract,mes){
+  return dueDateForMonth(mes,contractBillingDay(contract));
+}
+function contractCoversMonth(contract,mes){
+  if(!contract||!contract.inicio||!mes) return false;
+  const first=contractFirstFullMonth(contract);
+  if(first&&mes<first) return false;
+  const due=contractDueDate(contract,mes);
+  const start=new Date(contract.inicio+'T00:00:00');
+  if(due<start) return false;
+  if(contract.fim){
+    const end=new Date(contract.fim+'T23:59:59');
+    if(due>end) return false;
+  }
+  return true;
+}
+function contractForMonth(house,mes,contractId){
+  const list=(house&&house.contracts||[]);
+  if(contractId){
+    const exact=list.find(function(c){return c.id===contractId;});
+    if(exact) return exact;
+  }
+  const candidates=list.filter(function(c){return contractCoversMonth(c,mes);})
+    .sort(function(a,b){return String(b.inicio||'').localeCompare(String(a.inicio||''));});
+  if(mes===currentMonthStr()){
+    const current=activeContract(house);
+    if(current&&contractCoversMonth(current,mes)) return current;
+  }
+  return candidates[0]||null;
+}
+function contractOccupiesMonth(contract,mes){
+  if(!contract||!contract.inicio||!mes) return false;
+  const monthStart=mes+'-01';
+  const monthEnd=addDaysISO(addMonths(mes,1)+'-01',-1);
+  return contract.inicio<=monthEnd&&(!contract.fim||contract.fim>=monthStart);
+}
+function contractForEnergyMonth(house,mes,contractId){
+  const list=(house&&house.contracts||[]);
+  if(contractId){
+    const exact=list.find(function(c){return c.id===contractId;});
+    if(exact) return exact;
+  }
+  const candidates=list.filter(function(c){return contractOccupiesMonth(c,mes);})
+    .sort(function(a,b){return String(b.inicio||'').localeCompare(String(a.inicio||''));});
+  if(mes===currentMonthStr()){
+    const current=activeContract(house);
+    if(current&&contractOccupiesMonth(current,mes)) return current;
+  }
+  return candidates[0]||null;
+}
+function paymentForMonth(house,mes,contractId){
+  const list=(house&&house.pagamentos||[]);
+  const contract=contractForMonth(house,mes,contractId);
+  if(contract){
+    const exact=list.find(function(p){return p.mes===mes&&p.contractId===contract.id;});
+    if(exact) return exact;
+    const legacy=list.find(function(p){return p.mes===mes&&!p.contractId;});
+    return legacy||null;
+  }
+  if((house&&house.contracts||[]).length) return null;
+  return list.find(function(p){return p.mes===mes;})||null;
+}
+function contractExpectedRent(contract,mes){
+  return contractCoversMonth(contract,mes)?(Number(contract.valor)||0):0;
+}
+function currentRentContract(house){
+  return activeContract(house)||contractForMonth(house,currentMonthStr())||null;
+}
+
 /* ---------- formatação ---------- */
 function fmtMoney(n){ return (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
 function fmtDateBR(iso){ if(!iso) return '—'; const p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
@@ -60,11 +159,18 @@ function esc(s){
 
 /* ---------- status de pagamento ---------- */
 // Depende do formato em memória do imóvel (h.pagamentos[], h.status, h.diaVencimento)
-function paymentStatus(house, mesStr){
-  if(house.status === 'manutencao') return 'manutencao';
-  if(house.status !== 'alugada') return 'vaga';
-  const rec = house.pagamentos.find(function(p){ return p.mes===mesStr; });
+function paymentStatus(house, mesStr, contractId){
+  const contract=contractForMonth(house,mesStr,contractId);
+  if(contract&&!contractCoversMonth(contract,mesStr)) return 'fora_contrato';
+  if(!contract&&house.status === 'manutencao') return 'manutencao';
+  if((house.contracts||[]).length && !contract) return 'fora_contrato';
+  if(!(house.contracts||[]).length && house.status !== 'alugada') return 'vaga';
+  const rec = paymentForMonth(house,mesStr,contractId);
   if(rec) return 'pago';
+  if(contract){
+    const due=contractDueDate(contract,mesStr);
+    return (new Date()>due)?'atrasado':'pendente';
+  }
   // meses anteriores ao início do contrato vigente não geram cobrança nem atraso
   // (a casa ainda não estava alugada a este inquilino)
   if(house.contratoInicio && mesStr < house.contratoInicio.slice(0,7)) return 'pendente';
@@ -73,12 +179,21 @@ function paymentStatus(house, mesStr){
 }
 
 /* ---------- energia solar (segunda receita, valor variável mês a mês) ---------- */
-function energiaDoMes(h, mes){
-  return (h.energias||[]).find(function(e){ return e.mes===mes; });
+function energiaDoMes(h, mes, contractId){
+  const list=h.energias||[];
+  const contract=contractForEnergyMonth(h,mes,contractId);
+  if(contract){
+    const exact=list.find(function(e){return e.mes===mes&&e.contractId===contract.id;});
+    if(exact) return exact;
+    const legacy=list.find(function(e){return e.mes===mes&&!e.contractId;});
+    return legacy;
+  }
+  if((h.contracts||[]).length) return undefined;
+  return list.find(function(e){ return e.mes===mes; });
 }
-function energiaValorMes(h, mes){ const e = energiaDoMes(h, mes); return e ? (Number(e.valor)||0) : 0; }
-function energiaKwhMes(h, mes){ const e = energiaDoMes(h, mes); return e ? (Number(e.kwh)||0) : 0; }
-function energiaPagaMes(h, mes){ const e = energiaDoMes(h, mes); return !!(e && e.pago); }
+function energiaValorMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return e ? (Number(e.valor)||0) : 0; }
+function energiaKwhMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return e ? (Number(e.kwh)||0) : 0; }
+function energiaPagaMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return !!(e && e.pago); }
 // Status de cobrança da energia do mês. Como o valor é variável, um mês
 // SEM lançamento não é atraso — é 'sem_registro' (nada a cobrar ainda).
 //   'vaga'        casa não alugada
@@ -86,11 +201,15 @@ function energiaPagaMes(h, mes){ const e = energiaDoMes(h, mes); return !!(e && 
 //   'pago'        lançado e recebido
 //   'atrasado'    lançado, vencido e não recebido
 //   'pendente'    lançado, ainda dentro do prazo
-function energiaStatus(h, mes){
-  if(h.status !== 'alugada') return 'vaga';
-  const e = energiaDoMes(h, mes);
+function energiaStatus(h, mes, contractId){
+  const contract=contractForEnergyMonth(h,mes,contractId);
+  if(contract&&!contractOccupiesMonth(contract,mes)) return 'fora_contrato';
+  if((h.contracts||[]).length&&!contract) return 'fora_contrato';
+  if(!(h.contracts||[]).length&&h.status !== 'alugada') return 'vaga';
+  const e = energiaDoMes(h, mes,contractId);
   if(!e) return 'sem_registro';
   if(e.pago) return 'pago';
+  if(contract) return (new Date()>contractDueDate(contract,mes))?'atrasado':'pendente';
   if(h.contratoInicio && mes < h.contratoInicio.slice(0,7)) return 'pendente';
   const due = dueDateForMonth(mes, h.diaVencimento||5);
   return (new Date() > due) ? 'atrasado' : 'pendente';

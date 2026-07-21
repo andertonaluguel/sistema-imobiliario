@@ -1,16 +1,17 @@
 /* ============================================================
    reports.js — Recibo de aluguel em PDF (jsPDF via CDN)
    ============================================================ */
-function generateReceiptPDF(houseId, mes){
+function generateReceiptPDF(houseId, mes,contractId){
   const h = state.houses.find(function(x){ return x.id===houseId; });
-  const rec = h.pagamentos.find(function(p){ return p.mes===mes; });
+  const contract=contractForMonth(h,mes,contractId);
+  const rec = paymentForMonth(h,mes,contractId);
   if(!rec){ showToast('Esse mês ainda não foi marcado como pago.', 'error'); return; }
   if(!window.jspdf || !window.jspdf.jsPDF){ showToast('Gerador de PDF indisponível agora. Verifique sua conexão e tente novamente.', 'error'); return; }
   try{
     const jsPDF = window.jspdf.jsPDF;
     const doc = new jsPDF();
     const cfg = state.config || {};
-    const t = tenantOf(h) || {};
+    const t = (contract?contractTenant(contract):tenantOf(h)) || {};
     let y = 24;
     doc.setFont('helvetica','bold'); doc.setFontSize(16);
     doc.text('RECIBO DE ALUGUEL', 20, y); y+=14;

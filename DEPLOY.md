@@ -24,8 +24,9 @@ Este guia considera uma instalação nova, usando o e-mail `andertonaluguel@gmai
 4. No **SQL Editor**, abra uma consulta nova.
 5. Copie todo o arquivo `schema.sql`, cole no editor e execute uma única vez.
 6. Em seguida, execute `migracao-portal-arquivos.sql` para ativar o portal dos inquilinos e o armazenamento privado.
+7. Execute `migracao-contratos-cobrancas.sql` para ativar o histórico de contratos e os vencimentos personalizados.
 
-O `schema.sql` contém a base e a restauração transacional. A migração `migracao-portal-arquivos.sql` acrescenta o acesso separado dos inquilinos e os arquivos privados.
+O `schema.sql` contém a base e a restauração transacional. As migrações acrescentam o acesso separado dos inquilinos, os arquivos privados e o histórico completo dos contratos.
 
 ## 2. Configurar a chave pública
 

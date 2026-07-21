@@ -521,3 +521,55 @@ body{min-width:320px;background:
   .month-switcher{width:100%;justify-content:space-between}.month-switcher input{flex:1}.header-actions{width:100%}.header-actions .btn{flex:1}
   .portal-house-card .detail-grid{grid-template-columns:1fr 1fr}.document-row .btn{margin-left:54px}.modal-box{padding:23px 18px}.modal-actions-right{width:100%}.modal-actions-right .btn{flex:1}
 }
+
+/* ============================================================
+   CONTRATOS + FLUXOS RÁPIDOS DE CASAS
+   ============================================================ */
+.house-grid{grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.house-card-rich{display:flex;flex-direction:column;gap:14px;min-height:250px}
+.house-card-rich .house-card-top{min-height:45px}
+.house-card-tenant{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:11px;background:var(--paper)}
+.house-card-tenant span,.house-card-values span{font:600 9px var(--font-mono);letter-spacing:.8px;color:var(--ink-soft);text-transform:uppercase}
+.house-card-tenant strong{font-size:14px;color:var(--ink)}
+.house-card-values{display:grid;grid-template-columns:1fr 1fr 1.12fr;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.house-card-values>div{display:flex;flex-direction:column;gap:4px;padding:11px 10px;border-right:1px solid var(--line);min-width:0}
+.house-card-values>div:last-child{border-right:0}.house-card-values strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.house-card-values .house-total{background:var(--cover);color:#fff}.house-card-values .house-total span{color:#B9CCC3}.house-card-values .house-total strong{color:#fff}
+.house-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}.house-card-actions .btn{width:100%;padding:9px 8px;font-size:11px}
+
+.general-detail-grid{grid-template-columns:minmax(300px,360px) 1fr;align-items:start}
+.property-summary-card{padding:0;overflow:hidden;box-shadow:0 18px 42px rgba(17,50,39,.2)}
+.property-summary-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 21px 17px;border-bottom:1px solid rgba(255,255,255,.12)}
+.property-money-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.property-money-grid>div{display:flex;flex-direction:column;gap:5px;padding:17px 20px;border-right:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1)}
+.property-money-grid>div:nth-child(2){border-right:0}.property-money-grid span,.property-tenant-block>span{font:500 9px var(--font-mono);letter-spacing:1px;color:#9BB0A6}.property-money-grid strong{font-size:18px;color:#EBD9AE}.property-money-grid small{font-size:10px;color:#B7C8C0}
+.property-money-grid .property-money-total{grid-column:1/3;border-right:0;background:rgba(255,255,255,.06)}.property-money-total strong{font-size:25px;color:#fff}
+.property-tenant-block{display:flex;flex-direction:column;gap:5px;padding:18px 20px}.property-tenant-block strong{font:700 19px var(--font-display);color:#fff}.property-tenant-block small{font-size:11px;color:#B9CCC3}
+.property-contract-line{display:flex;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(0,0,0,.12);font-size:9px;color:#B9CCC3}
+
+.contract-preview{padding:12px 14px;border-radius:11px;background:var(--brass-soft);color:var(--ink-soft);font-size:12px;line-height:1.5;margin-bottom:12px}.contract-preview strong,.contract-preview b{color:var(--brass-deep)}
+.field-muted{opacity:.68}.contract-list{display:grid;gap:12px}.contract-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}.contract-card.active{border-left:5px solid var(--brass)}
+.contract-card-head,.contract-card-actions,.contract-ledger-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.contract-card-head h3{margin:3px 0 0;font:700 18px var(--font-display)}
+.contract-card-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:15px}.contract-card-grid>div{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:11px;background:var(--paper)}.contract-card-grid span{font-size:9px;color:var(--ink-soft);text-transform:uppercase}.contract-card-grid strong{font-size:12px}.contract-card-actions{justify-content:flex-end;margin-top:12px}
+.contract-charge-summary{display:flex;align-items:center;justify-content:space-between;padding:15px;border-radius:12px;background:var(--paper);margin-bottom:14px}.contract-charge-summary strong{font-size:19px;color:var(--brass-deep)}
+.contract-ledger{margin-bottom:18px}.contract-ledger-head{padding:13px 15px;background:var(--cover);color:#fff;border-radius:13px 13px 0 0}.contract-ledger-head>div{display:flex;flex-direction:column;gap:3px}.contract-ledger-head span:not(.chip){font-size:10px;color:#B9CCC3}.contract-ledger .list-card{border-radius:0 0 13px 13px}.proportional-row{width:100%;border:1px solid var(--line);border-top:0;background:var(--brass-soft);text-align:left}
+
+.dashboard-status-row{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(340px,1.6fr);gap:14px;margin-bottom:22px}.dashboard-status-row .stat-card{min-height:112px}
+.occupancy-card{display:grid;grid-template-columns:minmax(220px,1fr) minmax(180px,1.2fr);align-items:center;gap:24px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px 23px;box-shadow:var(--shadow)}
+.occupancy-copy{display:flex;flex-direction:column;gap:4px}.occupancy-copy>span{font:500 10px var(--font-mono);letter-spacing:1px;color:var(--ink-soft)}.occupancy-copy strong{font:700 18px var(--font-display)}.occupancy-copy small{font-size:11px;color:var(--ink-soft)}
+.occupancy-meter{height:13px;border-radius:999px;background:#E4E9E5;overflow:hidden}.occupancy-meter span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--brass),#D9AE61);transition:width .3s ease}
+
+.alert-actions{display:flex;gap:6px;flex-shrink:0}.btn-register-payment{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--brass);background:#fff;color:var(--brass-deep);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700}.btn-register-payment svg{width:14px;height:14px}.btn-register-payment:hover{background:var(--brass-soft)}
+.payment-choice-list{display:grid;gap:8px}.payment-choice{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:11px;background:#fff;text-align:left}.payment-choice:hover{border-color:var(--brass);background:var(--brass-soft)}
+.portal-initial-adjustment{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:14px;border-radius:12px;background:var(--brass-soft);margin-bottom:12px}
+
+@media(max-width:720px){
+  .house-grid{grid-template-columns:1fr}.house-card-rich{min-height:auto}.house-card-values{grid-template-columns:1fr 1fr}.house-card-values .house-total{grid-column:1/3}.house-card-values>div:nth-child(2){border-right:0}.house-card-values .house-total{border-top:1px solid var(--line)}
+  .general-detail-grid{grid-template-columns:1fr}.property-summary-card{width:100%}
+  .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick-actions .btn{width:100%;min-height:44px;white-space:normal}.quick-actions .btn-danger:last-child:nth-child(odd){grid-column:1/3}
+  .tabs{gap:8px;margin-left:-14px;margin-right:-14px;padding:0 14px}.tab{min-height:44px;padding:11px 9px;font-size:11px}
+  .contract-card-grid{grid-template-columns:1fr 1fr}.dashboard-status-row{grid-template-columns:1fr}.occupancy-card{grid-template-columns:1fr;gap:14px}.alert-row{align-items:flex-start;flex-wrap:wrap}.alert-actions{order:4;width:100%}.alert-actions button{flex:1;justify-content:center;min-height:38px}.alert-row .ledger-row-value{margin-left:auto}.portal-initial-adjustment{grid-template-columns:1fr auto}.portal-initial-adjustment .status-dot{grid-column:1/3;justify-self:start}
+}
+@media(max-width:430px){
+  .house-card-actions,.quick-actions{grid-template-columns:1fr}.quick-actions .btn-danger:last-child:nth-child(odd){grid-column:auto}.contract-card-grid{grid-template-columns:1fr}.contract-card-actions{display:grid;grid-template-columns:1fr}.contract-card-actions .btn{width:100%}.property-contract-line{flex-direction:column}.modal-actions{gap:10px}.modal-actions>.btn-danger{width:100%}
+}

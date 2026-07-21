@@ -25,7 +25,7 @@ const state = {
   tenantAccess: [],
   portalTab: 'inicio',
   alertsExpanded: false,
-  movsExpanded: true,
+  movsExpanded: false,
   reportListExpanded: true,
   relatorioAno: new Date().getFullYear(),
   financeMonth: currentMonthStr(),

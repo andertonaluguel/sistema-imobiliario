@@ -11,7 +11,7 @@ const CACHE = 'aluguel-v4';
 const ASSETS = [
   './', './index.html', './style.css', './motion.css',
   './config.js', './utils.js', './supabase.js', './auth.js', './dashboard.js',
-  './houses.js', './tenants.js', './finance.js', './photos.js', './documents.js',
+  './houses.js', './tenants.js', './contracts.js', './finance.js', './photos.js', './documents.js',
   './energy.js', './portal.js', './reports.js',
   './calendar.js', './backup.js', './app.js', './motion.js',
   './manifest.json', './icon-192.png', './icon-512.png',

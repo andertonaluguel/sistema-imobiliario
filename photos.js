@@ -1,6 +1,6 @@
 /* ============================================================
-   photos.js — Fotos da casa (base64 no banco)
-   Comprime no cliente antes de salvar. Máximo de 6 por casa.
+   photos.js — Fotos da casa (armazenamento privado)
+   Comprime no cliente antes de enviar. Máximo de 6 por casa.
    photoCache[houseId] = [{id, dados}] | undefined (ainda não carregado)
    ============================================================ */
 
@@ -15,7 +15,9 @@ function compressImage(file, maxWidth, quality){
         const canvas = document.createElement('canvas');
         canvas.width=w; canvas.height=h;
         canvas.getContext('2d').drawImage(img,0,0,w,h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        canvas.toBlob(function(blob){
+          if(blob) resolve(blob); else reject(new Error('Não foi possível comprimir a foto.'));
+        },'image/jpeg',quality);
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -27,7 +29,12 @@ function compressImage(file, maxWidth, quality){
 
 function safePhotoSrc(value){
   const src = String(value||'');
-  return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(src) ? src : '';
+  if(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(src)) return src;
+  try{
+    const expected=new URL(CONFIG.SUPABASE_URL);
+    const actual=new URL(src);
+    return actual.protocol==='https:' && actual.origin===expected.origin ? src : '';
+  }catch(e){ return ''; }
 }
 
 async function ensurePhotosLoaded(houseId){
@@ -52,7 +59,8 @@ async function handlePhotoFiles(houseId, fileList){
       if(!/^image\/(jpeg|png|webp)$/i.test(f.type||'') || f.size>15*1024*1024){
         throw new Error('Formato ou tamanho de foto não permitido.');
       }
-      compressed.push(await compressImage(f, 480, 0.6));
+      const blob=await compressImage(f, 1600, 0.78);
+      compressed.push({blob:blob,nome:(f.name||'foto').replace(/\.[^.]+$/,'')+'.jpg',mime:'image/jpeg'});
     }
     const novas = await db.addPhotos(houseId, compressed, current.length);
     state.photoCache[houseId] = current.concat(novas);

@@ -7,6 +7,8 @@
 
 const state = {
   session: null,
+  role: null,
+  access: null,
   recovery: false,
   loaded: false,
   loading: true,
@@ -18,10 +20,16 @@ const state = {
   activeHouseId: null,
   activeTab: 'geral',
   photoCache: {},
+  documentCache: {},
+  portalDocuments: [],
+  tenantAccess: [],
+  portalTab: 'inicio',
   alertsExpanded: false,
   movsExpanded: true,
   reportListExpanded: true,
   relatorioAno: new Date().getFullYear(),
+  financeMonth: currentMonthStr(),
+  energiaMes: currentMonthStr(),
   expandedReportHouseId: null,
   calMes: currentMonthStr(),
   casaBusca: '', casaFiltro: 'todas',
@@ -98,6 +106,7 @@ function irHome(){ state.view='dashboard'; render(); }
 function irCasas(){ state.view='casas'; render(); }
 function irInquilinos(){ state.view='inquilinos'; render(); }
 function irFinanceiro(){ state.view='financeiro'; render(); }
+function irEnergia(){ state.view='energia'; render(); }
 function irCalendario(){ if(!state.calMes) state.calMes=currentMonthStr(); state.view='calendario'; render(); }
 function toggleAlerts(){ state.alertsExpanded = !state.alertsExpanded; render(); }
 function toggleMovs(){ state.movsExpanded = !state.movsExpanded; render(); }
@@ -112,11 +121,36 @@ function renderTopBar(){
       '<button class="topbar-link'+(state.view==='dashboard'?' active':'')+'" onclick="irHome()">Painel</button>'+
       '<button class="topbar-link'+(casasActive?' active':'')+'" onclick="irCasas()">Casas</button>'+
       '<button class="topbar-link'+(state.view==='inquilinos'?' active':'')+'" onclick="irInquilinos()">Inquilinos</button>'+
+      '<button class="topbar-link'+(state.view==='energia'?' active':'')+'" onclick="irEnergia()">Energia</button>'+
       '<button class="topbar-link'+(state.view==='financeiro'?' active':'')+'" onclick="irFinanceiro()">Financeiro</button>'+
       '<button class="topbar-link'+(state.view==='calendario'?' active':'')+'" onclick="irCalendario()">Calendário</button>'+
     '</nav>'+
+    '<button class="top-search-btn" onclick="openGlobalSearch()" aria-label="Buscar">Buscar</button>'+
     '<button class="menu-btn" onclick="openMenuModal()" aria-label="Menu">⋯</button>'+
   '</header>';
+}
+function renderMobileNav(){
+  const items=[['dashboard','Painel','irHome()'],['casas','Casas','irCasas()'],['energia','Energia','irEnergia()'],['financeiro','Financeiro','irFinanceiro()'],['inquilinos','Inquilinos','irInquilinos()'],['calendario','Agenda','irCalendario()']];
+  return '<nav class="mobile-nav">'+items.map(function(i){
+    const active=state.view===i[0]||(i[0]==='casas'&&state.view==='houseDetail');
+    return '<button class="mobile-nav-item'+(active?' active':'')+'" onclick="'+i[2]+'"><span>'+esc(i[1])+'</span></button>';
+  }).join('')+'</nav>';
+}
+
+function openGlobalSearch(){
+  openModal('<h3 class="modal-title">Busca rápida</h3><label class="field"><span>Casa, endereço, inquilino ou telefone</span>'+
+    '<input id="globalSearchInput" autofocus placeholder="Digite para buscar…" oninput="renderGlobalSearchResults(this.value)"></label>'+
+    '<div id="globalSearchResults" class="global-results"><p class="modal-text">Comece a digitar para ver resultados.</p></div>');
+  setTimeout(function(){const i=document.getElementById('globalSearchInput');if(i)i.focus();},20);
+}
+function renderGlobalSearchResults(value){
+  const root=document.getElementById('globalSearchResults'),q=String(value||'').trim().toLowerCase(); if(!root)return;
+  if(q.length<2){root.innerHTML='<p class="modal-text">Digite pelo menos duas letras.</p>';return;}
+  const houses=state.houses.filter(function(h){const t=tenantOf(h);return (h.nome+' '+h.endereco+' '+(t?t.nome:'')).toLowerCase().includes(q);}).slice(0,6);
+  const tenants=state.tenants.filter(function(t){return (t.nome+' '+t.telefone+' '+t.email).toLowerCase().includes(q);}).slice(0,6);
+  const html=houses.map(function(h){return '<button class="global-result" onclick="closeModal();openHouse(\''+h.id+'\')"><strong>'+esc(h.nome)+'</strong><span>'+esc(h.endereco||'Casa')+'</span></button>';}).join('')+
+    tenants.map(function(t){return '<button class="global-result" onclick="closeModal();openEditTenantModal(\''+t.id+'\')"><strong>'+esc(t.nome)+'</strong><span>'+esc(t.telefone||t.email||'Inquilino')+'</span></button>';}).join('');
+  root.innerHTML=html||'<p class="modal-text">Nenhum resultado encontrado.</p>';
 }
 function openMenuModal(){
   const email = state.session && state.session.user ? esc(state.session.user.email) : '';
@@ -175,7 +209,7 @@ function confirmResetAll(){
 async function resetAll(){
   try{
     await db.wipeAll();
-    state.houses=[]; state.tenants=[]; state.eventos=[]; state.photoCache={};
+    state.houses=[]; state.tenants=[]; state.eventos=[]; state.photoCache={}; state.documentCache={}; state.tenantAccess=[];
     closeModal();
     state.view='dashboard';
     render();
@@ -188,18 +222,21 @@ function render(){
   const app = document.getElementById('app');
   if(state.recovery){ app.innerHTML = renderRecoveryScreen(); return; }
   if(!state.session){ app.innerHTML = renderAuthScreen(); return; }
+  if(state.loading){ app.innerHTML='<div class="app-loading">'+logoSvg()+'<span>Carregando seus dados…</span></div>'; return; }
+  if(state.role==='tenant'){ app.innerHTML=renderTenantPortal(); return; }
+  if(state.role==='pending'){ app.innerHTML=renderPendingAccess(); return; }
   app.innerHTML =
     '<div class="app-shell">'+
       renderTopBar()+
       '<main class="main">'+
-        (state.loading ? '<div class="empty-state">Carregando seus dados…</div>' :
-          state.view==='casas' ? renderCasasView() :
+        (state.view==='casas' ? renderCasasView() :
           state.view==='inquilinos' ? renderInquilinosView() :
+          state.view==='energia' ? renderEnergiaView() :
           state.view==='financeiro' ? renderFinanceiroView() :
           state.view==='calendario' ? renderCalendario() :
           state.view==='houseDetail' ? renderHouseDetail() :
           renderDashboard())+
-      '</main>'+
+      '</main>'+renderMobileNav()+
     '</div>';
   if(!state.loading && state.session){
     if(state.view==='casas' && typeof aplicarFiltroCasas==='function') aplicarFiltroCasas();
@@ -219,12 +256,21 @@ async function boot(){
 async function loadData(){
   state.loading = true; render();
   try{
-    const data = await db.loadAll();
-    state.houses = data.houses;
-    state.tenants = data.tenants;
-    state.config = data.config;
-    state.eventos = data.eventos || [];
-    state.photoCache = {};
+    const profile=await db.loadRole();
+    state.role=profile.role; state.access=profile.access||null;
+    if(profile.role==='owner'){
+      const loaded=await Promise.all([db.loadAll(),db.listTenantAccess()]);
+      const data=loaded[0];
+      state.houses=data.houses; state.tenants=data.tenants; state.config=data.config;
+      state.eventos=data.eventos||[]; state.tenantAccess=loaded[1]||[];
+      state.photoCache={}; state.documentCache={};
+    }else if(profile.role==='tenant'){
+      const portal=await db.loadTenantPortal(profile.access);
+      state.houses=portal.houses; state.tenants=portal.tenants; state.config=portal.config;
+      state.portalDocuments=portal.documents||[];
+    }else{
+      state.houses=[]; state.tenants=[]; state.portalDocuments=[];
+    }
     state.loaded = true;
   }catch(e){
     console.error('Erro ao carregar', e);
@@ -233,7 +279,7 @@ async function loadData(){
   state.loading = false;
   render();
   // cria o backup automático do dia, sem travar a interface
-  if(state.loaded){ ensureDailySnapshot(); }
+  if(state.loaded && state.role==='owner'){ ensureDailySnapshot(); }
 }
 
 /* reage a login/logout em outras abas ou via link de e-mail */

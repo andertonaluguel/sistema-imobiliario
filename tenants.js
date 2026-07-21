@@ -6,6 +6,16 @@
 
 function houseOf(tenantId){ return state.houses.find(function(h){ return h.tenantId===tenantId; }); }
 function housesOf(tenantId){ return state.houses.filter(function(h){ return h.tenantId===tenantId; }); }
+function tenantAccessOf(tenantId){ return (state.tenantAccess||[]).find(function(a){return a.inquilino_id===tenantId;})||null; }
+
+function renderTenantAccessBlock(t){
+  const access=tenantAccessOf(t.id);
+  const stateText=!access?'Não liberado':access.aceito?(access.ativo?'Ativo':'Suspenso'):'Aguardando cadastro';
+  const tone=access&&access.aceito&&access.ativo?'chip-brass':access?'chip-warn':'chip-slate';
+  return '<div class="portal-access-box"><div><span class="field-kicker">PORTAL DO INQUILINO</span><strong>Acesso somente aos próprios dados</strong>'+
+    '<small>'+esc(t.email||'Cadastre um e-mail para liberar o portal.')+'</small></div><span class="chip '+tone+'">'+stateText.toUpperCase()+'</span>'+
+    '<button class="btn btn-ghost btn-sm" onclick="openTenantPortalAccess(\''+t.id+'\')">'+(!access?'Liberar acesso':'Gerenciar')+'</button></div>';
+}
 
 /* ---------- listagem ---------- */
 function renderTenantCard(t){
@@ -128,6 +138,7 @@ function openEditTenantModal(tenantId){
       '<label class="field"><span>Contato de emergência</span><input id="f_emerg" value="'+esc(t.emergenciaNome)+'"></label>'+
     '</div>'+
     '<p class="modal-text">'+moraTxt+'</p>'+
+    renderTenantAccessBlock(t)+
     '<div class="modal-actions">'+
       '<button class="btn btn-danger" onclick="confirmDeleteTenant(\''+tenantId+'\')">Excluir inquilino</button>'+
       '<div class="modal-actions-right">'+
@@ -137,6 +148,35 @@ function openEditTenantModal(tenantId){
       '</div>'+
     '</div>'
   );
+}
+
+function openTenantPortalAccess(tenantId){
+  const t=state.tenants.find(function(x){return x.id===tenantId;});
+  const access=tenantAccessOf(tenantId);
+  if(!t.email){ showToast('Cadastre o e-mail do inquilino e salve antes de liberar.','error'); return; }
+  openModal('<h3 class="modal-title">Portal de '+esc(t.nome)+'</h3>'+
+    '<p class="modal-text">O acesso será vinculado a <strong>'+esc(t.email)+'</strong>. No portal, ele verá somente contrato, pagamentos, recibos, energia e documentos liberados.</p>'+
+    (!access?'<div class="notice-box">Depois de liberar, peça ao inquilino para abrir o app, clicar em <strong>Criar conta</strong> e usar exatamente este e-mail.</div>':
+      '<div class="notice-box">Situação atual: <strong>'+(access.aceito?(access.ativo?'acesso ativo':'acesso suspenso'):'aguardando o inquilino criar a conta')+'</strong>.</div>')+
+    '<div class="modal-actions">'+(access&&access.aceito&&access.ativo?'<button class="btn btn-danger" onclick="configureTenantPortal(\''+tenantId+'\',false)">Suspender acesso</button>':'<span></span>')+
+      '<div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="configureTenantPortal(\''+tenantId+'\',true)">'+(access?'Ativar / reenviar':'Liberar portal')+'</button></div></div>');
+}
+
+async function configureTenantPortal(tenantId,active){
+  const t=state.tenants.find(function(x){return x.id===tenantId;});
+  try{
+    const result=await db.configureTenantAccess(tenantId,t.email,active);
+    state.tenantAccess=await db.listTenantAccess();
+    closeModal(); render();
+    if(active && !result.vinculado){
+      openModal('<h3 class="modal-title">Acesso preparado</h3><p class="modal-text">Agora peça a '+esc(t.nome)+' para acessar <strong>'+esc(window.location.origin)+'</strong>, clicar em <strong>Criar conta</strong> e usar o e-mail <strong>'+esc(t.email)+'</strong>.</p>'+
+        '<div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-ghost" onclick="copyPortalLink()">Copiar endereço</button><button class="btn btn-primary" onclick="closeModal()">Concluir</button></div></div>');
+    }else showToast(active?'Portal do inquilino ativo.':'Acesso suspenso.','success');
+  }catch(e){console.error(e);showToast('Não foi possível configurar o portal.','error');}
+}
+function copyPortalLink(){
+  if(navigator.clipboard) navigator.clipboard.writeText(window.location.origin).then(function(){showToast('Endereço copiado.','success');});
 }
 async function saveTenantEdit(tenantId){
   const t = state.tenants.find(function(x){ return x.id===tenantId; });

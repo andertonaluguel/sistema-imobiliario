@@ -278,6 +278,13 @@ function renderDashboard(){
       '<div class="page-sub">Resumo de '+monthLabel(currentMonthStr())+'</div>'+
     '</div><div class="page-date">'+fmtDateBR(todayISO())+'</div></div>'+
 
+    '<div class="dashboard-actions">'+
+      '<button onclick="openGlobalSearch()"><span>⌕</span><strong>Buscar</strong><small>casa ou inquilino</small></button>'+
+      '<button onclick="openAddHouseModal()"><span>＋</span><strong>Nova casa</strong><small>cadastrar imóvel</small></button>'+
+      '<button onclick="openAddTenantModal()"><span>＋</span><strong>Novo inquilino</strong><small>cadastro rápido</small></button>'+
+      '<button onclick="irEnergia()"><span>⚡</span><strong>Energia</strong><small>lançar ou consultar</small></button>'+
+    '</div>'+
+
     '<div class="stat-grid">'+
       statCard('Aluguel do mês', fmtMoney(o.receitaMensal), 'projeção pelo aluguel atual', 'brass')+
       statCard('Energia do mês', fmtMoney(o.energiaMes), 'lançado neste mês', 'warn')+

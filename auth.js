@@ -19,7 +19,7 @@ function renderAuthScreen(){
   if(authView==='signup'){
     return authShell(
       '<h1 class="auth-title">Criar conta</h1>'+
-      '<p class="auth-sub">Comece a administrar suas casas.</p>'+
+      '<p class="auth-sub">Inquilino: use exatamente o e-mail que o proprietário liberou para você.</p>'+
       '<label class="field"><span>E-mail</span><input id="au_email" type="email" autocomplete="email" placeholder="voce@email.com"></label>'+
       '<label class="field"><span>Senha</span><input id="au_pass" type="password" autocomplete="new-password" placeholder="mínimo 6 caracteres"></label>'+
       '<button class="btn btn-primary auth-btn" onclick="doSignUp()">Criar conta</button>'+
@@ -37,7 +37,7 @@ function renderAuthScreen(){
   }
   return authShell(
     '<h1 class="auth-title">Entrar</h1>'+
-    '<p class="auth-sub">Acesse o painel das suas casas.</p>'+
+    '<p class="auth-sub">Acesse o painel de gestão ou o seu portal de inquilino.</p>'+
     '<label class="field"><span>E-mail</span><input id="au_email" type="email" autocomplete="email" placeholder="voce@email.com"></label>'+
     '<label class="field"><span>Senha</span><input id="au_pass" type="password" autocomplete="current-password" placeholder="sua senha"></label>'+
     '<button class="btn btn-primary auth-btn" onclick="doSignIn()">Entrar</button>'+

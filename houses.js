@@ -111,6 +111,9 @@ function switchTab(key){
   if(key==='fotos' && state.photoCache[state.activeHouseId]===undefined){
     ensurePhotosLoaded(state.activeHouseId);
   }
+  if(key==='documentos' && state.documentCache[state.activeHouseId]===undefined){
+    ensureDocumentsLoaded(state.activeHouseId);
+  }
 }
 
 /* helpers de ficha: ícones nas seções e nas linhas */
@@ -357,13 +360,14 @@ function renderTabContent(h){
     case 'reajustes': return renderReajustesTab(h);
     case 'despesas': return renderDespesasTab(h);
     case 'fotos': return renderFotosTab(h);
+    case 'documentos': return renderDocumentsTab(h);
     default: return '';
   }
 }
 function renderHouseDetail(){
   const h = state.houses.find(function(x){ return x.id===state.activeHouseId; });
   if(!h){ state.view='casas'; return renderCasasView(); }
-  const tabs = [['geral','Geral'],['inquilino','Inquilino'],['pagamentos','Pagamentos'],['energia','Energia'],['reajustes','Reajustes'],['despesas','Despesas'],['fotos','Fotos']];
+  const tabs = [['geral','Geral'],['inquilino','Inquilino'],['pagamentos','Pagamentos'],['energia','Energia'],['reajustes','Reajustes'],['despesas','Despesas'],['fotos','Fotos'],['documentos','Documentos']];
   return '<button class="back-link" onclick="irCasas()">← Casas</button>'+
     '<div class="page-header"><div>'+
       '<div class="eyebrow">CASA</div>'+

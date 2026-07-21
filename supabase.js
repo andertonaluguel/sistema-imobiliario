@@ -8,6 +8,7 @@
    ============================================================ */
 
 const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+const FILE_BUCKET = 'imoveis-arquivos';
 
 /* ---- mapeamentos banco (snake_case) <-> memória (camelCase) ---- */
 function rowToHouse(r){
@@ -49,6 +50,34 @@ function rowToTenant(r){
     telefone: r.telefone || '', email: r.email || '',
     documento: r.documento || '', emergenciaNome: r.emergencia_nome || ''
   };
+}
+
+function rowToDocument(r){
+  return {
+    id:r.id, houseId:r.imovel_id||'', tenantId:r.inquilino_id||'',
+    tipo:r.tipo||'outro', nome:r.nome||'Arquivo', mime:r.mime||'',
+    tamanho:Number(r.tamanho)||0, storagePath:r.storage_path||'',
+    visivelInquilino:!!r.visivel_inquilino, dados:r.dados||'', url:''
+  };
+}
+
+function safeStorageName(name){
+  return String(name||'arquivo').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(-120) || 'arquivo';
+}
+
+async function signedStorageUrl(path){
+  if(!path) return '';
+  const { data, error } = await sb.storage.from(FILE_BUCKET).createSignedUrl(path, 3600);
+  if(error) throw error;
+  return data && data.signedUrl ? data.signedUrl : '';
+}
+
+function blobToDataUrl(blob){
+  return new Promise(function(resolve,reject){
+    const reader=new FileReader(); reader.onload=function(){resolve(reader.result);};
+    reader.onerror=reject; reader.readAsDataURL(blob);
+  });
 }
 
 /* ---------- validação e normalização de backups ---------- */
@@ -217,6 +246,61 @@ function normalizeBackupForImport(data){
 }
 
 const db = {
+  /* Descobre o perfil antes de carregar qualquer dado da interface. */
+  async loadRole(){
+    const { data:access, error:accessErr } = await sb.from('acessos_inquilino')
+      .select('*').eq('user_id', await _userId()).eq('ativo', true).maybeSingle();
+    if(accessErr) throw accessErr;
+    if(access) return { role:'tenant', access:access };
+    const { data:owner, error:ownerErr } = await sb.from('proprietarios')
+      .select('user_id,nome').eq('user_id', await _userId()).maybeSingle();
+    if(ownerErr) throw ownerErr;
+    return owner ? { role:'owner', owner:owner } : { role:'pending' };
+  },
+
+  async loadTenantPortal(access){
+    const [imoveis, inquilinos, pagamentos, energia, cfg, documentos] = await Promise.all([
+      sb.from('imoveis').select('*').order('created_at',{ascending:true}),
+      sb.from('inquilinos').select('*').eq('id',access.inquilino_id),
+      sb.from('pagamentos').select('*').order('mes',{ascending:false}),
+      sb.from('energia').select('*').order('mes',{ascending:false}),
+      sb.from('configuracoes').select('*').eq('user_id',access.proprietario_id).maybeSingle(),
+      sb.from('documentos').select('*').eq('visivel_inquilino',true).order('created_at',{ascending:false})
+    ]);
+    const err=imoveis.error||inquilinos.error||pagamentos.error||energia.error||cfg.error||documentos.error;
+    if(err) throw err;
+    const houses=(imoveis.data||[]).map(rowToHouse), byId={};
+    houses.forEach(function(h){ byId[h.id]=h; });
+    (pagamentos.data||[]).forEach(function(p){
+      if(byId[p.imovel_id]) byId[p.imovel_id].pagamentos.push({ mes:p.mes,valorPago:Number(p.valor_pago)||0,dataPagamento:p.data_pagamento||'' });
+    });
+    (energia.data||[]).forEach(function(e){
+      if(byId[e.imovel_id]) byId[e.imovel_id].energias.push({ mes:e.mes,valor:Number(e.valor)||0,kwh:Number(e.kwh)||0,pago:!!e.pago,dataPagamento:e.data_pagamento||'' });
+    });
+    const docs=(documentos.data||[]).map(rowToDocument);
+    await Promise.all(docs.map(async function(d){ if(d.storagePath) d.url=await signedStorageUrl(d.storagePath); }));
+    return {
+      houses:houses,
+      tenants:(inquilinos.data||[]).map(rowToTenant),
+      config:cfg.data?{locadorNome:cfg.data.locador_nome||'',locadorDocumento:cfg.data.locador_documento||''}:{locadorNome:'',locadorDocumento:''},
+      documents:docs
+    };
+  },
+
+  async listTenantAccess(){
+    const { data, error } = await sb.rpc('listar_acessos_inquilino');
+    if(error) throw error;
+    return data||[];
+  },
+
+  async configureTenantAccess(tenantId,email,active){
+    const { data, error } = await sb.rpc('configurar_acesso_inquilino',{
+      p_inquilino_id:tenantId,p_email:email,p_ativo:active!==false
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
   /* Carrega tudo do usuário logado e monta o estado em memória. */
   async loadAll(){
     const [imoveis, inquilinos, pagamentos, despesas, historico, cfg, eventos, reajustes, energia] = await Promise.all([
@@ -280,7 +364,21 @@ const db = {
     const { data, error } = await sb.from('fotos').select('*')
       .eq('imovel_id', imovelId).order('ordem', {ascending:true});
     if(error) throw error;
-    return (data||[]).map(function(r){ return { id:r.id, dados:r.dados }; });
+    const photos=(data||[]).map(function(r){ return { id:r.id, dados:r.dados||'', storagePath:r.storage_path||'', nome:r.nome||'' }; });
+    await Promise.all(photos.map(async function(p){ if(p.storagePath) p.dados=await signedStorageUrl(p.storagePath); }));
+    return photos;
+  },
+
+  async getDocuments(imovelId){
+    const { data, error } = await sb.from('documentos').select('*')
+      .eq('imovel_id',imovelId).order('created_at',{ascending:false});
+    if(error) throw error;
+    const docs=(data||[]).map(rowToDocument);
+    await Promise.all(docs.map(async function(d){
+      if(d.storagePath) d.url=await signedStorageUrl(d.storagePath);
+      else d.url=d.dados||'';
+    }));
+    return docs;
   },
 
   /* Salva configurações do locador (upsert por user_id). */
@@ -300,9 +398,15 @@ const db = {
     const base = await this.loadAll();
     const { data: fotos } = await sb.from('fotos').select('*').order('ordem',{ascending:true});
     const photos = {};
-    (fotos||[]).forEach(function(f){
-      (photos[f.imovel_id] = photos[f.imovel_id] || []).push(f.dados);
-    });
+    for(const f of (fotos||[])){
+      let content=f.dados||'';
+      if(!content && f.storage_path){
+        const downloaded=await sb.storage.from(FILE_BUCKET).download(f.storage_path);
+        if(downloaded.error) throw downloaded.error;
+        content=await blobToDataUrl(downloaded.data);
+      }
+      if(content) (photos[f.imovel_id] = photos[f.imovel_id] || []).push(content);
+    }
     return { version:3, exportedAt:new Date().toISOString(),
              houses:base.houses, tenants:base.tenants, photos:photos,
              config:base.config, eventos:base.eventos||[] };
@@ -422,18 +526,57 @@ const db = {
     if(error) throw error;
   },
 
-  /* Fotos (base64) */
-  async addPhotos(imovelId, dataUrls, startOrder){
+  /* Fotos em bucket privado. */
+  async addPhotos(imovelId, files, startOrder){
     const uid = await _userId();
-    const rows = dataUrls.map(function(d,i){ return { user_id:uid, imovel_id:imovelId,
-      dados:d, ordem:(startOrder||0)+i }; });
-    const { data, error } = await sb.from('fotos').insert(rows).select();
-    if(error) throw error;
-    return (data||[]).map(function(r){ return { id:r.id, dados:r.dados }; });
+    const added=[];
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      const path=uid+'/'+imovelId+'/fotos/'+_uuid()+'-'+safeStorageName(file.nome||'foto.jpg');
+      const up=await sb.storage.from(FILE_BUCKET).upload(path,file.blob,{contentType:file.mime||'image/jpeg',upsert:false});
+      if(up.error) throw up.error;
+      const ins=await sb.from('fotos').insert({user_id:uid,imovel_id:imovelId,dados:null,
+        storage_path:path,nome:file.nome||'foto.jpg',mime:file.mime||'image/jpeg',tamanho:file.blob.size||0,
+        ordem:(startOrder||0)+i}).select().single();
+      if(ins.error){ await sb.storage.from(FILE_BUCKET).remove([path]); throw ins.error; }
+      added.push({id:ins.data.id,dados:await signedStorageUrl(path),storagePath:path,nome:file.nome||'foto.jpg'});
+    }
+    return added;
   },
   async deletePhoto(fotoId){
+    const found=await sb.from('fotos').select('storage_path').eq('id',fotoId).maybeSingle();
+    if(found.error) throw found.error;
+    if(found.data && found.data.storage_path){
+      const rem=await sb.storage.from(FILE_BUCKET).remove([found.data.storage_path]);
+      if(rem.error) throw rem.error;
+    }
     const { error } = await sb.from('fotos').delete().eq('id', fotoId);
     if(error) throw error;
+  },
+
+  async addDocument(imovelId,tenantId,file,tipo,visible){
+    const uid=await _userId();
+    const path=uid+'/'+imovelId+'/documentos/'+_uuid()+'-'+safeStorageName(file.name);
+    const up=await sb.storage.from(FILE_BUCKET).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+    if(up.error) throw up.error;
+    const ins=await sb.from('documentos').insert({user_id:uid,imovel_id:imovelId,
+      inquilino_id:tenantId||null,tipo:tipo||'outro',nome:file.name,mime:file.type||'',dados:null,
+      storage_path:path,tamanho:file.size||0,visivel_inquilino:!!visible}).select().single();
+    if(ins.error){ await sb.storage.from(FILE_BUCKET).remove([path]); throw ins.error; }
+    const doc=rowToDocument(ins.data); doc.url=await signedStorageUrl(path); return doc;
+  },
+  async updateDocumentVisibility(id,visible){
+    const { error }=await sb.from('documentos').update({visivel_inquilino:!!visible}).eq('id',id);
+    if(error) throw error;
+  },
+  async deleteDocument(id){
+    const found=await sb.from('documentos').select('storage_path').eq('id',id).maybeSingle();
+    if(found.error) throw found.error;
+    if(found.data && found.data.storage_path){
+      const rem=await sb.storage.from(FILE_BUCKET).remove([found.data.storage_path]);
+      if(rem.error) throw rem.error;
+    }
+    const del=await sb.from('documentos').delete().eq('id',id); if(del.error) throw del.error;
   },
 
   /* Eventos do calendário (lembretes manuais por dia) */

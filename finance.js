@@ -115,21 +115,108 @@ function computeAnnualTotals(year){
   return { recebido:recebido, energia:energia, despesas:despesas, saldo:recebido+energia-despesas };
 }
 
+function houseRentedInMonth(h,mes){
+  const start=mes+'-01', end=addDaysISO(addMonths(mes,1)+'-01',-1);
+  return buildStatusTimeline(h).some(function(p){
+    const pEnd=p.fim||todayISO();
+    return p.status==='alugada' && p.inicio<=end && pEnd>=start;
+  });
+}
+
+function computeMonthlyFinance(mes){
+  const rows=state.houses.map(function(h){
+    const expected=houseRentedInMonth(h,mes)?aluguelValorMes(h,mes):0;
+    const pay=(h.pagamentos||[]).find(function(p){return p.mes===mes;});
+    const en=energiaDoMes(h,mes);
+    const expenses=(h.despesas||[]).filter(function(e){return e.data&&e.data.slice(0,7)===mes;})
+      .reduce(function(s,e){return s+(Number(e.valor)||0);},0);
+    const receivedRent=pay?Number(pay.valorPago)||0:0;
+    const energyBilled=en?Number(en.valor)||0:0;
+    const energyReceived=en&&en.pago?energyBilled:0;
+    return {house:h,expected:expected,receivedRent:receivedRent,energyBilled:energyBilled,
+      energyReceived:energyReceived,expenses:expenses,
+      balance:receivedRent+energyReceived-expenses,
+      pending:Math.max(0,expected-receivedRent)+Math.max(0,energyBilled-energyReceived)};
+  });
+  return {rows:rows,expected:rows.reduce(function(s,r){return s+r.expected+r.energyBilled;},0),
+    received:rows.reduce(function(s,r){return s+r.receivedRent+r.energyReceived;},0),
+    expenses:rows.reduce(function(s,r){return s+r.expenses;},0),
+    pending:rows.reduce(function(s,r){return s+r.pending;},0)};
+}
+
+function computeAgeing(){
+  const buckets=[{label:'1–30 dias',value:0,count:0},{label:'31–60 dias',value:0,count:0},{label:'Mais de 60 dias',value:0,count:0}];
+  state.houses.forEach(function(h){
+    const c=computeCobrancaCasa(h); if(!c||c.tipo!=='atraso') return;
+    const idx=c.dias<=30?0:c.dias<=60?1:2;
+    buckets[idx].value+=c.total; buckets[idx].count++;
+  });
+  return buckets;
+}
+
+function moveFinanceMonth(delta){ state.financeMonth=addMonths(state.financeMonth||currentMonthStr(),delta); render(); }
+function setFinanceMonth(value){ state.financeMonth=value||currentMonthStr(); render(); }
+
+function downloadFinanceCsv(){
+  const mes=state.financeMonth||currentMonthStr(), info=computeMonthlyFinance(mes);
+  const rows=[['Imóvel','Aluguel previsto','Aluguel recebido','Energia lançada','Energia recebida','Despesas','Saldo','Pendente']];
+  info.rows.forEach(function(r){ rows.push([r.house.nome,r.expected,r.receivedRent,r.energyBilled,r.energyReceived,r.expenses,r.balance,r.pending]); });
+  rows.push(['TOTAL',info.expected,info.received,0,0,info.expenses,info.received-info.expenses,info.pending]);
+  const csv='\ufeff'+rows.map(function(row){return row.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a'); a.href=url; a.download='financeiro-'+mes+'.csv'; a.click(); URL.revokeObjectURL(url);
+}
+
+function downloadFinancePdf(){
+  const mes=state.financeMonth||currentMonthStr(), info=computeMonthlyFinance(mes);
+  const jsPDF=window.jspdf&&window.jspdf.jsPDF; if(!jsPDF){showToast('Gerador de PDF indisponível.','error');return;}
+  const doc=new jsPDF(); let y=22;
+  doc.setFontSize(18); doc.text('Resumo financeiro — '+monthLabel(mes),14,y); y+=11;
+  doc.setFontSize(10); doc.text('Previsto: '+fmtMoney(info.expected)+'  |  Recebido: '+fmtMoney(info.received)+'  |  Despesas: '+fmtMoney(info.expenses),14,y); y+=12;
+  info.rows.forEach(function(r){
+    if(y>275){doc.addPage();y=20;}
+    doc.setFontSize(11); doc.text(r.house.nome,14,y); doc.setFontSize(9);
+    doc.text('Previsto '+fmtMoney(r.expected+r.energyBilled)+' | Recebido '+fmtMoney(r.receivedRent+r.energyReceived)+' | Despesas '+fmtMoney(r.expenses)+' | Saldo '+fmtMoney(r.balance),14,y+5); y+=13;
+  });
+  doc.save('financeiro-'+mes+'.pdf');
+}
+
+function renderMonthlyFinanceTable(info){
+  return '<div class="finance-table">'+info.rows.map(function(r){
+    const t=tenantOf(r.house);
+    return '<button class="finance-row" onclick="openHouse(\''+r.house.id+'\',\'pagamentos\')">'+
+      '<div class="finance-house"><strong>'+esc(r.house.nome)+'</strong><span>'+esc(t?t.nome:'Sem inquilino')+'</span></div>'+
+      '<div><span>Previsto</span><strong class="num">'+fmtMoney(r.expected+r.energyBilled)+'</strong></div>'+
+      '<div><span>Recebido</span><strong class="num brass">'+fmtMoney(r.receivedRent+r.energyReceived)+'</strong></div>'+
+      '<div><span>Despesas</span><strong class="num rust">'+fmtMoney(r.expenses)+'</strong></div>'+
+      '<div><span>Saldo</span><strong class="num '+(r.balance<0?'rust':'')+'">'+fmtMoney(r.balance)+'</strong></div>'+
+      '<span class="status-dot '+(r.pending?'atrasado':'pago')+'">'+(r.pending?'Falta '+fmtMoney(r.pending):'Em dia')+'</span>'+
+    '</button>';
+  }).join('')+'</div>';
+}
+
 function renderFinanceiroView(){
-  const o = computeOverview();
+  const mes=state.financeMonth||currentMonthStr();
+  const month=computeMonthlyFinance(mes), ageing=computeAgeing();
   const chart = computeChartData12();
   const maxVal = Math.max(1, ...chart.map(function(c){ return c.recebido; }));
-  const receitaAnual = o.receitaMensal*12;
   const tot = computeAnnualTotals(state.relatorioAno);
   return '<div class="page-header"><div>'+
       '<div class="eyebrow">FINANCEIRO</div>'+
-      pageTitleWithIcon(financeIconSvg(), 'Receita das suas casas')+
-      '<div class="page-sub">Resumo de '+monthLabel(currentMonthStr())+'</div>'+
-    '</div></div>'+
+      pageTitleWithIcon(financeIconSvg(), 'Gestão financeira')+
+      '<div class="page-sub">Receitas, despesas, saldo e inadimplência.</div>'+
+    '</div><div class="header-actions"><button class="btn btn-ghost btn-sm" onclick="downloadFinanceCsv()">Exportar planilha</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="downloadFinancePdf()">Resumo PDF</button></div></div>'+
+    '<div class="section-header"><div><h2 class="section-title">Fechamento mensal</h2></div>'+
+      '<div class="month-switcher"><button onclick="moveFinanceMonth(-1)">←</button><input type="month" value="'+esc(mes)+'" onchange="setFinanceMonth(this.value)"><button onclick="moveFinanceMonth(1)">→</button></div></div>'+
     '<div class="stat-grid">'+
-      '<div class="stat-card stat-brass"><div class="stat-label">Vou arrecadar este mês</div><div class="stat-value num">'+fmtMoney(o.receitaMensal)+'</div><div class="stat-sub">recebido até agora: '+fmtMoney(o.recebidoMes)+'</div></div>'+
-      '<div class="stat-card"><div class="stat-label">Vou arrecadar este ano</div><div class="stat-value num">'+fmtMoney(receitaAnual)+'</div><div class="stat-sub">projeção com base no aluguel atual</div></div>'+
+      statCard('Previsto',fmtMoney(month.expected),'aluguel + energia','brass')+
+      statCard('Recebido',fmtMoney(month.received),month.expected?Math.round(month.received/month.expected*100)+'% do previsto':'sem previsão',null)+
+      statCard('Despesas',fmtMoney(month.expenses),'lançadas no mês',month.expenses?'rust':null)+
+      statCard('Saldo líquido',fmtMoney(month.received-month.expenses),'recebido − despesas',month.received-month.expenses<0?'rust':'brass')+
     '</div>'+
+    '<div class="panel"><div class="panel-title">Resultado por imóvel</div>'+renderMonthlyFinanceTable(month)+'</div>'+
+    '<div class="panel"><div class="panel-title">Pendências por tempo de atraso</div><div class="ageing-grid">'+ageing.map(function(b){return '<div class="ageing-card"><span>'+b.label+'</span><strong class="num">'+fmtMoney(b.value)+'</strong><small>'+b.count+' imóvel(is)</small></div>';}).join('')+'</div></div>'+
     '<div class="panel"><div class="panel-title">Recebido por mês (últimos 12 meses)</div>'+renderChartSimple(chart, maxVal)+'</div>'+
     '<div class="section-header">'+
       '<div class="page-title" style="font-size:18px;">Relatório anual por casa</div>'+

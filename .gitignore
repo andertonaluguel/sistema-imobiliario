@@ -1,6 +1,7 @@
 # Arquivos gerados para publicacao
 dist/
 .netlify/
+aluguel-deploy.zip
 
 # Backups e dados pessoais nunca devem entrar no repositorio
 backups/

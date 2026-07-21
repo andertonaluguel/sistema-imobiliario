@@ -21,17 +21,20 @@ function renderTenantAccessBlock(t){
 function renderTenantCard(t){
   const casas = housesOf(t.id);
   const n = casas.length;
+  const overdueHouses=casas.filter(function(h){const c=computeCobrancaCasa(h);return c&&c.tipo==='atraso';});
+  const isOverdue=overdueHouses.length>0;
   const nomes = casas.map(function(h){ return h.nome; });
   const status = n>0 ? 'com' : 'sem';
   const searchData = (t.nome+' '+(t.telefone||'')+' '+(t.email||'')+' '+nomes.join(' ')).toLowerCase();
-  const chipTxt = n===0 ? 'SEM CASA' : (n===1 ? '1 IMÓVEL' : n+' IMÓVEIS');
-  const bottom = n===0 ? 'Disponível para vincular'
+  const chipTxt = isOverdue ? 'EM ATRASO' : (n===0 ? 'SEM CASA' : (n===1 ? '1 IMÓVEL' : n+' IMÓVEIS'));
+  const bottom = isOverdue ? (overdueHouses.length===1?'Atraso em '+esc(overdueHouses[0].nome):overdueHouses.length+' imóveis com atraso') : n===0 ? 'Disponível para vincular'
     : (n===1 ? ('Mora em '+esc(nomes[0])) : ('Imóveis: '+nomes.map(esc).join(', ')));
-  return '<div class="house-card tab-'+(n>0?'brass':'slate')+'" data-status="'+status+'" data-search="'+esc(searchData)+'" onclick="openEditTenantModal(\''+t.id+'\')">'+
+  const tone=isOverdue?'rust':(n>0?'brass':'slate');
+  return '<div class="house-card tab-'+tone+(isOverdue?' is-overdue':'')+'" data-status="'+status+'" data-atraso="'+(isOverdue?'1':'0')+'" data-search="'+esc(searchData)+'" onclick="openEditTenantModal(\''+t.id+'\')">'+
     '<div class="house-card-top"><div>'+
       '<div class="house-name">'+esc(t.nome)+'</div>'+
       '<div class="house-address">'+(t.telefone?esc(t.telefone):'Sem telefone cadastrado')+'</div>'+
-    '</div><span class="chip chip-'+(n>0?'brass':'slate')+'">'+chipTxt+'</span></div>'+
+    '</div><span class="chip chip-'+tone+'">'+chipTxt+'</span></div>'+
     '<div class="house-card-bottom"><div class="house-tenant">'+bottom+'</div></div>'+
   '</div>';
 }

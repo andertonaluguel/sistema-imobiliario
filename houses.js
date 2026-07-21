@@ -14,6 +14,8 @@ function renderHouseCard(h){
   const energy=energiaValorMes(h,cur,contractId);
   const total=rent+energy;
   const prorataPending=contract&&contractProrataValue(contract)>0&&!contract.proporcionalPago;
+  const charge=computeCobrancaCasa(h);
+  const isOverdue=!!(charge&&charge.tipo==='atraso');
   let tabColor, statusLabel;
   if(st==='manutencao'){ tabColor='manut'; statusLabel='EM MANUTENÇÃO'; }
   else if(st==='vaga'){ tabColor='slate'; statusLabel='VAGA'; }
@@ -22,9 +24,19 @@ function renderHouseCard(h){
   else if(st==='atrasado'){ tabColor='rust'; statusLabel='ATRASADO'; }
   else if(st==='fora_contrato'){ tabColor='slate'; statusLabel='PRÓXIMO CICLO'; }
   else { tabColor='slate'; statusLabel='PENDENTE'; }
-  const atraso = (h.status==='alugada' && st==='atrasado') ? '1' : '0';
+  if(isOverdue){ tabColor='rust'; statusLabel='ATRASADO'; }
+  const atraso = isOverdue ? '1' : '0';
   const searchData = (h.nome+' '+(h.endereco||'')+' '+(t?t.nome:'')).toLowerCase();
-  return '<div class="house-card house-card-rich tab-'+tabColor+'" data-status="'+h.status+'" data-atraso="'+atraso+'" data-search="'+esc(searchData)+'" onclick="openHouse(\''+h.id+'\')">'+
+  if(isSimpleMode()){
+    const simpleValue=isOverdue&&charge?charge.total:total;
+    const simpleLabel=isOverdue?'VALOR EM ATRASO':'TOTAL DO MÊS';
+    return '<div class="house-card simple-house-card tab-'+tabColor+(isOverdue?' is-overdue':'')+'" data-status="'+h.status+'" data-atraso="'+atraso+'" data-search="'+esc(searchData)+'" onclick="openSimpleHouseSummary(\''+h.id+'\')">'+
+      '<div class="house-card-top"><div><div class="house-name">'+esc(h.nome)+'</div><div class="house-address">'+(t?esc(t.nome):(h.status==='vaga'?'Sem inquilino':'—'))+'</div></div><span class="chip chip-'+tabColor+'">'+statusLabel+'</span></div>'+
+      '<div class="simple-house-value"><span>'+simpleLabel+'</span><strong class="num">'+fmtMoney(simpleValue)+'</strong></div>'+
+      (h.status==='alugada'?'<div class="simple-house-actions" onclick="event.stopPropagation()"><button class="btn btn-primary" onclick="openSimplePayment(\''+h.id+'\')">'+(st==='pago'&&!isOverdue?'Pagamento em dia ✓':'Registrar pagamento')+'</button><button class="btn btn-ghost" onclick="openSimpleHouseSummary(\''+h.id+'\')">Ver histórico</button></div>':'')+
+    '</div>';
+  }
+  return '<div class="house-card house-card-rich tab-'+tabColor+(isOverdue?' is-overdue':'')+'" data-status="'+h.status+'" data-atraso="'+atraso+'" data-search="'+esc(searchData)+'" onclick="openHouse(\''+h.id+'\')">'+
     '<div class="house-card-top"><div>'+
       '<div class="house-name">'+esc(h.nome)+'</div>'+
       '<div class="house-address">'+(h.endereco?esc(h.endereco):'Endereço não informado')+'</div>'+
@@ -69,13 +81,16 @@ function aplicarFiltroCasas(){
 }
 function renderCasasView(){
   const header = '<div class="page-header"><div>'+
-      '<div class="eyebrow">GERENCIAMENTO</div>'+
-      pageTitleWithIcon(houseIconSvg(), 'Suas '+state.houses.length+' casas')+
-    '</div><button class="btn btn-primary btn-sm" onclick="openAddHouseModal()">+ Nova casa</button></div>';
+      '<div class="eyebrow">'+(isSimpleMode()?'MODO SIMPLES':'GERENCIAMENTO')+'</div>'+
+      pageTitleWithIcon(houseIconSvg(), isSimpleMode()?'Casas':'Suas '+state.houses.length+' casas')+
+      (isSimpleMode()?'<div class="page-sub">Toque em uma casa para consultar o histórico.</div>':'')+
+    '</div>'+(!isSimpleMode()?'<button class="btn btn-primary btn-sm" onclick="openAddHouseModal()">+ Nova casa</button>':'')+'</div>';
   if(state.houses.length===0){
     return header + emptyState('Nenhuma casa ainda. Crie em "+ Nova casa" ou importe seu backup pelo menu (⋯).', houseIconSvg());
   }
-  const filtros = [['todas','Todas'],['alugada','Alugadas'],['vaga','Vagas'],['manutencao','Manutenção'],['atraso','Em atraso']];
+  const filtros = isSimpleMode()
+    ? [['todas','Todas'],['atraso','Em atraso']]
+    : [['todas','Todas'],['alugada','Alugadas'],['vaga','Vagas'],['manutencao','Manutenção'],['atraso','Em atraso']];
   const chips = filtros.map(function(f){
     return '<button class="filter-chip'+(state.casaFiltro===f[0]?' active':'')+'" data-filtro="'+f[0]+'" onclick="setCasaFiltro(\''+f[0]+'\')">'+f[1]+'</button>';
   }).join('');
@@ -87,6 +102,33 @@ function renderCasasView(){
   const grid = '<div class="house-grid" id="casaGrid">'+state.houses.map(renderHouseCard).join('')+'</div>'+
     '<div class="empty-state" id="casaEmpty" style="display:none">Nenhuma casa encontrada com esse filtro.</div>';
   return header + toolbar + grid;
+}
+
+function openSimplePayment(houseId){
+  const h=state.houses.find(function(x){return x.id===houseId;});
+  if(!h) return;
+  const charge=computeCobrancaCasa(h);
+  if(charge&&charge.tipo==='atraso') openAlertPaymentChooser(houseId);
+  else openQuickRentPayment(houseId);
+}
+
+function openSimpleHouseSummary(houseId){
+  const h=state.houses.find(function(x){return x.id===houseId;});
+  if(!h) return;
+  const t=tenantOf(h),contract=currentRentContract(h),contractId=contract?contract.id:'';
+  const cur=currentMonthStr(),charge=computeCobrancaCasa(h);
+  const overdue=!!(charge&&charge.tipo==='atraso');
+  const rent=contract?Number(contract.valor)||0:aluguelValorMes(h,cur);
+  const energy=energiaValorMes(h,cur,contractId);
+  const payments=(h.pagamentos||[]).slice().sort(function(a,b){return (b.mes||'').localeCompare(a.mes||'');}).slice(0,6);
+  const history=payments.length?'<div class="simple-history-list">'+payments.map(function(p){
+    return '<div><span>'+monthLabel(p.mes)+'</span><strong class="num">'+fmtMoney(p.valorPago)+'</strong><small>'+fmtDateBR(p.dataPagamento)+'</small></div>';
+  }).join('')+'</div>':'<div class="empty-state">Nenhum pagamento registrado ainda.</div>';
+  openModal('<div class="simple-modal-status'+(overdue?' overdue':'')+'"><span>'+(overdue?'EM ATRASO':paymentStatus(h,cur,contractId)==='pago'?'EM DIA':'PENDENTE')+'</span></div>'+
+    '<h3 class="modal-title simple-modal-title">'+esc(h.nome)+'</h3><p class="modal-text">'+(t?esc(t.nome):'Sem inquilino')+'</p>'+
+    '<div class="simple-modal-values"><div><span>Aluguel</span><strong class="num">'+fmtMoney(rent)+'</strong></div><div><span>Energia</span><strong class="num">'+(energy?fmtMoney(energy):'—')+'</strong></div><div><span>Total do mês</span><strong class="num">'+fmtMoney(rent+energy)+'</strong></div></div>'+
+    '<h4 class="simple-history-title">Últimos pagamentos</h4>'+history+
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button>'+(h.status==='alugada'?'<button class="btn btn-primary" onclick="closeModal();openSimplePayment(\''+h.id+'\')">Registrar pagamento</button>':'')+'</div>');
 }
 
 /* ---------- atrasos no histórico (aba Geral) ---------- */

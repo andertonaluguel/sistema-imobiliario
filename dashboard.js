@@ -239,14 +239,14 @@ function renderAlerts(o){
       if(temEnergia) partes.push(g.energiaMeses.length===1 ? ('energia de '+monthLabel(g.energiaMeses[0])) : (g.energiaMeses.length+' de energia'));
       if(g.proporcional) partes.push('ajuste inicial do contrato');
       const txt = partes.join(' + ')+' — atrasado há '+g.dias+' dia(s)';
-      items.push('<div class="alert-row alert-atraso" onclick="openHouse(\''+g.houseId+'\',\''+(temAluguel?'pagamentos':'energia')+'\')">'+
+      items.push('<div class="alert-row alert-atraso" onclick="'+(isSimpleMode()?'openSimpleHouseSummary(\''+g.houseId+'\')':'openHouse(\''+g.houseId+'\',\''+(temAluguel?'pagamentos':'energia')+'\')')+'">'+
         '<span class="chip">ATRASADO</span>'+
         '<div class="ledger-row-main">'+esc(h.nome)+' — '+txt+'</div>'+
         '<div class="alert-actions">'+btn+registerBtn+'</div>'+
         '<div class="ledger-row-value num rust">'+fmtMoney(g.total)+'</div></div>');
     } else {
       const extra = temEnergia ? ' + energia' : '';
-      items.push('<div class="alert-row alert-proximo" onclick="openHouse(\''+g.houseId+'\',\'pagamentos\')">'+
+      items.push('<div class="alert-row alert-proximo" onclick="'+(isSimpleMode()?'openSimpleHouseSummary(\''+g.houseId+'\')':'openHouse(\''+g.houseId+'\',\'pagamentos\')')+'">'+
         '<span class="chip">PRÓXIMO</span>'+
         '<div class="ledger-row-main">'+esc(h.nome)+' — aluguel'+extra+' vence em '+g.dias+' dia(s) ('+monthLabel(g.meses[0])+')</div>'+
         '<div class="alert-actions">'+btn+registerBtn+'</div>'+
@@ -303,6 +303,30 @@ function renderRecentes(){
   }).join('')+'</div>';
 }
 
+function renderSimpleDashboard(o){
+  const paymentOnly={cobrancas:o.cobrancas,contratosVencendo:[],manutList:[]};
+  return '<div class="page-header simple-page-header"><div>'+
+      '<div class="eyebrow">MODO SIMPLES</div>'+
+      pageTitleWithIcon(dashIconSvg(), 'Olá!')+
+      '<div class="page-sub">Acompanhe os aluguéis e registre os pagamentos.</div>'+
+    '</div><div class="page-date">'+fmtDateBR(todayISO())+'</div></div>'+
+    '<div class="simple-dashboard-actions">'+
+      '<button class="simple-primary-action" onclick="irCasas()"><span>'+houseIconSvg()+'</span><div><strong>Ver todas as casas</strong><small>Consulte e registre pagamentos</small></div><b>→</b></button>'+
+    '</div>'+
+    '<div class="stat-grid simple-stat-grid">'+
+      statCard('Recebido no mês', fmtMoney(o.recebidoMes + o.energiaRecebida), 'aluguéis e energia', 'brass')+
+      statCard('Falta receber', fmtMoney(o.faltaReceber), o.nAtraso?(o.nAtraso+' casa(s) em atraso'):'nenhum atraso', o.faltaReceber>0?'rust':null)+
+    '</div>'+
+    '<div class="panel simple-panel">'+
+      '<div class="simple-panel-heading"><div><span class="panel-title-inline">Pagamentos para conferir'+(o.nAtraso?'<span class="alert-badge">'+o.nAtraso+'</span>':'')+'</span><small>Toque em Registrar quando receber.</small></div></div>'+
+      '<div class="simple-panel-body">'+renderAlerts(paymentOnly)+'</div>'+
+    '</div>'+
+    '<div class="panel panel-collapsible">'+
+      '<button class="panel-toggle" onclick="toggleMovs()"><span class="panel-title-inline">Histórico recente</span><span class="panel-chevron">'+(state.movsExpanded?'▾':'▸')+'</span></button>'+
+      (state.movsExpanded?'<div class="panel-body">'+renderRecentes()+'</div>':'')+
+    '</div>';
+}
+
 function renderOccupancySummary(o){
   const total=state.houses.length;
   const pct=total?Math.round((o.alugadas/total)*100):0;
@@ -316,6 +340,8 @@ function renderOccupancySummary(o){
 
 function renderDashboard(){
   const o = computeOverview();
+
+  if(isSimpleMode()) return renderSimpleDashboard(o);
 
   return '<div class="page-header"><div>'+
       '<div class="eyebrow">PAINEL</div>'+

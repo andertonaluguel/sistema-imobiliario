@@ -5,6 +5,14 @@
    - Roteamento e renderização (despacha para os módulos)
    ============================================================ */
 
+const UI_MODE_KEY = 'aluguel-ui-mode-v1';
+
+function loadUiMode(){
+  try{ return localStorage.getItem(UI_MODE_KEY)==='simple' ? 'simple' : 'advanced'; }
+  catch(e){ return 'advanced'; }
+}
+function isSimpleMode(){ return state.uiMode==='simple'; }
+
 const state = {
   session: null,
   role: null,
@@ -12,6 +20,7 @@ const state = {
   recovery: false,
   loaded: false,
   loading: true,
+  uiMode: loadUiMode(),
   houses: [],
   tenants: [],
   eventos: [],
@@ -111,27 +120,38 @@ function irCalendario(){ if(!state.calMes) state.calMes=currentMonthStr(); state
 function toggleAlerts(){ state.alertsExpanded = !state.alertsExpanded; render(); }
 function toggleMovs(){ state.movsExpanded = !state.movsExpanded; render(); }
 function toggleReportList(){ state.reportListExpanded = !state.reportListExpanded; render(); }
+function setUiMode(mode){
+  state.uiMode = mode==='simple' ? 'simple' : 'advanced';
+  try{ localStorage.setItem(UI_MODE_KEY, state.uiMode); }catch(e){}
+  if(isSimpleMode() && state.view!=='dashboard' && state.view!=='casas') state.view='dashboard';
+  closeModal();
+  render();
+  showToast(isSimpleMode()?'Modo simples ativado neste aparelho.':'Modo avançado ativado neste aparelho.','success');
+}
 
 /* ---------- topo + menu ---------- */
 function renderTopBar(){
   const casasActive = (state.view==='casas' || state.view==='houseDetail');
   return '<header class="topbar">'+
     '<button class="topbar-brand" onclick="irHome()">'+logoSvg()+'<span class="brand-name">Aluguel</span></button>'+
+    (isSimpleMode()?'<span class="mode-label">MODO SIMPLES</span>':'')+
     '<nav class="topbar-nav">'+
       '<button class="topbar-link'+(state.view==='dashboard'?' active':'')+'" onclick="irHome()">Painel</button>'+
       '<button class="topbar-link'+(casasActive?' active':'')+'" onclick="irCasas()">Casas</button>'+
-      '<button class="topbar-link'+(state.view==='inquilinos'?' active':'')+'" onclick="irInquilinos()">Inquilinos</button>'+
+      (!isSimpleMode()?'<button class="topbar-link'+(state.view==='inquilinos'?' active':'')+'" onclick="irInquilinos()">Inquilinos</button>'+
       '<button class="topbar-link'+(state.view==='energia'?' active':'')+'" onclick="irEnergia()">Energia</button>'+
       '<button class="topbar-link'+(state.view==='financeiro'?' active':'')+'" onclick="irFinanceiro()">Financeiro</button>'+
-      '<button class="topbar-link'+(state.view==='calendario'?' active':'')+'" onclick="irCalendario()">Calendário</button>'+
+      '<button class="topbar-link'+(state.view==='calendario'?' active':'')+'" onclick="irCalendario()">Calendário</button>':'')+
     '</nav>'+
     '<button class="top-search-btn" onclick="openGlobalSearch()" aria-label="Buscar">Buscar</button>'+
     '<button class="menu-btn" onclick="openMenuModal()" aria-label="Menu">⋯</button>'+
   '</header>';
 }
 function renderMobileNav(){
-  const items=[['dashboard','Painel','irHome()'],['casas','Casas','irCasas()'],['energia','Energia','irEnergia()'],['financeiro','Financeiro','irFinanceiro()'],['inquilinos','Inquilinos','irInquilinos()'],['calendario','Agenda','irCalendario()']];
-  return '<nav class="mobile-nav">'+items.map(function(i){
+  const items=isSimpleMode()
+    ? [['dashboard','Painel','irHome()'],['casas','Casas','irCasas()']]
+    : [['dashboard','Painel','irHome()'],['casas','Casas','irCasas()'],['energia','Energia','irEnergia()'],['financeiro','Financeiro','irFinanceiro()'],['inquilinos','Inquilinos','irInquilinos()'],['calendario','Agenda','irCalendario()']];
+  return '<nav class="mobile-nav'+(isSimpleMode()?' simple-mobile-nav':'')+'">'+items.map(function(i){
     const active=state.view===i[0]||(i[0]==='casas'&&state.view==='houseDetail');
     return '<button class="mobile-nav-item'+(active?' active':'')+'" onclick="'+i[2]+'"><span>'+esc(i[1])+'</span></button>';
   }).join('')+'</nav>';
@@ -147,22 +167,26 @@ function renderGlobalSearchResults(value){
   const root=document.getElementById('globalSearchResults'),q=String(value||'').trim().toLowerCase(); if(!root)return;
   if(q.length<2){root.innerHTML='<p class="modal-text">Digite pelo menos duas letras.</p>';return;}
   const houses=state.houses.filter(function(h){const t=tenantOf(h);return (h.nome+' '+h.endereco+' '+(t?t.nome:'')).toLowerCase().includes(q);}).slice(0,6);
-  const tenants=state.tenants.filter(function(t){return (t.nome+' '+t.telefone+' '+t.email).toLowerCase().includes(q);}).slice(0,6);
-  const html=houses.map(function(h){return '<button class="global-result" onclick="closeModal();openHouse(\''+h.id+'\')"><strong>'+esc(h.nome)+'</strong><span>'+esc(h.endereco||'Casa')+'</span></button>';}).join('')+
+  const tenants=isSimpleMode()?[]:state.tenants.filter(function(t){return (t.nome+' '+t.telefone+' '+t.email).toLowerCase().includes(q);}).slice(0,6);
+  const html=houses.map(function(h){return '<button class="global-result" onclick="closeModal();'+(isSimpleMode()?'openSimpleHouseSummary(\''+h.id+'\')':'openHouse(\''+h.id+'\')')+'"><strong>'+esc(h.nome)+'</strong><span>'+esc(h.endereco||'Casa')+'</span></button>';}).join('')+
     tenants.map(function(t){return '<button class="global-result" onclick="closeModal();openEditTenantModal(\''+t.id+'\')"><strong>'+esc(t.nome)+'</strong><span>'+esc(t.telefone||t.email||'Inquilino')+'</span></button>';}).join('');
   root.innerHTML=html||'<p class="modal-text">Nenhum resultado encontrado.</p>';
 }
 function openMenuModal(){
   const email = state.session && state.session.user ? esc(state.session.user.email) : '';
+  const modeSwitch='<div class="mode-switch-wrap"><span class="field-kicker">MODO DE USO NESTE APARELHO</span><div class="mode-switch">'+
+    '<button class="'+(isSimpleMode()?'active':'')+'" onclick="setUiMode(\'simple\')"><strong>Simples</strong><small>Ver e registrar pagamentos</small></button>'+
+    '<button class="'+(!isSimpleMode()?'active':'')+'" onclick="setUiMode(\'advanced\')"><strong>Avançado</strong><small>Todos os recursos</small></button></div></div>';
   openModal(
     '<h3 class="modal-title">Menu</h3>'+
     (email?'<p class="modal-text">Conectado como <strong>'+email+'</strong></p>':'')+
+    modeSwitch+
     '<div class="menu-list">'+
-      '<button class="btn btn-ghost" onclick="closeModal();openConfigModal()">Meus dados (recibos)</button>'+
+      (!isSimpleMode()?'<button class="btn btn-ghost" onclick="closeModal();openConfigModal()">Meus dados (recibos)</button>'+
       '<button class="btn btn-ghost" onclick="closeModal();doExportBackup()">Exportar backup (JSON)</button>'+
       '<button class="btn btn-ghost" onclick="closeModal();triggerImport()">Importar backup</button>'+
       '<button class="btn btn-ghost" onclick="closeModal();openBackupsModal()">Backups automáticos</button>'+
-      '<button class="btn btn-danger" onclick="closeModal();confirmResetAll()">Apagar todos os dados</button>'+
+      '<button class="btn btn-danger" onclick="closeModal();confirmResetAll()">Apagar todos os dados</button>':'')+
       '<button class="btn btn-ghost" onclick="closeModal();doSignOut()">Sair</button>'+
     '</div>'
   );
@@ -226,7 +250,7 @@ function render(){
   if(state.role==='tenant'){ app.innerHTML=renderTenantPortal(); return; }
   if(state.role==='pending'){ app.innerHTML=renderPendingAccess(); return; }
   app.innerHTML =
-    '<div class="app-shell">'+
+    '<div class="app-shell '+(isSimpleMode()?'mode-simple':'mode-advanced')+'">'+
       renderTopBar()+
       '<main class="main">'+
         (state.view==='casas' ? renderCasasView() :

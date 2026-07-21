@@ -47,7 +47,9 @@ const olderMonth = api.addMonths(currentMonth,-2);
 const cobranca = api.computeCobrancaCasa({
   id:'house-test', status:'alugada', diaVencimento:1,
   contratoInicio:olderMonth+'-01',
-  pagamentos:[{ mes:currentMonth, valorPago:1200, dataPagamento:currentMonth+'-01' }],
+  contracts:[{ id:'contract-test', inicio:olderMonth+'-01', fim:'', ativo:true,
+    valor:1100, diaVencimento:1, modalidade:'entrada', proporcionalValor:0, proporcionalPago:false }],
+  pagamentos:[{ mes:currentMonth, contractId:'contract-test', valorPago:1200, dataPagamento:currentMonth+'-01' }],
   energias:[],
   aluguelValor:1200,
   aluguelHistorico:[
@@ -56,6 +58,41 @@ const cobranca = api.computeCobrancaCasa({
   ]
 });
 assert.equal(cobranca.aluguelTotal, 2200);
+
+vm.runInContext(`
+  const state={uiMode:'advanced',houses:[],tenants:[]};
+  function isSimpleMode(){return state.uiMode==='simple';}
+  function tenantOf(h){return state.tenants.find(function(t){return t.id===h.tenantId;})||null;}
+`,context);
+for(const file of ['houses.js','tenants.js']){
+  vm.runInContext(await readFile(join(root,file),'utf8'),context,{filename:file});
+}
+const uiApi=vm.runInContext(`({
+  setMode:function(mode){state.uiMode=mode;},
+  setData:function(houses,tenants){state.houses=houses;state.tenants=tenants;},
+  renderHouseCard,
+  renderTenantCard
+})`,context);
+const overdueHouse={
+  id:'overdue-house',nome:'Casa teste',endereco:'Rua teste',status:'alugada',tenantId:'tenant-test',
+  diaVencimento:1,aluguelValor:1100,aluguelHistorico:[],despesas:[],statusHistorico:[],energias:[],
+  contracts:[{id:'overdue-contract',inicio:previousMonth+'-01',fim:'',ativo:true,valor:1100,
+    diaVencimento:1,modalidade:'entrada',proporcionalValor:0,proporcionalPago:false}],
+  pagamentos:[]
+};
+const overdueTenant={id:'tenant-test',nome:'Inquilino teste',telefone:'',email:''};
+uiApi.setData([overdueHouse],[overdueTenant]);
+const advancedHouseCard=uiApi.renderHouseCard(overdueHouse);
+const tenantCard=uiApi.renderTenantCard(overdueTenant);
+assert.match(advancedHouseCard,/is-overdue/);
+assert.match(advancedHouseCard,/ATRASADO/);
+assert.match(tenantCard,/is-overdue/);
+assert.match(tenantCard,/EM ATRASO/);
+uiApi.setMode('simple');
+const simpleHouseCard=uiApi.renderHouseCard(overdueHouse);
+assert.match(simpleHouseCard,/simple-house-card/);
+assert.match(simpleHouseCard,/Registrar pagamento/);
+assert.doesNotMatch(simpleHouseCard,/Registrar energia/);
 
 const backupPath = join(root,'..','backups','aluguel-backup-2026-07-20.json');
 const backup = JSON.parse(await readFile(backupPath,'utf8'));
@@ -74,4 +111,4 @@ const invalidDue = structuredClone(backup);
 invalidDue.houses[0].diaVencimento = 32;
 assert.throws(() => api.normalizeBackupForImport(invalidDue), /1 a 31/i);
 
-console.log('Testes concluídos: vencimentos, reajustes e importação segura estão corretos.');
+console.log('Testes concluídos: cobranças, modo simples, atrasos e importação segura estão corretos.');

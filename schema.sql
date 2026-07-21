@@ -37,6 +37,13 @@ create table if not exists public.imoveis (
   tenant_id       uuid references public.inquilinos(id) on delete set null,
   contrato_inicio date,
   contrato_fim    date,
+  quartos         int not null default 0 check (quartos >= 0),
+  banheiros       int not null default 0 check (banheiros >= 0),
+  garagem         boolean not null default false,
+  quintal         boolean not null default false,
+  poco_agua       boolean not null default false,
+  energia_ativa   boolean not null default true,
+  energia_dia_vencimento int not null default 5 check (energia_dia_vencimento between 1 and 31),
   created_at      timestamptz default now(),
   updated_at      timestamptz default now()
 );
@@ -64,6 +71,16 @@ create table if not exists public.energia (
   mes             text not null check (mes ~ '^\d{4}-(0[1-9]|1[0-2])$'),
   valor           numeric(12,2) default 0 check (valor >= 0),
   kwh             numeric(12,2) default 0 check (kwh >= 0),
+  leitura_anterior numeric(14,2) not null default 0 check (leitura_anterior >= 0),
+  leitura_atual   numeric(14,2) not null default 0 check (leitura_atual >= 0),
+  tarifa_kwh      numeric(14,4) not null default 0 check (tarifa_kwh >= 0),
+  acrescimos      numeric(12,2) not null default 0 check (acrescimos >= 0),
+  descontos       numeric(12,2) not null default 0 check (descontos >= 0),
+  ajuste_descricao text not null default '',
+  valor_calculado numeric(12,2) not null default 0,
+  valor_manual    boolean not null default false,
+  vencimento      date,
+  foto_path       text,
   pago            boolean default false,
   data_pagamento  date,
   created_at      timestamptz default now()
@@ -178,7 +195,26 @@ create table if not exists public.configuracoes (
   user_id            uuid primary key default auth.uid() references auth.users(id) on delete cascade,
   locador_nome       text default '',
   locador_documento  text default '',
+  energia_ativa      boolean not null default true,
   updated_at         timestamptz default now()
+);
+
+create table if not exists public.interessados (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  nome text not null,
+  telefone text not null default '',
+  valor_maximo numeric(12,2) not null default 0 check(valor_maximo>=0),
+  quartos_min int not null default 0 check(quartos_min>=0),
+  banheiros_min int not null default 0 check(banheiros_min>=0),
+  precisa_garagem boolean not null default false,
+  precisa_quintal boolean not null default false,
+  interessa_poco boolean not null default false,
+  observacoes text not null default '',
+  status text not null default 'novo' check(status in ('novo','conversando','visita','quente','fechado','desistiu')),
+  inquilino_id uuid references public.inquilinos(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 -- ------------------------------------------------------------
@@ -221,6 +257,7 @@ create index if not exists idx_hist_imovel       on public.historico_status(imov
 create index if not exists idx_fotos_imovel      on public.fotos(imovel_id);
 create index if not exists idx_docs_imovel       on public.documentos(imovel_id);
 create index if not exists idx_eventos_user      on public.eventos(user_id);
+create index if not exists idx_interessados_user on public.interessados(user_id);
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -233,7 +270,7 @@ begin
   foreach t in array array[
     'inquilinos','imoveis','pagamentos','energia','despesas','historico_status',
     'fotos','contratos','documentos','eventos','configuracoes',
-    'aluguel_historico','backups'
+    'aluguel_historico','backups','interessados'
   ]
   loop
     execute format('alter table public.%I enable row level security;', t);

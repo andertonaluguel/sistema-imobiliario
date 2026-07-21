@@ -179,6 +179,10 @@ function paymentStatus(house, mesStr, contractId){
 }
 
 /* ---------- energia solar (segunda receita, valor variável mês a mês) ---------- */
+function energyModuleEnabled(){
+  return typeof state==='undefined' || !state.config || state.config.energiaAtiva!==false;
+}
+function houseEnergyEnabled(h){ return energyModuleEnabled() && (!h || h.energiaAtiva!==false); }
 function energiaDoMes(h, mes, contractId){
   const list=h.energias||[];
   const contract=contractForEnergyMonth(h,mes,contractId);
@@ -194,6 +198,16 @@ function energiaDoMes(h, mes, contractId){
 function energiaValorMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return e ? (Number(e.valor)||0) : 0; }
 function energiaKwhMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return e ? (Number(e.kwh)||0) : 0; }
 function energiaPagaMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return !!(e && e.pago); }
+function previousEnergyReading(h,mes){
+  const previous=(h&&h.energias||[]).filter(function(e){
+    return e.mes<mes && Number.isFinite(Number(e.leituraAtual));
+  }).sort(function(a,b){return String(b.mes).localeCompare(String(a.mes));})[0];
+  return previous ? Number(previous.leituraAtual)||0 : null;
+}
+function energyDueDate(h,e,mes){
+  if(e&&e.vencimento) return new Date(e.vencimento+'T23:59:59');
+  return dueDateForMonth(mes,(h&&h.energiaDiaVencimento)||(h&&h.diaVencimento)||5);
+}
 // Status de cobrança da energia do mês. Como o valor é variável, um mês
 // SEM lançamento não é atraso — é 'sem_registro' (nada a cobrar ainda).
 //   'vaga'        casa não alugada
@@ -202,6 +216,7 @@ function energiaPagaMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contr
 //   'atrasado'    lançado, vencido e não recebido
 //   'pendente'    lançado, ainda dentro do prazo
 function energiaStatus(h, mes, contractId){
+  if(!houseEnergyEnabled(h)) return 'desativada';
   const contract=contractForEnergyMonth(h,mes,contractId);
   if(contract&&!contractOccupiesMonth(contract,mes)) return 'fora_contrato';
   if((h.contracts||[]).length&&!contract) return 'fora_contrato';
@@ -209,9 +224,9 @@ function energiaStatus(h, mes, contractId){
   const e = energiaDoMes(h, mes,contractId);
   if(!e) return 'sem_registro';
   if(e.pago) return 'pago';
-  if(contract) return (new Date()>contractDueDate(contract,mes))?'atrasado':'pendente';
+  if(contract) return (new Date()>energyDueDate(h,e,mes))?'atrasado':'pendente';
   if(h.contratoInicio && mes < h.contratoInicio.slice(0,7)) return 'pendente';
-  const due = dueDateForMonth(mes, h.diaVencimento||5);
+  const due = energyDueDate(h,e,mes);
   return (new Date() > due) ? 'atrasado' : 'pendente';
 }
 

@@ -23,6 +23,13 @@ function rowToHouse(r){
     tenantId: r.tenant_id || '',
     contratoInicio: r.contrato_inicio || '',
     contratoFim: r.contrato_fim || '',
+    quartos: Number(r.quartos)||0,
+    banheiros: Number(r.banheiros)||0,
+    garagem: !!r.garagem,
+    quintal: !!r.quintal,
+    pocoAgua: !!r.poco_agua,
+    energiaAtiva: r.energia_ativa!==false,
+    energiaDiaVencimento: r.energia_dia_vencimento||5,
     statusHistorico: [],
     contracts: [],
     pagamentos: [],
@@ -42,6 +49,13 @@ function houseToRow(h){
     tenant_id: h.tenantId || null,
     contrato_inicio: h.contratoInicio || null,
     contrato_fim: h.contratoFim || null,
+    quartos: Math.max(0,parseInt(h.quartos,10)||0),
+    banheiros: Math.max(0,parseInt(h.banheiros,10)||0),
+    garagem: !!h.garagem,
+    quintal: !!h.quintal,
+    poco_agua: !!h.pocoAgua,
+    energia_ativa: h.energiaAtiva!==false,
+    energia_dia_vencimento: Math.min(31,Math.max(1,parseInt(h.energiaDiaVencimento,10)||5)),
     updated_at: new Date().toISOString()
   };
 }
@@ -50,6 +64,28 @@ function rowToTenant(r){
     id: r.id, nome: r.nome,
     telefone: r.telefone || '', email: r.email || '',
     documento: r.documento || '', emergenciaNome: r.emergencia_nome || ''
+  };
+}
+
+function rowToInterest(r){
+  return {
+    id:r.id,nome:r.nome||'',telefone:r.telefone||'',valorMaximo:Number(r.valor_maximo)||0,
+    quartosMin:Number(r.quartos_min)||0,banheirosMin:Number(r.banheiros_min)||0,
+    precisaGaragem:!!r.precisa_garagem,precisaQuintal:!!r.precisa_quintal,
+    interessaPoco:!!r.interessa_poco,observacoes:r.observacoes||'',status:r.status||'novo',
+    tenantId:r.inquilino_id||'',createdAt:r.created_at||''
+  };
+}
+
+function rowToEnergy(r){
+  return {
+    id:r.id,mes:r.mes,contractId:r.contrato_id||'',valor:Number(r.valor)||0,kwh:Number(r.kwh)||0,
+    leituraAnterior:Number(r.leitura_anterior)||0,leituraAtual:Number(r.leitura_atual)||0,
+    tarifaKwh:Number(r.tarifa_kwh)||0,acrescimos:Number(r.acrescimos)||0,
+    descontos:Number(r.descontos)||0,ajusteDescricao:r.ajuste_descricao||'',
+    valorCalculado:Number(r.valor_calculado)||0,valorManual:!!r.valor_manual,
+    vencimento:r.vencimento||'',fotoPath:r.foto_path||'',pago:!!r.pago,
+    dataPagamento:r.data_pagamento||''
   };
 }
 
@@ -135,8 +171,9 @@ function normalizeBackupForImport(data){
   }
   const housesIn = data.houses;
   const tenantsIn = Array.isArray(data.tenants) ? data.tenants : [];
+  const interestsIn = Array.isArray(data.interests) ? data.interests : [];
   const eventsIn = Array.isArray(data.eventos) ? data.eventos : [];
-  if(housesIn.length>500 || tenantsIn.length>2000 || eventsIn.length>10000){
+  if(housesIn.length>500 || tenantsIn.length>2000 || interestsIn.length>5000 || eventsIn.length>10000){
     throw new Error('O backup ultrapassa o limite seguro de registros.');
   }
 
@@ -169,7 +206,7 @@ function normalizeBackupForImport(data){
   });
 
   const houseIdMap = {};
-  const houseRows=[], contractRows=[], pagRows=[], despRows=[], histRows=[], fotoRows=[], reajRows=[], enerRows=[];
+  const houseRows=[], contractRows=[], pagRows=[], despRows=[], histRows=[], fotoRows=[], reajRows=[], enerRows=[],interestRows=[];
   const contractIdMap={},contractsByHouse={};
   const allowedHouseStatus = ['alugada','vaga','manutencao'];
   const allowedExpenseStatus = CONFIG.DESPESA_STATUS;
@@ -190,7 +227,11 @@ function normalizeBackupForImport(data){
     houseRows.push({ id:id, nome:_backupText(h.nome,160,'Casa')||'Casa', endereco:_backupText(h.endereco,400),
       status:status, aluguel_valor:_backupNumber(h.aluguelValor,'Aluguel'), dia_vencimento:dueDay,
       ultima_vistoria:_backupDate(h.ultimaVistoria,'Última vistoria'), tenant_id:tenantId||null,
-      contrato_inicio:contratoInicio, contrato_fim:contratoFim });
+      contrato_inicio:contratoInicio, contrato_fim:contratoFim,
+      quartos:Math.max(0,parseInt(h.quartos,10)||0),banheiros:Math.max(0,parseInt(h.banheiros,10)||0),
+      garagem:!!h.garagem,quintal:!!h.quintal,poco_agua:!!h.pocoAgua,
+      energia_ativa:h.energiaAtiva!==false,
+      energia_dia_vencimento:Math.min(31,Math.max(1,parseInt(h.energiaDiaVencimento,10)||5)) });
 
     let sourceContracts=Array.isArray(h.contracts)?h.contracts.slice():[];
     if(!sourceContracts.length&&tenantId&&contratoInicio){
@@ -263,7 +304,12 @@ function normalizeBackupForImport(data){
       if(seenEnergyMonths[key]) throw new Error('Há registros de energia duplicados para o mesmo contrato e mês.');
       seenEnergyMonths[key] = true;
       enerRows.push({ imovel_id:id,contrato_id:movementContract, mes:mes, valor:_backupNumber(en.valor,'Energia'),
-        kwh:_backupNumber(en.kwh,'Consumo de energia'), pago:!!en.pago,
+        kwh:_backupNumber(en.kwh,'Consumo de energia'),
+        leitura_anterior:_backupNumber(en.leituraAnterior,'Leitura anterior'),leitura_atual:_backupNumber(en.leituraAtual,'Leitura atual'),
+        tarifa_kwh:_backupNumber(en.tarifaKwh,'Tarifa de energia'),acrescimos:_backupNumber(en.acrescimos,'Acréscimos de energia'),
+        descontos:_backupNumber(en.descontos,'Descontos de energia'),ajuste_descricao:_backupText(en.ajusteDescricao,300),
+        valor_calculado:_backupNumber(en.valorCalculado,'Valor calculado de energia'),valor_manual:!!en.valorManual,
+        vencimento:_backupDate(en.vencimento,'Vencimento da energia'),pago:!!en.pago,
         data_pagamento:en.pago?_backupDate(en.dataPagamento,'Data do pagamento da energia'):null });
     });
   });
@@ -289,14 +335,26 @@ function normalizeBackupForImport(data){
   const eventRows = eventsIn.map(function(ev){
     return { data:_backupDate(ev.data,'Data do lembrete')||todayISO(), texto:_backupText(ev.texto,500) };
   });
+  const allowedInterestStatus=['novo','conversando','visita','quente','fechado','desistiu'];
+  interestsIn.forEach(function(item){
+    if(!item||!item.nome) throw new Error('Há um cliente quente sem nome no backup.');
+    const oldTenant=item.tenantId?_backupId(item.tenantId,'Inquilino convertido'):'';
+    interestRows.push({id:_newImportId(),nome:_backupText(item.nome,160),telefone:_backupText(item.telefone,40),
+      valor_maximo:_backupNumber(item.valorMaximo,'Valor máximo'),quartos_min:Math.max(0,parseInt(item.quartosMin,10)||0),
+      banheiros_min:Math.max(0,parseInt(item.banheirosMin,10)||0),precisa_garagem:!!item.precisaGaragem,
+      precisa_quintal:!!item.precisaQuintal,interessa_poco:!!item.interessaPoco,
+      observacoes:_backupText(item.observacoes,2000),status:allowedInterestStatus.includes(item.status)?item.status:'novo',
+      inquilino_id:oldTenant?(tenantIdMap[oldTenant]||null):null});
+  });
   const cfg = data.config && typeof data.config==='object' ? {
     locador_nome:_backupText(data.config.locadorNome,180),
-    locador_documento:_backupText(data.config.locadorDocumento,80)
+    locador_documento:_backupText(data.config.locadorDocumento,80),
+    energia_ativa:data.config.energiaAtiva!==false
   } : null;
 
   return { tenants:tenantRows, houses:houseRows, contracts:contractRows, payments:pagRows, expenses:despRows,
     history:histRows, photos:fotoRows, adjustments:reajRows, energy:enerRows,
-    events:eventRows, config:cfg };
+    interests:interestRows,events:eventRows, config:cfg };
 }
 
 const db = {
@@ -331,14 +389,14 @@ const db = {
       if(byId[p.imovel_id]) byId[p.imovel_id].pagamentos.push({ id:p.id,mes:p.mes,contractId:p.contrato_id||'',valorPago:Number(p.valor_pago)||0,dataPagamento:p.data_pagamento||'' });
     });
     (energia.data||[]).forEach(function(e){
-      if(byId[e.imovel_id]) byId[e.imovel_id].energias.push({ id:e.id,mes:e.mes,contractId:e.contrato_id||'',valor:Number(e.valor)||0,kwh:Number(e.kwh)||0,pago:!!e.pago,dataPagamento:e.data_pagamento||'' });
+      if(byId[e.imovel_id]) byId[e.imovel_id].energias.push(rowToEnergy(e));
     });
     const docs=(documentos.data||[]).map(rowToDocument);
     await Promise.all(docs.map(async function(d){ if(d.storagePath) d.url=await signedStorageUrl(d.storagePath); }));
     return {
       houses:houses,
       tenants:(inquilinos.data||[]).map(rowToTenant),
-      config:cfg.data?{locadorNome:cfg.data.locador_nome||'',locadorDocumento:cfg.data.locador_documento||''}:{locadorNome:'',locadorDocumento:''},
+      config:cfg.data?{locadorNome:cfg.data.locador_nome||'',locadorDocumento:cfg.data.locador_documento||'',energiaAtiva:cfg.data.energia_ativa!==false}:{locadorNome:'',locadorDocumento:'',energiaAtiva:true},
       documents:docs
     };
   },
@@ -359,7 +417,7 @@ const db = {
 
   /* Carrega tudo do usuário logado e monta o estado em memória. */
   async loadAll(){
-    const [imoveis, inquilinos, contratos, pagamentos, despesas, historico, cfg, eventos, reajustes, energia] = await Promise.all([
+    const [imoveis, inquilinos, contratos, pagamentos, despesas, historico, cfg, eventos, reajustes, energia, interesses] = await Promise.all([
       sb.from('imoveis').select('*').order('created_at', {ascending:true}),
       sb.from('inquilinos').select('*').order('created_at', {ascending:true}),
       sb.from('contratos').select('*').order('inicio',{ascending:true}),
@@ -369,9 +427,10 @@ const db = {
       sb.from('configuracoes').select('*').maybeSingle(),
       sb.from('eventos').select('*').order('data', {ascending:true}),
       sb.from('aluguel_historico').select('*').order('data_inicio', {ascending:true}),
-      sb.from('energia').select('*')
+      sb.from('energia').select('*'),
+      sb.from('interessados').select('*').order('created_at',{ascending:false})
     ]);
-    const firstErr = imoveis.error||inquilinos.error||contratos.error||pagamentos.error||despesas.error||historico.error||eventos.error||reajustes.error||energia.error;
+    const firstErr = imoveis.error||inquilinos.error||contratos.error||pagamentos.error||despesas.error||historico.error||eventos.error||reajustes.error||energia.error||interesses.error;
     if(firstErr) throw firstErr;
 
     const houses = (imoveis.data||[]).map(rowToHouse);
@@ -401,8 +460,7 @@ const db = {
     });
     (energia.data||[]).forEach(function(en){
       const h = byId[en.imovel_id]; if(!h) return;
-      h.energias.push({ id:en.id, mes:en.mes, contractId:en.contrato_id||'', valor:Number(en.valor)||0, kwh:Number(en.kwh)||0,
-                        pago:!!en.pago, dataPagamento:en.data_pagamento||'' });
+      h.energias.push(rowToEnergy(en));
     });
     // garante pelo menos um ponto de histórico
     houses.forEach(function(h){
@@ -413,11 +471,11 @@ const db = {
 
     const tenants = (inquilinos.data||[]).map(rowToTenant);
     const config = cfg.data
-      ? { locadorNome:cfg.data.locador_nome||'', locadorDocumento:cfg.data.locador_documento||'' }
-      : { locadorNome:'', locadorDocumento:'' };
+      ? { locadorNome:cfg.data.locador_nome||'', locadorDocumento:cfg.data.locador_documento||'', energiaAtiva:cfg.data.energia_ativa!==false }
+      : { locadorNome:'', locadorDocumento:'', energiaAtiva:true };
     const evs = (eventos.data||[]).map(function(e){ return { id:e.id, data:e.data, texto:e.texto||'' }; });
 
-    return { houses, tenants, config, eventos: evs };
+    return { houses, tenants, interests:(interesses.data||[]).map(rowToInterest), config, eventos: evs };
   },
 
   /* Fotos de uma casa (carregadas sob demanda). */
@@ -449,6 +507,7 @@ const db = {
       user_id: uid,
       locador_nome: cfg.locadorNome || '',
       locador_documento: cfg.locadorDocumento || '',
+      energia_ativa: cfg.energiaAtiva!==false,
       updated_at: new Date().toISOString()
     });
     if(error) throw error;
@@ -468,8 +527,8 @@ const db = {
       }
       if(content) (photos[f.imovel_id] = photos[f.imovel_id] || []).push(content);
     }
-    return { version:4, exportedAt:new Date().toISOString(),
-             houses:base.houses, tenants:base.tenants, photos:photos,
+    return { version:5, exportedAt:new Date().toISOString(),
+             houses:base.houses, tenants:base.tenants, interests:base.interests||[], photos:photos,
              config:base.config, eventos:base.eventos||[] };
   },
 
@@ -477,7 +536,7 @@ const db = {
      falhar, nenhuma linha é gravada e uma restauração não apaga o estado atual. */
   async importBackup(data, options){
     const payload = normalizeBackupForImport(data);
-    const { error } = await sb.rpc('importar_backup_atomico_v4', {
+    const { error } = await sb.rpc('importar_backup_atomico_v5', {
       p_payload: payload,
       p_substituir: !!(options && options.replace)
     });
@@ -589,21 +648,66 @@ const db = {
     if(error) throw error;
   },
 
-  /* Energia solar (um registro por casa/mês; valor variável) */
+  /* Energia (um registro por casa/mês; leituras, cálculo e recebimento). */
   async upsertEnergia(imovelId, en){
     const uid = await _userId();
     const row = { user_id:uid, imovel_id:imovelId, mes:en.mes,
       contrato_id:en.contractId||null,
       valor:Number(en.valor)||0, kwh:Number(en.kwh)||0,
+      leitura_anterior:Number(en.leituraAnterior)||0,leitura_atual:Number(en.leituraAtual)||0,
+      tarifa_kwh:Number(en.tarifaKwh)||0,acrescimos:Number(en.acrescimos)||0,
+      descontos:Number(en.descontos)||0,ajuste_descricao:en.ajusteDescricao||'',
+      valor_calculado:Number(en.valorCalculado)||0,valor_manual:!!en.valorManual,
+      vencimento:en.vencimento||null,foto_path:en.fotoPath||null,
       pago:!!en.pago, data_pagamento:en.dataPagamento||null };
     const { error } = await sb.from('energia').upsert(row, { onConflict:'contrato_id,mes' });
     if(error) throw error;
   },
   async deleteEnergia(imovelId, mes,contractId){
+    let find=sb.from('energia').select('foto_path').eq('imovel_id',imovelId).eq('mes',mes);
+    if(contractId) find=find.eq('contrato_id',contractId);
+    const found=await find.maybeSingle(); if(found.error) throw found.error;
     let q=sb.from('energia').delete().eq('imovel_id', imovelId).eq('mes', mes);
     if(contractId) q=q.eq('contrato_id',contractId);
     const { error } = await q;
     if(error) throw error;
+    if(found.data&&found.data.foto_path) await sb.storage.from(FILE_BUCKET).remove([found.data.foto_path]);
+  },
+  async uploadEnergyPhoto(imovelId,mes,blob){
+    const uid=await _userId();
+    const path=uid+'/'+imovelId+'/energia/'+mes+'-'+_uuid()+'.jpg';
+    const up=await sb.storage.from(FILE_BUCKET).upload(path,blob,{contentType:'image/jpeg',upsert:false});
+    if(up.error) throw up.error;
+    return path;
+  },
+  async deleteStoragePath(path){
+    if(!path) return;
+    const result=await sb.storage.from(FILE_BUCKET).remove([path]);
+    if(result.error) throw result.error;
+  },
+  async energyPhotoUrl(path){ return path?signedStorageUrl(path):''; },
+
+  /* Clientes quentes / interessados. */
+  async insertInterest(item){
+    const uid=await _userId();
+    const row={user_id:uid,nome:item.nome,telefone:item.telefone||'',valor_maximo:Number(item.valorMaximo)||0,
+      quartos_min:Number(item.quartosMin)||0,banheiros_min:Number(item.banheirosMin)||0,
+      precisa_garagem:!!item.precisaGaragem,precisa_quintal:!!item.precisaQuintal,
+      interessa_poco:!!item.interessaPoco,observacoes:item.observacoes||'',status:item.status||'novo',
+      inquilino_id:item.tenantId||null,updated_at:new Date().toISOString()};
+    const {data,error}=await sb.from('interessados').insert(row).select().single();
+    if(error) throw error; return rowToInterest(data);
+  },
+  async updateInterest(item){
+    const row={nome:item.nome,telefone:item.telefone||'',valor_maximo:Number(item.valorMaximo)||0,
+      quartos_min:Number(item.quartosMin)||0,banheiros_min:Number(item.banheirosMin)||0,
+      precisa_garagem:!!item.precisaGaragem,precisa_quintal:!!item.precisaQuintal,
+      interessa_poco:!!item.interessaPoco,observacoes:item.observacoes||'',status:item.status||'novo',
+      inquilino_id:item.tenantId||null,updated_at:new Date().toISOString()};
+    const {error}=await sb.from('interessados').update(row).eq('id',item.id); if(error) throw error;
+  },
+  async deleteInterest(id){
+    const {error}=await sb.from('interessados').delete().eq('id',id); if(error) throw error;
   },
 
   /* Despesas */
@@ -737,8 +841,8 @@ const db = {
   async makeSnapshot(){
     const uid = await _userId();
     const base = await this.loadAll();
-    const payload = { version:4, exportedAt:new Date().toISOString(),
-      houses:base.houses, tenants:base.tenants, config:base.config,
+    const payload = { version:5, exportedAt:new Date().toISOString(),
+      houses:base.houses, tenants:base.tenants, interests:base.interests||[], config:base.config,
       eventos:base.eventos, photos:{} };
     const ins = await sb.from('backups').upsert({ user_id:uid, dados:payload, dia:todayISO(), criado_em:new Date().toISOString() },
       { onConflict:'user_id,dia' });
@@ -770,7 +874,7 @@ const db = {
     const uid = await _userId();
     // filtro explícito por user_id, além do RLS (segurança dupla)
     // ordem respeita as FKs (filhos antes dos pais)
-    for(const t of ['fotos','pagamentos','energia','despesas','historico_status','documentos','contratos','eventos','imoveis','inquilinos']){
+    for(const t of ['fotos','pagamentos','energia','despesas','historico_status','documentos','contratos','eventos','interessados','imoveis','inquilinos']){
       const { error } = await sb.from(t).delete().eq('user_id', uid);
       if(error) throw error;
     }

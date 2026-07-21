@@ -6,8 +6,10 @@
 function setPortalTab(tab){ state.portalTab=tab; render(); window.scrollTo(0,0); }
 
 function renderPortalNav(){
-  const items=[['inicio','Início'],['contrato','Contrato'],['pagamentos','Pagamentos'],['energia','Energia'],['documentos','Arquivos']];
-  return '<nav class="portal-nav">'+items.map(function(i){
+  const items=[['inicio','Início'],['contrato','Contrato'],['pagamentos','Pagamentos']]
+    .concat(energyModuleEnabled()&&state.houses.some(houseEnergyEnabled)?[['energia','Energia']]:[])
+    .concat([['documentos','Arquivos']]);
+  return '<nav class="portal-nav" style="--portal-items:'+items.length+'">'+items.map(function(i){
     return '<button class="portal-nav-item'+(state.portalTab===i[0]?' active':'')+'" onclick="setPortalTab(\''+i[0]+'\')">'+esc(i[1])+'</button>';
   }).join('')+'</nav>';
 }
@@ -26,11 +28,11 @@ function portalHouseTitle(h){
 function renderPortalInicio(){
   const cur=currentMonthStr();
   return '<div class="portal-welcome"><div class="eyebrow">VISÃO GERAL</div><h1>Tudo do seu aluguel em um só lugar</h1>'+
-    '<p>Consulte contrato, pagamentos, recibos, energia e arquivos liberados.</p></div>'+
+    '<p>Consulte contrato, pagamentos, recibos'+(energyModuleEnabled()?', energia':'')+' e arquivos liberados.</p></div>'+
     state.houses.map(function(h){
       const contract=activeContract(h)||contractForMonth(h,cur);
       const p=contract?paymentForMonth(h,cur,contract.id):null;
-      const e=contract?energiaDoMes(h,cur,contract.id):null;
+      const hasEnergy=houseEnergyEnabled(h),e=contract&&hasEnergy?energiaDoMes(h,cur,contract.id):null;
       const prorata=contract?contractProrataValue(contract):0;
       const prorataPending=prorata>0&&!contract.proporcionalPago;
       const coversCurrent=contract&&contractCoversMonth(contract,cur);
@@ -40,13 +42,13 @@ function renderPortalInicio(){
       const cycleStatus=prorataPending?'Em aberto':p?'Pago':coversCurrent?'Em aberto':'Programado';
       const cycleSub=prorataPending?fmtMoney(prorata):p?fmtDateBR(p.dataPagamento):coversCurrent?'consulte o vencimento':(nextFull?'vence em '+monthLabel(nextFull):'aguarde o contrato');
       return '<section class="portal-house-card">'+portalHouseTitle(h)+
-        '<div class="portal-summary-grid">'+
+        '<div class="portal-summary-grid'+(!hasEnergy?' no-energy':'')+'">'+
           '<div class="portal-summary"><span>Aluguel</span><strong>'+fmtMoney(contract?contract.valor:aluguelValorMes(h,cur))+'</strong><small>vence dia '+dueDayForMonth(shownDueMonth,contract?contractBillingDay(contract):h.diaVencimento)+'</small></div>'+
           '<div class="portal-summary"><span>'+cycleLabel+'</span><strong class="'+(p&&!prorataPending?'ok':'')+'">'+cycleStatus+'</strong><small>'+cycleSub+'</small></div>'+
-          '<div class="portal-summary"><span>Energia</span><strong>'+(e?fmtMoney(e.valor):'Não lançada')+'</strong><small>'+(e?(e.pago?'paga':'em aberto'):'neste mês')+'</small></div>'+
+          (hasEnergy?'<div class="portal-summary"><span>Energia</span><strong>'+(e?fmtMoney(e.valor):'Não lançada')+'</strong><small>'+(e?(e.pago?'paga':'em aberto'):'neste mês')+'</small></div>':'')+
         '</div>'+
         '<div class="quick-actions"><button class="btn btn-primary btn-sm" onclick="setPortalTab(\'pagamentos\')">Ver pagamentos</button>'+
-          '<button class="btn btn-ghost btn-sm" onclick="setPortalTab(\'energia\')">Ver energia</button></div>'+
+          (hasEnergy?'<button class="btn btn-ghost btn-sm" onclick="setPortalTab(\'energia\')">Ver energia</button>':'')+'</div>'+
       '</section>';
     }).join('');
 }
@@ -87,11 +89,11 @@ function renderPortalPagamentos(){
 
 function renderPortalEnergia(){
   return '<div class="page-header"><div><div class="eyebrow">ENERGIA</div><h1 class="page-title">Consumo e pagamentos</h1></div></div>'+
-    state.houses.map(function(h){
+    state.houses.filter(houseEnergyEnabled).map(function(h){
       const contract=activeContract(h)||(h.contracts||[])[0];
       const rows=(h.energias||[]).filter(function(e){return !contract||e.contractId===contract.id;}).slice().sort(function(a,b){return b.mes.localeCompare(a.mes);});
       return '<section class="portal-house-card">'+portalHouseTitle(h)+(rows.length?'<div class="ledger">'+rows.map(function(e){
-        return '<div class="ledger-row"><div class="ledger-row-main">'+monthLabel(e.mes)+'<div class="ledger-row-sub">'+fmtMoney(e.valor)+(e.dataPagamento?' · pago em '+fmtDateBR(e.dataPagamento):'')+'</div></div>'+
+        return '<div class="ledger-row"><div class="ledger-row-main">'+monthLabel(e.mes)+'<div class="ledger-row-sub">Leituras '+e.leituraAnterior+' → '+e.leituraAtual+' · '+fmtMoney(e.valor)+(e.vencimento?' · vence '+fmtDateBR(e.vencimento):'')+(e.dataPagamento?' · pago em '+fmtDateBR(e.dataPagamento):'')+'</div></div>'+
           '<div class="ledger-row-value"><strong class="num">'+(Number(e.kwh)||0).toLocaleString('pt-BR')+' kWh</strong></div>'+
           '<span class="status-dot '+(e.pago?'pago':'pendente')+'">'+(e.pago?'Pago':'Em aberto')+'</span></div>';
       }).join('')+'</div>':emptyState('Nenhum lançamento de energia disponível.',financeIconSvg()))+'</section>';
@@ -109,6 +111,7 @@ function renderPortalDocumentos(){
 }
 
 function renderTenantPortal(){
+  if(state.portalTab==='energia'&&(!energyModuleEnabled()||!state.houses.some(houseEnergyEnabled))) state.portalTab='inicio';
   const body=state.portalTab==='contrato'?renderPortalContrato():
     state.portalTab==='pagamentos'?renderPortalPagamentos():
     state.portalTab==='energia'?renderPortalEnergia():

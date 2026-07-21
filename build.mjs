@@ -21,6 +21,7 @@ const publicFiles = [
   'dashboard.js',
   'houses.js',
   'tenants.js',
+  'interests.js',
   'contracts.js',
   'finance.js',
   'photos.js',

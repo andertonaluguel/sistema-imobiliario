@@ -23,7 +23,8 @@ const api = vm.runInContext(`({
   normalizeBackupForImport,
   currentMonthStr,
   addMonths,
-  computeCobrancaCasa
+  computeCobrancaCasa,
+  previousEnergyReading
 })`, context);
 
 assert.equal(api.dueDayForMonth('2025-02',30), 28);
@@ -40,6 +41,10 @@ const house = {
 };
 assert.equal(api.aluguelValorMes(house,'2025-12'), 1000);
 assert.equal(api.aluguelValorMes(house,'2026-01'), 1200);
+assert.equal(api.previousEnergyReading({energias:[
+  {mes:'2026-04',leituraAtual:245},{mes:'2026-05',leituraAtual:310}
+]},'2026-06'),310);
+assert.equal(api.previousEnergyReading({energias:[]},'2026-06'),null);
 
 const currentMonth = api.currentMonthStr();
 const previousMonth = api.addMonths(currentMonth,-1);
@@ -60,18 +65,20 @@ const cobranca = api.computeCobrancaCasa({
 assert.equal(cobranca.aluguelTotal, 2200);
 
 vm.runInContext(`
-  const state={uiMode:'advanced',houses:[],tenants:[]};
+  const state={uiMode:'advanced',houses:[],tenants:[],interests:[],config:{energiaAtiva:true}};
   function isSimpleMode(){return state.uiMode==='simple';}
   function tenantOf(h){return state.tenants.find(function(t){return t.id===h.tenantId;})||null;}
 `,context);
-for(const file of ['houses.js','tenants.js']){
+for(const file of ['houses.js','tenants.js','interests.js']){
   vm.runInContext(await readFile(join(root,file),'utf8'),context,{filename:file});
 }
 const uiApi=vm.runInContext(`({
   setMode:function(mode){state.uiMode=mode;},
-  setData:function(houses,tenants){state.houses=houses;state.tenants=tenants;},
+  setData:function(houses,tenants,interests){state.houses=houses;state.tenants=tenants;state.interests=interests||[];},
   renderHouseCard,
-  renderTenantCard
+  renderTenantCard,
+  interestMatchesHouse,
+  matchingHousesForInterest
 })`,context);
 const overdueHouse={
   id:'overdue-house',nome:'Casa teste',endereco:'Rua teste',status:'alugada',tenantId:'tenant-test',
@@ -94,6 +101,14 @@ assert.match(simpleHouseCard,/simple-house-card/);
 assert.match(simpleHouseCard,/Registrar pagamento/);
 assert.doesNotMatch(simpleHouseCard,/Registrar energia/);
 
+const vacantHouse={id:'vacant',nome:'Casa vaga',status:'vaga',aluguelValor:900,quartos:2,banheiros:1,garagem:true,quintal:true,pocoAgua:false};
+const compatible={nome:'Cliente A',status:'quente',valorMaximo:1000,quartosMin:2,banheirosMin:1,precisaGaragem:true,precisaQuintal:false,interessaPoco:false};
+const needsWell={...compatible,nome:'Cliente B',interessaPoco:true};
+uiApi.setData([vacantHouse],[],[compatible,needsWell]);
+assert.equal(uiApi.interestMatchesHouse(compatible,vacantHouse),true);
+assert.equal(uiApi.interestMatchesHouse(needsWell,vacantHouse),false);
+assert.equal(uiApi.matchingHousesForInterest(compatible).length,1);
+
 const backupPath = join(root,'..','backups','aluguel-backup-2026-07-20.json');
 const backup = JSON.parse(await readFile(backupPath,'utf8'));
 const normalized = api.normalizeBackupForImport(backup);
@@ -111,4 +126,4 @@ const invalidDue = structuredClone(backup);
 invalidDue.houses[0].diaVencimento = 32;
 assert.throws(() => api.normalizeBackupForImport(invalidDue), /1 a 31/i);
 
-console.log('Testes concluídos: cobranças, modo simples, atrasos e importação segura estão corretos.');
+console.log('Testes concluídos: cobranças, Energia, clientes compatíveis, modo simples, atrasos e importação segura estão corretos.');

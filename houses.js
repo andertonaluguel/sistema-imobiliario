@@ -4,6 +4,20 @@
    ============================================================ */
 
 /* ---------- card e grade ---------- */
+function houseFeatureLabels(h){
+  const labels=[];
+  if(Number(h.quartos)>0) labels.push(h.quartos+' quarto'+(Number(h.quartos)===1?'':'s'));
+  if(Number(h.banheiros)>0) labels.push(h.banheiros+' banheiro'+(Number(h.banheiros)===1?'':'s'));
+  if(h.garagem) labels.push('Garagem');
+  if(h.quintal) labels.push('Quintal');
+  if(h.pocoAgua) labels.push('Poço com água');
+  return labels;
+}
+function renderHouseFeatures(h){
+  const labels=houseFeatureLabels(h);
+  return '<div class="house-features">'+(labels.length?labels.map(function(label){return '<span>'+esc(label)+'</span>';}).join(''):'<span class="feature-empty">Características não informadas</span>')+'</div>';
+}
+
 function renderHouseCard(h){
   const cur = currentMonthStr();
   const contract=currentRentContract(h);
@@ -11,7 +25,8 @@ function renderHouseCard(h){
   const st = paymentStatus(h, cur,contractId);
   const t = tenantOf(h);
   const rent=contract?Number(contract.valor)||0:aluguelValorMes(h,cur);
-  const energy=energiaValorMes(h,cur,contractId);
+  const hasEnergy=houseEnergyEnabled(h);
+  const energy=hasEnergy?energiaValorMes(h,cur,contractId):0;
   const total=rent+energy;
   const prorataPending=contract&&contractProrataValue(contract)>0&&!contract.proporcionalPago;
   const charge=computeCobrancaCasa(h);
@@ -32,6 +47,8 @@ function renderHouseCard(h){
     const simpleLabel=isOverdue?'VALOR EM ATRASO':'TOTAL DO MÊS';
     return '<div class="house-card simple-house-card tab-'+tabColor+(isOverdue?' is-overdue':'')+'" data-status="'+h.status+'" data-atraso="'+atraso+'" data-search="'+esc(searchData)+'" onclick="openSimpleHouseSummary(\''+h.id+'\')">'+
       '<div class="house-card-top"><div><div class="house-name">'+esc(h.nome)+'</div><div class="house-address">'+(t?esc(t.nome):(h.status==='vaga'?'Sem inquilino':'—'))+'</div></div><span class="chip chip-'+tabColor+'">'+statusLabel+'</span></div>'+
+      renderHouseFeatures(h)+
+      (typeof renderHouseLeadMatches==='function'?renderHouseLeadMatches(h):'')+
       '<div class="simple-house-value"><span>'+simpleLabel+'</span><strong class="num">'+fmtMoney(simpleValue)+'</strong></div>'+
       (h.status==='alugada'?'<div class="simple-house-actions" onclick="event.stopPropagation()"><button class="btn btn-primary" onclick="openSimplePayment(\''+h.id+'\')">'+(st==='pago'&&!isOverdue?'Pagamento em dia ✓':'Registrar pagamento')+'</button><button class="btn btn-ghost" onclick="openSimpleHouseSummary(\''+h.id+'\')">Ver histórico</button></div>':'')+
     '</div>';
@@ -42,12 +59,14 @@ function renderHouseCard(h){
       '<div class="house-address">'+(h.endereco?esc(h.endereco):'Endereço não informado')+'</div>'+
     '</div><span class="chip chip-'+tabColor+'">'+statusLabel+'</span></div>'+
     '<div class="house-card-tenant"><span>INQUILINO</span><strong>'+(t?esc(t.nome):(h.status==='vaga'?'Sem inquilino':'—'))+'</strong></div>'+
-    '<div class="house-card-values"><div><span>Aluguel</span><strong class="num">'+fmtMoney(rent)+'</strong></div>'+
-      '<div><span>Energia</span><strong class="num">'+(energy?fmtMoney(energy):'Não lançada')+'</strong></div>'+
+    renderHouseFeatures(h)+
+    (typeof renderHouseLeadMatches==='function'?renderHouseLeadMatches(h):'')+
+    '<div class="house-card-values'+(!hasEnergy?' no-energy':'')+'"><div><span>Aluguel</span><strong class="num">'+fmtMoney(rent)+'</strong></div>'+
+      (hasEnergy?'<div><span>Energia</span><strong class="num">'+(energy?fmtMoney(energy):'Não lançada')+'</strong></div>':'')+
       '<div class="house-total"><span>Total</span><strong class="num">'+fmtMoney(total)+'</strong></div></div>'+
     (h.status==='alugada'?'<div class="house-card-actions" onclick="event.stopPropagation()">'+
       '<button class="btn btn-primary btn-sm" onclick="openQuickRentPayment(\''+h.id+'\')">'+(st==='pago'?'Aluguel pago ✓':'Registrar aluguel')+'</button>'+
-      '<button class="btn btn-energia btn-sm" onclick="openEnergiaModal(\''+h.id+'\',\''+cur+'\',\''+contractId+'\')">'+(energiaPagaMes(h,cur,contractId)?'Energia paga ✓':'Registrar energia')+'</button></div>':'')+
+      (hasEnergy?'<button class="btn btn-energia btn-sm" onclick="openEnergiaModal(\''+h.id+'\',\''+cur+'\',\''+contractId+'\')">'+(energiaPagaMes(h,cur,contractId)?'Energia paga ✓':'Registrar energia')+'</button>':'')+'</div>':'')+
     '</div>';
 }
 
@@ -236,9 +255,10 @@ function renderGeralTab(h){
   const cur = currentMonthStr();
   const contract=currentRentContract(h),contractId=contract?contract.id:'';
   const st = paymentStatus(h, cur,contractId);
-  const enerVal = energiaValorMes(h, cur,contractId);
-  const enerKwh = energiaKwhMes(h, cur,contractId);
-  const enerSt = energiaStatus(h, cur,contractId);
+  const hasEnergy=houseEnergyEnabled(h);
+  const enerVal = hasEnergy?energiaValorMes(h, cur,contractId):0;
+  const enerKwh = hasEnergy?energiaKwhMes(h, cur,contractId):0;
+  const enerSt = hasEnergy?energiaStatus(h, cur,contractId):'desativada';
   const rentValue=contract?Number(contract.valor)||0:aluguelValorMes(h,cur);
   const totalMes = rentValue + enerVal;
   const enerChip = enerSt==='pago'?'brass':enerSt==='atrasado'?'rust':enerSt==='pendente'?'warn':'slate';
@@ -257,9 +277,10 @@ function renderGeralTab(h){
     '<div class="id-panel property-summary-card">'+
       '<div class="property-summary-head"><div><div class="id-eyebrow">SITUAÇÃO</div><span class="id-chip" style="color:'+stColor+'">'+statusTxt.toUpperCase()+'</span></div>'+
         '<span class="chip chip-'+payChip+'">ALUGUEL '+payLbl+'</span></div>'+
-      '<div class="property-money-grid"><div><span>ALUGUEL</span><strong class="num">'+fmtMoney(rentValue)+'</strong></div>'+
-        '<div><span>ENERGIA</span><strong class="num">'+(enerVal?fmtMoney(enerVal):'—')+'</strong>'+(enerKwh?'<small>'+enerKwh+' kWh</small>':'')+'</div>'+
+      '<div class="property-money-grid'+(!hasEnergy?' no-energy':'')+'"><div><span>ALUGUEL</span><strong class="num">'+fmtMoney(rentValue)+'</strong></div>'+
+        (hasEnergy?'<div><span>ENERGIA</span><strong class="num">'+(enerVal?fmtMoney(enerVal):'—')+'</strong>'+(enerKwh?'<small>'+enerKwh+' kWh</small>':'')+'</div>':'')+
         '<div class="property-money-total"><span>TOTAL DO MÊS</span><strong class="num">'+fmtMoney(totalMes)+'</strong></div></div>'+
+      '<div class="property-features">'+renderHouseFeatures(h)+'</div>'+
       '<div class="property-tenant-block"><span>INQUILINO ATUAL</span>'+
         (t?'<strong>'+esc(t.nome)+'</strong>'+(tempo?'<small>na casa há '+tempo+'</small>':''):'<strong>Sem inquilino</strong>')+'</div>'+
       (contract?'<div class="property-contract-line"><span>Contrato desde '+fmtDateBR(contract.inicio)+'</span><span>'+esc(contractModeLabel(contract))+'</span></div>':'')+
@@ -269,7 +290,7 @@ function renderGeralTab(h){
       '<div class="field-card">'+
         fieldLine('Dia de vencimento', String(h.diaVencimento||5), true, FICO.calendar)+
         '<div class="field-line"><span class="fl-label"><span class="fl-ico">'+FICO.money+'</span>Pagamento do mês</span><span class="chip chip-'+payChip+'">'+payLbl+'</span></div>'+
-        (h.status==='alugada' ? '<div class="field-line"><span class="fl-label"><span class="fl-ico">'+FICO.bolt+'</span>Energia do mês</span><span class="chip chip-'+enerChip+'">'+enerLbl+'</span></div>' : '')+
+        (h.status==='alugada'&&hasEnergy ? '<div class="field-line"><span class="fl-label"><span class="fl-ico">'+FICO.bolt+'</span>Energia do mês</span><span class="chip chip-'+enerChip+'">'+enerLbl+'</span></div>' : '')+
       '</div>'+
       fieldSection(FICO.check, 'Acompanhamento')+
       '<div class="field-card">'+
@@ -284,7 +305,7 @@ function renderGeralTab(h){
     '</div>'+
   '</div>'+
   '<div class="quick-actions">'+
-    (h.status==='alugada'
+    (h.status==='alugada'&&hasEnergy
       ? (st==='pago'
           ? '<button class="btn btn-ghost btn-sm" onclick="openQuickRentPayment(\''+h.id+'\')">Pagamento do mês ✓</button>'
           : '<button class="btn btn-primary btn-sm" onclick="openQuickRentPayment(\''+h.id+'\')">Marcar como pago</button>')
@@ -419,7 +440,10 @@ function renderTabContent(h){
 function renderHouseDetail(){
   const h = state.houses.find(function(x){ return x.id===state.activeHouseId; });
   if(!h){ state.view='casas'; return renderCasasView(); }
-  const tabs = [['geral','Geral'],['inquilino','Inquilino'],['contratos','Contratos'],['pagamentos','Pagamentos'],['energia','Energia'],['reajustes','Reajustes'],['despesas','Despesas'],['fotos','Fotos'],['documentos','Documentos']];
+  const tabs = [['geral','Geral'],['inquilino','Inquilino'],['contratos','Contratos'],['pagamentos','Pagamentos']]
+    .concat(houseEnergyEnabled(h)?[['energia','Energia']]:[])
+    .concat([['reajustes','Reajustes'],['despesas','Despesas'],['fotos','Fotos'],['documentos','Documentos']]);
+  if(state.activeTab==='energia'&&!houseEnergyEnabled(h)) state.activeTab='geral';
   return '<button class="back-link" onclick="irCasas()">← Casas</button>'+
     '<div class="page-header"><div>'+
       '<div class="eyebrow">CASA</div>'+
@@ -433,11 +457,41 @@ function renderHouseDetail(){
 }
 
 /* ---------- CRUD: casas ---------- */
+function houseCharacteristicsFields(h){
+  h=h||{};
+  const energyFields=energyModuleEnabled()?'<div class="house-energy-settings"><label class="field-check"><input type="checkbox" id="f_house_energy"'+(h.energiaAtiva!==false?' checked':'')+' onchange="syncHouseEnergyFields()"><span><strong>Esta casa utiliza Energia</strong><small>Permite leituras e cobranças separadas.</small></span></label>'+
+    '<label class="field"><span>Dia padrão do vencimento da energia</span><input id="f_energy_due" type="number" min="1" max="31" value="'+(h.energiaDiaVencimento||5)+'"></label></div>':'';
+  return '<div class="form-section-title">Características da casa</div>'+
+    '<div class="field-row"><label class="field"><span>Quartos</span><input id="f_quartos" type="number" min="0" step="1" value="'+(h.quartos||0)+'"></label>'+
+    '<label class="field"><span>Banheiros</span><input id="f_banheiros" type="number" min="0" step="1" value="'+(h.banheiros||0)+'"></label></div>'+
+    '<div class="feature-check-grid"><label class="field-check"><input type="checkbox" id="f_garagem"'+(h.garagem?' checked':'')+'> Garagem</label>'+
+    '<label class="field-check"><input type="checkbox" id="f_quintal"'+(h.quintal?' checked':'')+'> Quintal</label>'+
+    '<label class="field-check"><input type="checkbox" id="f_poco"'+(h.pocoAgua?' checked':'')+'> Poço com água</label></div>'+energyFields;
+}
+function syncHouseEnergyFields(){
+  const check=document.getElementById('f_house_energy'),due=document.getElementById('f_energy_due');
+  if(due) due.disabled=!!(check&&!check.checked);
+}
+function readHouseCharacteristics(h){
+  const energyCheck=document.getElementById('f_house_energy'),energyDue=document.getElementById('f_energy_due');
+  h.quartos=Math.max(0,parseInt(document.getElementById('f_quartos').value,10)||0);
+  h.banheiros=Math.max(0,parseInt(document.getElementById('f_banheiros').value,10)||0);
+  h.garagem=document.getElementById('f_garagem').checked;
+  h.quintal=document.getElementById('f_quintal').checked;
+  h.pocoAgua=document.getElementById('f_poco').checked;
+  if(energyCheck) h.energiaAtiva=energyCheck.checked;
+  else if(h.energiaAtiva==null) h.energiaAtiva=true;
+  if(energyDue) h.energiaDiaVencimento=Math.min(31,Math.max(1,parseInt(energyDue.value,10)||5));
+  else if(!h.energiaDiaVencimento) h.energiaDiaVencimento=5;
+  return h;
+}
+
 function openAddHouseModal(){
   openModal(
     '<h3 class="modal-title">Nova casa</h3>'+
     '<label class="field"><span>Nome / apelido</span><input id="f_nome" placeholder="Ex: Casa 11"></label>'+
     '<label class="field"><span>Endereço</span><input id="f_endereco" placeholder="Rua, número, bairro"></label>'+
+    houseCharacteristicsFields({energiaAtiva:true,energiaDiaVencimento:5})+
     '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
     '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn btn-primary" onclick="addHouse()">Adicionar</button>'+
@@ -448,8 +502,9 @@ async function addHouse(){
   const nome = document.getElementById('f_nome').value.trim() || ('Casa '+(state.houses.length+1));
   const endereco = document.getElementById('f_endereco').value.trim();
   try{
-    const novo = await db.insertHouse({ nome:nome, endereco:endereco, status:'vaga',
+    const draft=readHouseCharacteristics({ nome:nome, endereco:endereco, status:'vaga',
       aluguelValor:0, diaVencimento:5, ultimaVistoria:'', tenantId:'', contratoInicio:'', contratoFim:'' });
+    const novo = await db.insertHouse(draft);
     state.houses.push(novo);
     closeModal(); render();
   }catch(e){ console.error(e); showToast('Erro ao adicionar a casa.', 'error'); }
@@ -468,6 +523,7 @@ function openEditHouseModal(houseId){
       '</select></label>'+
       '<label class="field"><span>Aluguel mensal (R$)</span><input id="f_aluguel" type="number" step="0.01" value="'+(h.aluguelValor||0)+'"></label>'+
     '</div>'+
+    houseCharacteristicsFields(h)+
     '<div class="field-row">'+
       '<label class="field"><span>Dia de vencimento</span><input id="f_dia" type="number" min="1" max="31" value="'+(h.diaVencimento||5)+'"></label>'+
       '<label class="field"><span>Última vistoria</span><input id="f_vist" type="date" value="'+(h.ultimaVistoria||'')+'"></label>'+
@@ -492,6 +548,7 @@ async function saveHouseEdit(id){
   h.aluguelValor = parseFloat(document.getElementById('f_aluguel').value)||0;
   h.diaVencimento = Math.min(31, Math.max(1, parseInt(document.getElementById('f_dia').value,10)||5));
   h.ultimaVistoria = document.getElementById('f_vist').value;
+  readHouseCharacteristics(h);
   if(h.status==='alugada'&&!h.tenantId&&!contratoAtual){
     h.status=statusAntigo;
     showToast('Para marcar como alugada, vincule um inquilino e crie o contrato.','error');
@@ -598,18 +655,35 @@ async function removePayment(houseId, mes,contractId){
   }catch(e){ console.error(e); showToast('Erro ao desfazer o pagamento.', 'error'); }
 }
 
-/* ---------- energia solar (registrar valor/kWh e status de pago) ---------- */
+/* ---------- energia (leituras, cálculo, vencimento, foto e pagamento) ---------- */
 function openEnergiaModal(houseId, mes,contractId){
   const h = state.houses.find(function(x){ return x.id===houseId; });
+  if(!houseEnergyEnabled(h)){showToast('A Energia está desativada para esta casa.','error');return;}
   const contract=contractForEnergyMonth(h,mes,contractId),resolvedId=contract?contract.id:(contractId||'');
   if((h.contracts||[]).length&&!contract){showToast('Nenhum contrato desta casa cobre o mês escolhido.','error');return;}
   const e = energiaDoMes(h, mes,resolvedId);
   const pago = !!(e && e.pago);
+  const previousEntries=(h.energias||[]).filter(function(item){return item.mes<mes;}).sort(function(a,b){return b.mes.localeCompare(a.mes);});
+  const autoPrevious=previousEnergyReading(h,mes);
+  const previousValue=e?e.leituraAnterior:(autoPrevious==null?'':autoPrevious);
+  const tariff=e?e.tarifaKwh:(previousEntries[0]?previousEntries[0].tarifaKwh:'');
+  const due=e&&e.vencimento?e.vencimento:(mes+'-'+String(dueDayForMonth(mes,h.energiaDiaVencimento||5)).padStart(2,'0'));
   openModal(
     '<h3 class="modal-title">Energia · '+monthLabel(mes)+'</h3>'+
-    '<p class="modal-text">'+esc(h.nome)+' — informe o valor cobrado e o consumo do mês.</p>'+
-    '<label class="field"><span>Valor cobrado (R$)</span><input id="f_ener_valor" type="number" step="0.01" value="'+(e?e.valor:'')+'" placeholder="Ex.: 184.50"></label>'+
-    '<label class="field"><span>Consumo (kWh)</span><input id="f_ener_kwh" type="number" step="1" value="'+(e?e.kwh:'')+'" placeholder="Ex.: 212"></label>'+
+    '<p class="modal-text">'+esc(h.nome)+' — a leitura anterior é trazida automaticamente do último lançamento.</p>'+
+    '<div class="field-row"><label class="field"><span>Leitura anterior</span><input id="f_ener_anterior" type="number" min="0" step="0.01" value="'+previousValue+'" oninput="recalculateEnergyForm()" placeholder="Digite no primeiro mês"></label>'+
+    '<label class="field"><span>Leitura atual</span><input id="f_ener_atual" type="number" min="0" step="0.01" value="'+(e?e.leituraAtual:'')+'" oninput="recalculateEnergyForm()" placeholder="Leitura do medidor"></label></div>'+
+    '<div class="energy-calculation-grid"><div><span>Consumo calculado</span><strong id="energy_kwh_preview" class="num">'+(e?e.kwh:0)+' kWh</strong></div>'+
+    '<label class="field"><span>Tarifa por kWh (R$)</span><input id="f_ener_tarifa" type="number" min="0" step="0.0001" value="'+(tariff||'')+'" oninput="recalculateEnergyForm()"></label></div>'+
+    '<div class="field-row"><label class="field"><span>Acréscimos (R$)</span><input id="f_ener_acrescimos" type="number" min="0" step="0.01" value="'+(e?e.acrescimos:0)+'" oninput="recalculateEnergyForm()"></label>'+
+    '<label class="field"><span>Descontos (R$)</span><input id="f_ener_descontos" type="number" min="0" step="0.01" value="'+(e?e.descontos:0)+'" oninput="recalculateEnergyForm()"></label></div>'+
+    '<label class="field"><span>Descrição das taxas ou descontos</span><input id="f_ener_ajuste" value="'+(e?esc(e.ajusteDescricao):'')+'" placeholder="Ex.: iluminação pública e bandeira"></label>'+
+    '<div class="energy-total-box"><div><span>Valor calculado</span><strong id="energy_calculated_preview" class="num">'+fmtMoney(e?e.valorCalculado:0)+'</strong></div>'+
+    '<label class="field"><span>Valor final cobrado (pode ser alterado)</span><input id="f_ener_valor" data-manual="'+(e&&e.valorManual?'1':'0')+'" type="number" min="0" step="0.01" value="'+(e?e.valor:'')+'" oninput="markEnergyManual()"></label>'+
+    '<button class="btn btn-ghost btn-sm" type="button" onclick="useCalculatedEnergyValue()">Usar valor calculado</button></div>'+
+    '<label class="field"><span>Vencimento da energia</span><input id="f_ener_vencimento" type="date" value="'+due+'"></label>'+
+    '<label class="field"><span>Foto do medidor ou da conta (opcional)</span><input id="f_ener_foto" type="file" accept="image/jpeg,image/png,image/webp"></label>'+
+    (e&&e.fotoPath?'<div class="energy-photo-existing"><span>Foto já anexada</span><button class="btn btn-ghost btn-sm" onclick="viewEnergyPhoto(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\')">Ver foto</button><label><input id="f_ener_remove_photo" type="checkbox"> Remover ao salvar</label></div>':'')+
     '<label class="field-check"><input type="checkbox" id="f_ener_pago"'+(pago?' checked':'')+'> Já recebi esse pagamento de energia</label>'+
     '<label class="field"><span>Data do pagamento</span><input id="f_ener_data" type="date" value="'+((e&&e.dataPagamento)?e.dataPagamento:todayISO())+'"></label>'+
     '<div class="modal-actions">'+
@@ -621,21 +695,64 @@ function openEnergiaModal(houseId, mes,contractId){
       '</div>'+
     '</div>'
   );
+  recalculateEnergyForm(!e);
 }
+function energyFormNumber(id){
+  const el=document.getElementById(id);return Math.max(0,parseFloat(String(el&&el.value||'').replace(',','.'))||0);
+}
+function recalculateEnergyForm(forceFinal){
+  const previous=energyFormNumber('f_ener_anterior'),current=energyFormNumber('f_ener_atual');
+  const kwh=Math.max(0,current-previous),tariff=energyFormNumber('f_ener_tarifa');
+  const calculated=Math.max(0,(kwh*tariff)+energyFormNumber('f_ener_acrescimos')-energyFormNumber('f_ener_descontos'));
+  const kwhPreview=document.getElementById('energy_kwh_preview'),calcPreview=document.getElementById('energy_calculated_preview'),finalInput=document.getElementById('f_ener_valor');
+  if(kwhPreview) kwhPreview.textContent=kwh.toLocaleString('pt-BR',{maximumFractionDigits:2})+' kWh';
+  if(calcPreview) calcPreview.textContent=fmtMoney(calculated);
+  if(finalInput&&(forceFinal||finalInput.dataset.manual!=='1')) finalInput.value=calculated.toFixed(2);
+}
+function markEnergyManual(){const el=document.getElementById('f_ener_valor');if(el)el.dataset.manual='1';}
+function useCalculatedEnergyValue(){const el=document.getElementById('f_ener_valor');if(el){el.dataset.manual='0';recalculateEnergyForm(true);}}
 async function saveEnergia(houseId, mes,contractId){
   const h = state.houses.find(function(x){ return x.id===houseId; });
-  const valor = parseFloat(String(document.getElementById('f_ener_valor').value).replace(',','.'))||0;
-  const kwh = parseFloat(String(document.getElementById('f_ener_kwh').value).replace(',','.'))||0;
+  const leituraAnterior=energyFormNumber('f_ener_anterior'),leituraAtual=energyFormNumber('f_ener_atual');
+  if(leituraAtual<leituraAnterior){showToast('A leitura atual não pode ser menor que a anterior.','error');return;}
+  const kwh=Math.max(0,leituraAtual-leituraAnterior),tarifaKwh=energyFormNumber('f_ener_tarifa');
+  const acrescimos=energyFormNumber('f_ener_acrescimos'),descontos=energyFormNumber('f_ener_descontos');
+  const valorCalculado=Math.max(0,(kwh*tarifaKwh)+acrescimos-descontos);
+  const finalInput=document.getElementById('f_ener_valor');
+  const valor=energyFormNumber('f_ener_valor'),valorManual=!!(finalInput&&finalInput.dataset.manual==='1');
+  const vencimento=document.getElementById('f_ener_vencimento').value;
+  if(!vencimento){showToast('Informe o vencimento da energia.','error');return;}
   const pago = document.getElementById('f_ener_pago').checked;
   const data = pago ? (document.getElementById('f_ener_data').value || todayISO()) : '';
   const rec = energiaDoMes(h, mes,contractId);
+  const fileInput=document.getElementById('f_ener_foto'),file=fileInput&&fileInput.files&&fileInput.files[0];
+  const removePhoto=!!(document.getElementById('f_ener_remove_photo')&&document.getElementById('f_ener_remove_photo').checked);
+  let newPath='',fotoPath=rec&&rec.fotoPath&&!removePhoto?rec.fotoPath:'';
   try{
-    await db.upsertEnergia(houseId, { mes:mes,contractId:contractId, valor:valor, kwh:kwh, pago:pago, dataPagamento:data });
-    if(rec){ rec.valor=valor; rec.kwh=kwh; rec.pago=pago; rec.dataPagamento=data; }
-    else { if(!h.energias) h.energias=[]; h.energias.push({ mes:mes,contractId:contractId, valor:valor, kwh:kwh, pago:pago, dataPagamento:data }); }
+    if(file){
+      if(!/^image\/(jpeg|png|webp)$/i.test(file.type||'')||file.size>15*1024*1024) throw new Error('Use uma foto JPG, PNG ou WebP de até 15 MB.');
+      const compressed=await compressImage(file,1600,.8);newPath=await db.uploadEnergyPhoto(houseId,mes,compressed);fotoPath=newPath;
+    }
+    const entry={mes:mes,contractId:contractId,valor:valor,kwh:kwh,leituraAnterior:leituraAnterior,
+      leituraAtual:leituraAtual,tarifaKwh:tarifaKwh,acrescimos:acrescimos,descontos:descontos,
+      ajusteDescricao:document.getElementById('f_ener_ajuste').value.trim(),valorCalculado:valorCalculado,
+      valorManual:valorManual,vencimento:vencimento,fotoPath:fotoPath,pago:pago,dataPagamento:data};
+    await db.upsertEnergia(houseId,entry);
+    if(rec&&rec.fotoPath&&rec.fotoPath!==fotoPath) await db.deleteStoragePath(rec.fotoPath);
+    if(rec) Object.assign(rec,entry);
+    else { if(!h.energias) h.energias=[]; h.energias.push(entry); }
     closeModal(); render();
     showToast('Energia registrada.', 'success');
-  }catch(err){ console.error(err); showToast('Erro ao salvar a energia.', 'error'); }
+  }catch(err){
+    if(newPath) try{await db.deleteStoragePath(newPath);}catch(cleanupError){}
+    console.error(err); showToast(err&&err.message?err.message:'Erro ao salvar a energia.', 'error');
+  }
+}
+async function viewEnergyPhoto(houseId,mes,contractId){
+  const h=state.houses.find(function(x){return x.id===houseId;}),e=h&&energiaDoMes(h,mes,contractId);
+  if(!e||!e.fotoPath) return;
+  try{const url=await db.energyPhotoUrl(e.fotoPath);if(url)window.open(url,'_blank');}
+  catch(err){showToast('Não foi possível abrir a foto.','error');}
 }
 async function removeEnergia(houseId, mes,contractId){
   const h = state.houses.find(function(x){ return x.id===houseId; });

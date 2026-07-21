@@ -23,8 +23,9 @@ const state = {
   uiMode: loadUiMode(),
   houses: [],
   tenants: [],
+  interests: [],
   eventos: [],
-  config: { locadorNome:'', locadorDocumento:'' },
+  config: { locadorNome:'', locadorDocumento:'', energiaAtiva:true },
   view: 'dashboard',          // 'dashboard' | 'casas' | 'inquilinos' | 'financeiro' | 'houseDetail'
   activeHouseId: null,
   activeTab: 'geral',
@@ -42,7 +43,8 @@ const state = {
   expandedReportHouseId: null,
   calMes: currentMonthStr(),
   casaBusca: '', casaFiltro: 'todas',
-  inqBusca: '', inqFiltro: 'todos'
+  inqBusca: '', inqFiltro: 'todos',
+  interestSearch: '', interestFilter: 'ativos'
 };
 
 /* ---------- ícones / marca ---------- */
@@ -114,8 +116,9 @@ function tenantOf(h){ return h.tenantId ? state.tenants.find(function(x){ return
 function irHome(){ state.view='dashboard'; render(); }
 function irCasas(){ state.view='casas'; render(); }
 function irInquilinos(){ state.view='inquilinos'; render(); }
+function irInteressados(){ state.view='interessados'; render(); }
 function irFinanceiro(){ state.view='financeiro'; render(); }
-function irEnergia(){ state.view='energia'; render(); }
+function irEnergia(){ if(!energyModuleEnabled()){showToast('Ative o módulo Energia nas configurações.','error');return;} state.view='energia'; render(); }
 function irCalendario(){ if(!state.calMes) state.calMes=currentMonthStr(); state.view='calendario'; render(); }
 function toggleAlerts(){ state.alertsExpanded = !state.alertsExpanded; render(); }
 function toggleMovs(){ state.movsExpanded = !state.movsExpanded; render(); }
@@ -139,7 +142,8 @@ function renderTopBar(){
       '<button class="topbar-link'+(state.view==='dashboard'?' active':'')+'" onclick="irHome()">Painel</button>'+
       '<button class="topbar-link'+(casasActive?' active':'')+'" onclick="irCasas()">Casas</button>'+
       (!isSimpleMode()?'<button class="topbar-link'+(state.view==='inquilinos'?' active':'')+'" onclick="irInquilinos()">Inquilinos</button>'+
-      '<button class="topbar-link'+(state.view==='energia'?' active':'')+'" onclick="irEnergia()">Energia</button>'+
+      '<button class="topbar-link'+(state.view==='interessados'?' active':'')+'" onclick="irInteressados()">Clientes quentes</button>'+
+      (energyModuleEnabled()?'<button class="topbar-link'+(state.view==='energia'?' active':'')+'" onclick="irEnergia()">Energia</button>':'')+
       '<button class="topbar-link'+(state.view==='financeiro'?' active':'')+'" onclick="irFinanceiro()">Financeiro</button>'+
       '<button class="topbar-link'+(state.view==='calendario'?' active':'')+'" onclick="irCalendario()">Calendário</button>':'')+
     '</nav>'+
@@ -150,15 +154,17 @@ function renderTopBar(){
 function renderMobileNav(){
   const items=isSimpleMode()
     ? [['dashboard','Painel','irHome()'],['casas','Casas','irCasas()']]
-    : [['dashboard','Painel','irHome()'],['casas','Casas','irCasas()'],['energia','Energia','irEnergia()'],['financeiro','Financeiro','irFinanceiro()'],['inquilinos','Inquilinos','irInquilinos()'],['calendario','Agenda','irCalendario()']];
-  return '<nav class="mobile-nav'+(isSimpleMode()?' simple-mobile-nav':'')+'">'+items.map(function(i){
+    : [['dashboard','Painel','irHome()'],['casas','Casas','irCasas()'],['interessados','Clientes','irInteressados()']]
+      .concat(energyModuleEnabled()?[['energia','Energia','irEnergia()']]:[])
+      .concat([['financeiro','Financeiro','irFinanceiro()'],['inquilinos','Inquilinos','irInquilinos()'],['calendario','Agenda','irCalendario()']]);
+  return '<nav class="mobile-nav'+(isSimpleMode()?' simple-mobile-nav':'')+'" style="--mobile-items:'+items.length+'">'+items.map(function(i){
     const active=state.view===i[0]||(i[0]==='casas'&&state.view==='houseDetail');
     return '<button class="mobile-nav-item'+(active?' active':'')+'" onclick="'+i[2]+'"><span>'+esc(i[1])+'</span></button>';
   }).join('')+'</nav>';
 }
 
 function openGlobalSearch(){
-  openModal('<h3 class="modal-title">Busca rápida</h3><label class="field"><span>Casa, endereço, inquilino ou telefone</span>'+
+  openModal('<h3 class="modal-title">Busca rápida</h3><label class="field"><span>Casa, endereço, inquilino, cliente ou telefone</span>'+
     '<input id="globalSearchInput" autofocus placeholder="Digite para buscar…" oninput="renderGlobalSearchResults(this.value)"></label>'+
     '<div id="globalSearchResults" class="global-results"><p class="modal-text">Comece a digitar para ver resultados.</p></div>');
   setTimeout(function(){const i=document.getElementById('globalSearchInput');if(i)i.focus();},20);
@@ -168,8 +174,10 @@ function renderGlobalSearchResults(value){
   if(q.length<2){root.innerHTML='<p class="modal-text">Digite pelo menos duas letras.</p>';return;}
   const houses=state.houses.filter(function(h){const t=tenantOf(h);return (h.nome+' '+h.endereco+' '+(t?t.nome:'')).toLowerCase().includes(q);}).slice(0,6);
   const tenants=isSimpleMode()?[]:state.tenants.filter(function(t){return (t.nome+' '+t.telefone+' '+t.email).toLowerCase().includes(q);}).slice(0,6);
+  const interests=isSimpleMode()?[]:state.interests.filter(function(i){return (i.nome+' '+i.telefone+' '+i.observacoes).toLowerCase().includes(q);}).slice(0,6);
   const html=houses.map(function(h){return '<button class="global-result" onclick="closeModal();'+(isSimpleMode()?'openSimpleHouseSummary(\''+h.id+'\')':'openHouse(\''+h.id+'\')')+'"><strong>'+esc(h.nome)+'</strong><span>'+esc(h.endereco||'Casa')+'</span></button>';}).join('')+
-    tenants.map(function(t){return '<button class="global-result" onclick="closeModal();openEditTenantModal(\''+t.id+'\')"><strong>'+esc(t.nome)+'</strong><span>'+esc(t.telefone||t.email||'Inquilino')+'</span></button>';}).join('');
+    tenants.map(function(t){return '<button class="global-result" onclick="closeModal();openEditTenantModal(\''+t.id+'\')"><strong>'+esc(t.nome)+'</strong><span>'+esc(t.telefone||t.email||'Inquilino')+'</span></button>';}).join('')+
+    interests.map(function(i){return '<button class="global-result" onclick="closeModal();irInteressados();openEditInterestModal(\''+i.id+'\')"><strong>'+esc(i.nome)+'</strong><span>Cliente quente · '+esc(i.telefone||interestStatusLabel(i.status))+'</span></button>';}).join('');
   root.innerHTML=html||'<p class="modal-text">Nenhum resultado encontrado.</p>';
 }
 function openMenuModal(){
@@ -200,6 +208,7 @@ function openConfigModal(){
     '<p class="modal-text">Usado para preencher os recibos em PDF.</p>'+
     '<label class="field"><span>Seu nome (locador)</span><input id="f_nome" value="'+esc(cfg.locadorNome)+'"></label>'+
     '<label class="field"><span>CPF/CNPJ (opcional)</span><input id="f_doc" value="'+esc(cfg.locadorDocumento)+'"></label>'+
+    '<label class="field-check module-toggle"><input type="checkbox" id="f_energy_enabled"'+(cfg.energiaAtiva!==false?' checked':'')+'><span><strong>Ativar o módulo Energia</strong><small>Ao desativar, os lançamentos ficam preservados e a categoria é escondida.</small></span></label>'+
     '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
       '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
       '<button class="btn btn-primary" onclick="saveConfig()">Salvar</button>'+
@@ -209,12 +218,15 @@ function openConfigModal(){
 async function saveConfig(){
   const cfg = {
     locadorNome: document.getElementById('f_nome').value.trim(),
-    locadorDocumento: document.getElementById('f_doc').value.trim()
+    locadorDocumento: document.getElementById('f_doc').value.trim(),
+    energiaAtiva: document.getElementById('f_energy_enabled').checked
   };
   try{
     await db.saveConfig(cfg);
     state.config = cfg;
+    if(!cfg.energiaAtiva&&state.view==='energia') state.view='dashboard';
     closeModal();
+    render();
     showToast('Dados salvos.', 'success');
   }catch(e){ console.error(e); showToast('Erro ao salvar. Tente novamente.', 'error'); }
 }
@@ -233,7 +245,7 @@ function confirmResetAll(){
 async function resetAll(){
   try{
     await db.wipeAll();
-    state.houses=[]; state.tenants=[]; state.eventos=[]; state.photoCache={}; state.documentCache={}; state.tenantAccess=[];
+    state.houses=[]; state.tenants=[]; state.interests=[]; state.eventos=[]; state.photoCache={}; state.documentCache={}; state.tenantAccess=[];
     closeModal();
     state.view='dashboard';
     render();
@@ -255,6 +267,7 @@ function render(){
       '<main class="main">'+
         (state.view==='casas' ? renderCasasView() :
           state.view==='inquilinos' ? renderInquilinosView() :
+          state.view==='interessados' ? renderInterestsView() :
           state.view==='energia' ? renderEnergiaView() :
           state.view==='financeiro' ? renderFinanceiroView() :
           state.view==='calendario' ? renderCalendario() :
@@ -285,7 +298,7 @@ async function loadData(){
     if(profile.role==='owner'){
       const loaded=await Promise.all([db.loadAll(),db.listTenantAccess()]);
       const data=loaded[0];
-      state.houses=data.houses; state.tenants=data.tenants; state.config=data.config;
+      state.houses=data.houses; state.tenants=data.tenants; state.interests=data.interests||[]; state.config=data.config;
       state.eventos=data.eventos||[]; state.tenantAccess=loaded[1]||[];
       state.photoCache={}; state.documentCache={};
     }else if(profile.role==='tenant'){
@@ -293,7 +306,7 @@ async function loadData(){
       state.houses=portal.houses; state.tenants=portal.tenants; state.config=portal.config;
       state.portalDocuments=portal.documents||[];
     }else{
-      state.houses=[]; state.tenants=[]; state.portalDocuments=[];
+      state.houses=[]; state.tenants=[]; state.interests=[]; state.portalDocuments=[];
     }
     state.loaded = true;
   }catch(e){

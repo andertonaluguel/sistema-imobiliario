@@ -63,7 +63,9 @@ function computeHouseAnnualReport(h, year){
   despesasAno.forEach(function(e){ despesasPorCategoria[e.categoria] = (despesasPorCategoria[e.categoria]||0) + (Number(e.valor)||0); });
   const recebidoAno = h.pagamentos.filter(function(p){ return p.mes.slice(0,4)===String(year); }).reduce(function(s,p){ return s+(Number(p.valorPago)||0); },0)+
     (h.contracts||[]).filter(function(c){return c.proporcionalPago&&c.inicio&&c.inicio.slice(0,4)===String(year);}).reduce(function(s,c){return s+contractProrataValue(c);},0);
-  const energiaAno = (h.energias||[]).filter(function(e){ return e.pago && e.mes.slice(0,4)===String(year); }).reduce(function(s,e){ return s+(Number(e.valor)||0); },0);
+  const energiaAno = houseEnergyEnabled(h)
+    ? (h.energias||[]).filter(function(e){ return e.pago && e.mes.slice(0,4)===String(year); }).reduce(function(s,e){ return s+(Number(e.valor)||0); },0)
+    : 0;
   const despesasTotal = despesasAno.reduce(function(s,e){ return s+(Number(e.valor)||0); },0);
   return {
     house:h, recebidoAno, energiaAno, despesasTotal, despesasPorCategoria,
@@ -90,7 +92,7 @@ function renderAnnualHouseDetail(r){
   return '<div class="panel-body report-detail">'+
     '<div class="report-detail-title">Recebido no ano</div>'+
     '<div class="ledger-row"><div class="ledger-row-main">Aluguel</div><div class="ledger-row-value num brass">'+fmtMoney(r.recebidoAno)+'</div></div>'+
-    '<div class="ledger-row"><div class="ledger-row-main">Energia solar</div><div class="ledger-row-value num" style="color:var(--warn-deep)">'+fmtMoney(r.energiaAno)+'</div></div>'+
+    (energyModuleEnabled()?'<div class="ledger-row"><div class="ledger-row-main">Energia</div><div class="ledger-row-value num" style="color:var(--warn-deep)">'+fmtMoney(r.energiaAno)+'</div></div>':'')+
     '<div class="report-detail-title" style="margin-top:14px;">Despesas por categoria</div>'+catRows+
     '<div class="report-detail-title" style="margin-top:14px;">Períodos de contrato no ano</div>'+periodRows+
     '<div class="report-detail-balance">Saldo do ano: <strong class="num '+(r.saldo<0?'rust':'brass')+'">'+fmtMoney(r.saldo)+'</strong></div>'+
@@ -103,7 +105,7 @@ function renderAnnualHouseRow(h){
     '<button class="report-row" onclick="toggleReportHouse(\''+h.id+'\')">'+
       '<div class="report-row-name">'+esc(h.nome)+'</div>'+
       '<div class="report-row-stat"><span class="report-label">Aluguel</span><span class="num brass">'+fmtMoney(r.recebidoAno)+'</span></div>'+
-      '<div class="report-row-stat"><span class="report-label">Energia</span><span class="num" style="color:var(--warn-deep)">'+fmtMoney(r.energiaAno)+'</span></div>'+
+      (energyModuleEnabled()?'<div class="report-row-stat"><span class="report-label">Energia</span><span class="num" style="color:var(--warn-deep)">'+fmtMoney(r.energiaAno)+'</span></div>':'')+
       '<div class="report-row-stat"><span class="report-label">Despesas</span><span class="num rust">'+fmtMoney(r.despesasTotal)+'</span></div>'+
       '<div class="report-row-stat"><span class="report-label">Dias vago</span><span class="num">'+r.diasVago+'</span></div>'+
       '<div class="report-row-stat"><span class="report-label">Dias manutenção</span><span class="num">'+r.diasManutencao+'</span></div>'+
@@ -143,7 +145,7 @@ function computeMonthlyFinance(mes){
     const expectedProrata=(h.contracts||[]).filter(function(c){return c.inicio&&c.inicio.slice(0,7)===mes;}).reduce(function(s,c){return s+contractProrataValue(c);},0);
     const expected=expectedMonthly+expectedProrata;
     const pays=(h.pagamentos||[]).filter(function(p){return p.mes===mes;});
-    const energyRows=(h.energias||[]).filter(function(e){return e.mes===mes;});
+    const energyRows=houseEnergyEnabled(h)?(h.energias||[]).filter(function(e){return e.mes===mes;}):[];
     const expenses=(h.despesas||[]).filter(function(e){return e.data&&e.data.slice(0,7)===mes;})
       .reduce(function(s,e){return s+(Number(e.valor)||0);},0);
     const receivedRent=pays.reduce(function(s,p){return s+(Number(p.valorPago)||0);},0)+(h.contracts||[]).filter(function(c){return c.inicio&&c.inicio.slice(0,7)===mes&&c.proporcionalPago;}).reduce(function(s,c){return s+contractProrataValue(c);},0);
@@ -175,9 +177,13 @@ function setFinanceMonth(value){ state.financeMonth=value||currentMonthStr(); re
 
 function downloadFinanceCsv(){
   const mes=state.financeMonth||currentMonthStr(), info=computeMonthlyFinance(mes);
-  const rows=[['Imóvel','Aluguel previsto','Aluguel recebido','Energia lançada','Energia recebida','Despesas','Saldo','Pendente']];
-  info.rows.forEach(function(r){ rows.push([r.house.nome,r.expected,r.receivedRent,r.energyBilled,r.energyReceived,r.expenses,r.balance,r.pending]); });
-  rows.push(['TOTAL',info.expected,info.received,0,0,info.expenses,info.received-info.expenses,info.pending]);
+  const rows=energyModuleEnabled()
+    ? [['Imóvel','Aluguel previsto','Aluguel recebido','Energia lançada','Energia recebida','Despesas','Saldo','Pendente']]
+    : [['Imóvel','Aluguel previsto','Aluguel recebido','Despesas','Saldo','Pendente']];
+  info.rows.forEach(function(r){ rows.push(energyModuleEnabled()
+    ? [r.house.nome,r.expected,r.receivedRent,r.energyBilled,r.energyReceived,r.expenses,r.balance,r.pending]
+    : [r.house.nome,r.expected,r.receivedRent,r.expenses,r.balance,r.pending]); });
+  rows.push(energyModuleEnabled()?['TOTAL',info.expected,info.received,0,0,info.expenses,info.received-info.expenses,info.pending]:['TOTAL',info.expected,info.received,info.expenses,info.received-info.expenses,info.pending]);
   const csv='\ufeff'+rows.map(function(row){return row.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   const a=document.createElement('a'); a.href=url; a.download='financeiro-'+mes+'.csv'; a.click(); URL.revokeObjectURL(url);
@@ -226,7 +232,7 @@ function renderFinanceiroView(){
     '<div class="section-header"><div><h2 class="section-title">Fechamento mensal</h2></div>'+
       '<div class="month-switcher"><button onclick="moveFinanceMonth(-1)">←</button><input type="month" value="'+esc(mes)+'" onchange="setFinanceMonth(this.value)"><button onclick="moveFinanceMonth(1)">→</button></div></div>'+
     '<div class="stat-grid">'+
-      statCard('Previsto',fmtMoney(month.expected),'aluguel + energia','brass')+
+      statCard('Previsto',fmtMoney(month.expected),energyModuleEnabled()?'aluguel + energia':'aluguéis','brass')+
       statCard('Recebido',fmtMoney(month.received),month.expected?Math.round(month.received/month.expected*100)+'% do previsto':'sem previsão',null)+
       statCard('Despesas',fmtMoney(month.expenses),'lançadas no mês',month.expenses?'rust':null)+
       statCard('Saldo líquido',fmtMoney(month.received-month.expenses),'recebido − despesas',month.received-month.expenses<0?'rust':'brass')+
@@ -240,9 +246,9 @@ function renderFinanceiroView(){
     '</div>'+
     '<div class="stat-grid">'+
       statCard('Aluguel em '+state.relatorioAno, fmtMoney(tot.recebido), 'todas as casas', 'brass')+
-      statCard('Energia em '+state.relatorioAno, fmtMoney(tot.energia), 'todas as casas', 'warn')+
+      (energyModuleEnabled()?statCard('Energia em '+state.relatorioAno, fmtMoney(tot.energia), 'todas as casas', 'warn'):'')+
       statCard('Despesas em '+state.relatorioAno, fmtMoney(tot.despesas), 'todas as casas', tot.despesas>0?'rust':null)+
-      statCard('Saldo em '+state.relatorioAno, fmtMoney(tot.saldo), 'aluguel + energia − despesas', tot.saldo<0?'rust':'brass')+
+      statCard('Saldo em '+state.relatorioAno, fmtMoney(tot.saldo), energyModuleEnabled()?'aluguel + energia − despesas':'aluguel − despesas', tot.saldo<0?'rust':'brass')+
     '</div>'+
     '<div class="panel panel-collapsible">'+
       '<button class="panel-toggle" onclick="toggleReportList()">'+

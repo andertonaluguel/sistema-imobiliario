@@ -32,10 +32,12 @@ function computeCobrancaCasa(h){
   // energia: meses lançados, vencidos e não pagos (valor variável)
   const energiaMeses = [];
   let energiaTotal = 0;
-  for(let i=0;i<24;i++){
-    const mes = addMonths(cur, -i);
-    if(inicio && mes < inicio) break;
-    if(energiaStatus(h,mes,contract.id)==='atrasado'){ energiaMeses.push(mes); energiaTotal+=energiaValorMes(h,mes,contract.id); }
+  if(houseEnergyEnabled(h)){
+    for(let i=0;i<24;i++){
+      const mes = addMonths(cur, -i);
+      if(inicio && mes < inicio) break;
+      if(energiaStatus(h,mes,contract.id)==='atrasado'){ energiaMeses.push(mes); energiaTotal+=energiaValorMes(h,mes,contract.id); }
+    }
   }
   energiaMeses.sort();
   const aluguelTotal = mesesAtraso.reduce(function(total, mes){
@@ -46,11 +48,16 @@ function computeCobrancaCasa(h){
   const proporcionalPendente=proporcionalValor>0&&!contract.proporcionalPago;
 
   if(mesesAtraso.length || energiaMeses.length || proporcionalPendente){
-    // dias de atraso contados do vencimento mais antigo (entre aluguel e energia)
-    const refMes = (mesesAtraso[0] && energiaMeses[0])
-      ? (mesesAtraso[0]<energiaMeses[0]?mesesAtraso[0]:energiaMeses[0])
-      : (mesesAtraso[0]||energiaMeses[0]);
-    const due0 = refMes?dueDateForMonth(refMes,diaVenc):new Date(contract.inicio+'T23:59:59');
+    // dias de atraso contados do vencimento real mais antigo. Energia pode
+    // vencer em um dia diferente do aluguel.
+    const dueCandidates=[];
+    if(mesesAtraso[0]) dueCandidates.push(dueDateForMonth(mesesAtraso[0],diaVenc));
+    if(energiaMeses[0]){
+      const energyEntry=energiaDoMes(h,energiaMeses[0],contract.id);
+      dueCandidates.push(energyDueDate(h,energyEntry,energiaMeses[0]));
+    }
+    if(proporcionalPendente) dueCandidates.push(new Date(contract.inicio+'T23:59:59'));
+    const due0=new Date(Math.min.apply(null,dueCandidates.map(function(d){return d.getTime();})));
     due0.setHours(0,0,0,0);
     const hoje0 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
     const dias = Math.max(0, Math.round((hoje0 - due0)/86400000));
@@ -88,8 +95,10 @@ function computeOverview(){
       const recCur = contract?paymentForMonth(h,cur,contract.id):null;
       if(recCur) recebidoMes += Number(recCur.valorPago)||0;
       if(contract&&proporcionalMes&&contract.proporcionalPago) recebidoMes+=proporcionalMes;
-      energiaMes += energiaValorMes(h,cur,contract&&contract.id);
-      if(energiaPagaMes(h,cur,contract&&contract.id)) energiaRecebida+=energiaValorMes(h,cur,contract&&contract.id);
+      if(houseEnergyEnabled(h)){
+        energiaMes += energiaValorMes(h,cur,contract&&contract.id);
+        if(energiaPagaMes(h,cur,contract&&contract.id)) energiaRecebida+=energiaValorMes(h,cur,contract&&contract.id);
+      }
       const cob = computeCobrancaCasa(h);
       if(cob) cobrancas.push(cob);
       if(h.contratoFim){
@@ -314,7 +323,7 @@ function renderSimpleDashboard(o){
       '<button class="simple-primary-action" onclick="irCasas()"><span>'+houseIconSvg()+'</span><div><strong>Ver todas as casas</strong><small>Consulte e registre pagamentos</small></div><b>→</b></button>'+
     '</div>'+
     '<div class="stat-grid simple-stat-grid">'+
-      statCard('Recebido no mês', fmtMoney(o.recebidoMes + o.energiaRecebida), 'aluguéis e energia', 'brass')+
+      statCard('Recebido no mês', fmtMoney(o.recebidoMes + o.energiaRecebida), energyModuleEnabled()?'aluguéis e energia':'aluguéis', 'brass')+
       statCard('Falta receber', fmtMoney(o.faltaReceber), o.nAtraso?(o.nAtraso+' casa(s) em atraso'):'nenhum atraso', o.faltaReceber>0?'rust':null)+
     '</div>'+
     '<div class="panel simple-panel">'+
@@ -353,14 +362,15 @@ function renderDashboard(){
       '<button onclick="openGlobalSearch()"><span>⌕</span><strong>Buscar</strong><small>casa ou inquilino</small></button>'+
       '<button onclick="openAddHouseModal()"><span>＋</span><strong>Nova casa</strong><small>cadastrar imóvel</small></button>'+
       '<button onclick="openAddTenantModal()"><span>＋</span><strong>Novo inquilino</strong><small>cadastro rápido</small></button>'+
-      '<button onclick="irEnergia()"><span>⚡</span><strong>Energia</strong><small>lançar ou consultar</small></button>'+
+      '<button onclick="openAddInterestModal()"><span>♥</span><strong>Novo cliente</strong><small>guardar interessado</small></button>'+
+      (energyModuleEnabled()?'<button onclick="irEnergia()"><span>⚡</span><strong>Energia</strong><small>lançar ou consultar</small></button>':'')+
     '</div>'+
 
     '<div class="stat-grid">'+
       statCard('Aluguel do mês', fmtMoney(o.receitaMensal), 'projeção pelo aluguel atual', 'brass')+
-      statCard('Energia do mês', fmtMoney(o.energiaMes), 'lançado neste mês', 'warn')+
-      statCard('Total do mês', fmtMoney(o.totalMes), 'aluguel + energia', 'brass')+
-      statCard('Recebido', fmtMoney(o.recebidoMes + o.energiaRecebida), 'aluguel + energia até agora', null)+
+      (energyModuleEnabled()?statCard('Energia do mês', fmtMoney(o.energiaMes), 'lançado neste mês', 'warn'):'')+
+      statCard('Total do mês', fmtMoney(o.totalMes), energyModuleEnabled()?'aluguel + energia':'aluguéis', 'brass')+
+      statCard('Recebido', fmtMoney(o.recebidoMes + o.energiaRecebida), energyModuleEnabled()?'aluguel + energia até agora':'aluguéis até agora', null)+
     '</div>'+
 
     '<div class="dashboard-status-row">'+

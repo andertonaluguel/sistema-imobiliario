@@ -6,7 +6,7 @@ function setEnergyMonth(value){ state.energiaMes=value||currentMonthStr(); rende
 function moveEnergyMonth(delta){ state.energiaMes=addMonths(state.energiaMes||currentMonthStr(),delta); render(); }
 
 function computeEnergyMonth(mes){
-  const rows=state.houses.map(function(h){
+  const rows=state.houses.filter(houseEnergyEnabled).map(function(h){
     const contract=contractForEnergyMonth(h,mes);
     const e=energiaDoMes(h,mes);
     return {house:h,contract:contract,entry:e,valor:e?Number(e.valor)||0:0,kwh:e?Number(e.kwh)||0:0,pago:!!(e&&e.pago)};
@@ -34,6 +34,7 @@ function renderEnergyTrend(){
 }
 
 function renderEnergiaView(){
+  if(!energyModuleEnabled()) return '<div class="empty-state">O módulo Energia está desativado. Você pode ativá-lo em Menu → Meus dados.</div>';
   const mes=state.energiaMes||currentMonthStr(), info=computeEnergyMonth(mes);
   const active=info.rows.filter(function(r){return r.contract||r.entry;});
   return '<div class="page-header"><div><div class="eyebrow">ENERGIA</div>'+pageTitleWithIcon(financeIconSvg(),'Energia dos imóveis')+
@@ -53,7 +54,7 @@ function renderEnergiaView(){
       const t=r.contract?contractTenant(r.contract):tenantOf(r.house);
       return '<button class="energy-row" onclick="openEnergiaModalFromView(\''+r.house.id+'\',\''+mes+'\')">'+
         '<div class="energy-house"><strong>'+esc(r.house.nome)+'</strong><span>'+esc(t?t.nome:(r.house.status==='vaga'?'Casa vaga':'Sem inquilino'))+'</span></div>'+
-        '<div><span class="table-label">Consumo</span><strong class="num">'+(r.entry?r.kwh.toLocaleString('pt-BR')+' kWh':'—')+'</strong></div>'+
+        '<div><span class="table-label">Consumo</span><strong class="num">'+(r.entry?r.kwh.toLocaleString('pt-BR')+' kWh':'—')+'</strong>'+(r.entry&&r.entry.leituraAtual?'<small>'+r.entry.leituraAnterior+' → '+r.entry.leituraAtual+'</small>':'')+'</div>'+
         '<div><span class="table-label">Valor</span><strong class="num">'+(r.entry?fmtMoney(r.valor):'Não lançado')+'</strong></div>'+
         '<span class="status-dot '+(!r.entry?'neutral':r.pago?'pago':'pendente')+'">'+(!r.entry?'Sem lançamento':r.pago?'Pago':'Em aberto')+'</span>'+
       '</button>';
@@ -62,7 +63,7 @@ function renderEnergiaView(){
 
 function openEnergiaModalFromView(houseId,mes){ openEnergiaModal(houseId,mes); }
 function openFirstEnergyModal(){
-  const houses=state.houses.filter(function(h){return h.status==='alugada'&&activeContract(h);});
+  const houses=state.houses.filter(function(h){return h.status==='alugada'&&activeContract(h)&&houseEnergyEnabled(h);});
   if(!houses.length){showToast('Cadastre um contrato ativo antes de lançar energia.','error');return;}
   const options=houses.map(function(h){const t=tenantOf(h);return '<option value="'+h.id+'">'+esc(h.nome)+(t?' — '+esc(t.nome):'')+'</option>';}).join('');
   openModal('<h3 class="modal-title">Novo lançamento de energia</h3><p class="modal-text">Escolha primeiro a casa e o mês do lançamento.</p>'+

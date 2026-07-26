@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockups comerciais — Aluguel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mockups.css?v=20260722a">
+</head>
+<body>
+  <main id="canvas" aria-label="Mockup comercial Aluguel"></main>
+  <script>
+    (function(){
+      var mode=(new URLSearchParams(location.search).get('mockup')||'hero').toLowerCase();
+      var canvas=document.getElementById('canvas');
+      var logo='<span class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><polygon points="16,5 27,15 5,15"/><rect x="8" y="14" width="16" height="13" rx="1"/><rect x="21.5" y="8" width="3.5" height="7"/><rect class="window" x="11.5" y="18.5" width="3.5" height="3.5"/><rect class="window" x="17" y="18.5" width="3.5" height="3.5"/></svg><b>Aluguel</b></span>';
+      var browser=function(src,alt,extra){return '<div class="browser '+(extra||'')+'"><div class="browser-bar"><i></i><i></i><i></i><span>aluguel.app</span></div><img src="'+src+'" alt="'+alt+'"></div>'};
+      var screens='screenshots/';
+      var content={
+        hero:'<section class="mock hero">'+
+          '<div class="grain"></div><header>'+logo+'<span class="eyebrow">GESTÃO DE ALUGUÉIS</span></header>'+ 
+          '<div class="hero-copy"><span class="pill">DA CASA VAGA AO PAGAMENTO RECEBIDO</span><h1>Seus aluguéis<br><em>sob controle.</em></h1><p>Imóveis, contratos, cobranças e documentos em uma visão feita para o dia a dia.</p><div class="proof"><span>Visão financeira</span><span>Histórico por imóvel</span><span>Portal do inquilino</span></div></div>'+ 
+          '<div class="hero-product">'+browser(screens+'dashboard-desktop.png','Painel do Aluguel','tilt')+'<div class="floating-card"><small>FALTA RECEBER</small><strong>Visível no painel</strong><span>Priorize o que exige atenção</span></div></div>'+ 
+          '<footer><span>PRODUTO REAL • DADOS DEMONSTRATIVOS</span><b>Cada aluguel no lugar certo.</b></footer></section>',
+        portfolio:'<section class="mock portfolio">'+
+          '<header>'+logo+'<span class="eyebrow dark">OPERAÇÃO POR IMÓVEL</span></header>'+ 
+          '<div class="portfolio-copy"><span class="section-no">01</span><h1>A carteira inteira.<br><em>O detalhe certo.</em></h1><p>Veja ocupação, pagamentos e pendências no conjunto — e abra cada imóvel sem perder o histórico.</p></div>'+ 
+          '<div class="stack">'+browser(screens+'imoveis-desktop.png','Grade de imóveis','back')+browser(screens+'imovel-detalhe-desktop.png','Detalhe do imóvel','front')+'</div>'+ 
+          '<div class="marker m1">STATUS DA CARTEIRA</div><div class="marker m2">COBRANÇA E HISTÓRICO</div>'+ 
+          '<footer><span>CAPTURA DO APLICATIVO • DADOS DEMONSTRATIVOS</span></footer></section>',
+        finance:'<section class="mock finance">'+
+          '<header>'+logo+'<span class="eyebrow dark">VISÃO FINANCEIRA</span></header>'+ 
+          '<div class="finance-title"><span class="section-no">02</span><h1>Saiba o que entrou,<br><em>o que falta</em> e onde agir.</h1></div>'+ 
+          '<div class="finance-product">'+browser(screens+'financeiro-detalhes-desktop.png','Gestão financeira do Aluguel','finance-browser')+'</div>'+ 
+          '<div class="stat-note left"><small>POR IMÓVEL</small><strong>Previsto × recebido</strong><span>Saldo e despesas lado a lado</span></div>'+ 
+          '<div class="stat-note right"><small>ATENÇÃO</small><strong>Faixas de atraso</strong><span>Pendências organizadas por tempo</span></div>'+ 
+          '<footer><span>GESTÃO ASSISTIDA • REGISTRO MANUAL DE RECEBIMENTOS</span></footer></section>',
+        portal:'<section class="mock portal">'+
+          '<div class="portal-side"><header>'+logo+'</header><span class="eyebrow">PORTAL DO INQUILINO</span><h1>Informação clara<br><em>também para quem aluga.</em></h1><p>Contrato, pagamentos, recibos, energia e arquivos liberados em uma área de consulta.</p><ul><li>Consulta em celular</li><li>Acesso separado por perfil</li><li>Somente os documentos autorizados</li></ul><span class="disclaimer">PORTAL EM MODO SOMENTE LEITURA</span></div>'+ 
+          '<div class="phone-stage"><div class="phone"><div class="notch"></div><img src="'+screens+'portal-inquilino-mobile.png" alt="Portal do inquilino no celular"></div><div class="orbit one">PAGAMENTOS</div><div class="orbit two">ENERGIA</div><div class="orbit three">ARQUIVOS</div></div>'+ 
+          '<footer><span>PRODUTO REAL • DADOS DEMONSTRATIVOS</span></footer></section>'
+      };
+      canvas.innerHTML=content[mode]||content.hero;
+      document.body.dataset.mockupReady='true';
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#102E27">
+<title>Aluguel — Quem ainda não pagou este mês?</title>
+<meta name="description" content="Aplicativo de gestão de locações para proprietários e pequenas corretoras. Casas, contratos, recebimentos, energia e histórico em um painel. Comece com uma casa, de graça.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Aluguel",
+"applicationCategory":"BusinessApplication","applicationSubCategory":"Gestão de locações",
+"operatingSystem":"Web","url":"https://aluguel-casas-anderton.netlify.app/",
+"description":"Aplicativo web para organizar imóveis, inquilinos, contratos, recebimentos, energia, despesas e interessados.",
+"featureList":["Painel de imóveis e recebimentos","Gestão de inquilinos e contratos","Controle manual de aluguel e energia","Relatórios e recibos em PDF","Portal de consulta do inquilino","Catálogo público de imóveis vagos"]}
+</script>
+<style>
+:root{
+  --night:#102E27; --night-2:#1A473B; --night-3:#276153;
+  --canvas:#EEF3F0; --card:#FFFFFF; --line:#D9E3DD;
+  --ink:#19251F; --muted:#5A6A62; --hero-text:#D1DED8; --cover-muted:#C6D5CE;
+  --lime:#E7F77B; --gold:#F0C76E; --gold-deep:#8A5F12;
+  --violet:#6D5BD0; --violet-soft:#ECE8FF;
+  --ok:#087F69; --ok-soft:#D9F4EB; --danger:#B83D4F;
+  --sh-sm:0 4px 15px rgba(16,46,39,.07); --sh-md:0 12px 36px rgba(16,46,39,.09);
+  --sh-hero:0 18px 44px rgba(16,46,39,.20);
+  --fd:'Space Grotesk',Arial,sans-serif; --fb:'IBM Plex Sans',Arial,sans-serif; --fm:'IBM Plex Mono',monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--fb);color:var(--ink);
+  background:radial-gradient(circle at 92% 0,rgba(231,247,123,.13),transparent 22%),linear-gradient(180deg,#F7FAF8,var(--canvas));}
+h1,h2,h3,h4{font-family:var(--fd);margin:0;letter-spacing:-.01em}
+p{margin:0;line-height:1.62}
+a{color:inherit}
+img{max-width:100%;display:block}
+.mono{font-family:var(--fm)}
+.wrap{max-width:1140px;margin:0 auto;padding:0 22px}
+.eyebrow{font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+:focus-visible{outline:3px solid var(--violet);outline-offset:2px;border-radius:6px}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:12px;top:12px;z-index:99;background:#fff;padding:10px 14px;border-radius:8px}
+
+/* ---------- BOTÕES ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;
+  padding:13px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;
+  border:1px solid transparent;cursor:pointer;transition:transform .15s var(--ease),background .15s var(--ease)}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--night);color:#fff}
+.btn-lime{background:var(--lime);color:var(--night)}
+.btn-ghost{background:transparent;border-color:rgba(255,255,255,.34);color:#fff}
+.btn-outline{background:#fff;border-color:var(--line);color:var(--night)}
+.btn-sm{min-height:42px;padding:10px 18px;font-size:14px}
+
+/* ---------- TOPBAR ---------- */
+.topbar{position:sticky;top:0;z-index:50;color:#fff;
+  background:radial-gradient(circle at 76% -90%,rgba(231,247,123,.17),transparent 31%),linear-gradient(110deg,#0D2923,var(--night-2));
+  box-shadow:0 1px 0 rgba(255,255,255,.08),0 10px 30px rgba(8,31,25,.14)}
+.topbar .wrap{display:flex;align-items:center;gap:16px;min-height:72px}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-weight:700;font-size:20px;text-decoration:none}
+.brand svg{width:27px;height:27px;color:var(--gold);flex:none}
+.topnav{display:flex;gap:4px;margin-left:14px}
+.topnav a{padding:9px 13px;border-radius:10px;font-size:13.5px;text-decoration:none;color:var(--cover-muted);transition:background .15s}
+.topnav a:hover{background:rgba(255,255,255,.09);color:#fff}
+.topbar-cta{margin-left:auto;display:flex;gap:9px;align-items:center}
+@media(max-width:900px){.topnav{display:none}}
+
+/* ---------- HERO ---------- */
+.hero{position:relative;isolation:isolate;overflow:hidden;color:#fff;
+  background:radial-gradient(circle at 88% 12%,rgba(231,247,123,.16),transparent 26%),
+             radial-gradient(circle at 10% 130%,rgba(51,120,101,.62),transparent 48%),
+             linear-gradient(135deg,var(--night),var(--night-2) 68%,#0C2721)}
+.hero::after{content:"";position:absolute;z-index:-1;right:-90px;top:40px;width:420px;height:420px;
+  border:26px solid rgba(255,255,255,.04);border-radius:50%}
+.hero .wrap{padding-top:52px;padding-bottom:0}
+.switch{display:inline-flex;gap:5px;padding:5px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);margin-bottom:26px;flex-wrap:wrap}
+.switch button{min-height:40px;padding:9px 16px;border:0;border-radius:10px;background:transparent;
+  color:var(--cover-muted);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s var(--ease)}
+.switch button:hover{color:#fff;background:rgba(255,255,255,.09)}
+.switch button[aria-selected="true"]{background:var(--lime);color:var(--night)}
+.hero h1{font-size:clamp(34px,5.6vw,58px);line-height:1.02;max-width:16ch;margin-bottom:18px}
+.hero .sub{color:var(--hero-text);font-size:clamp(15px,1.7vw,18px);max-width:56ch}
+.hero-actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:28px}
+.hero-trust{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+.hero-trust span{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;
+  font-family:var(--fm);font-size:11px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06)}
+.hero-shot{margin-top:44px;padding-bottom:0}
+.hero-shot img{border-radius:16px 16px 0 0;border:1px solid rgba(255,255,255,.14);border-bottom:0;
+  box-shadow:0 -6px 60px rgba(0,0,0,.28)}
+
+/* ---------- SEÇÕES ---------- */
+section{padding:76px 0}
+.sec-label{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sec-label .num{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--gold-deep)}
+.sec-label .txt{font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h2.sec{font-size:clamp(26px,3.4vw,38px);line-height:1.12;max-width:20ch;margin-bottom:14px}
+.sec-lead{color:var(--muted);font-size:16px;max-width:62ch}
+
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--sh-sm)}
+.card h3{font-size:19px;margin-bottom:8px}
+.card p{color:var(--muted);font-size:14.5px}
+
+/* problema */
+.dark{background:var(--night);color:#fff;
+  background:radial-gradient(circle at 90% 10%,rgba(231,247,123,.10),transparent 26%),linear-gradient(160deg,var(--night),var(--night-2))}
+.dark h2.sec,.dark h3{color:#fff}
+.dark .sec-lead,.dark .card p{color:var(--hero-text)}
+.dark .sec-label .num{color:var(--gold)}
+.dark .sec-label .txt{color:var(--cover-muted)}
+.dark .card{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);box-shadow:none}
+.q-num{font-family:var(--fm);font-size:12px;font-weight:700;color:var(--lime);margin-bottom:12px;display:block}
+
+/* prova */
+.shots{margin-top:30px}
+.shot-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:6px;border:1px solid var(--line);
+  border-radius:16px;background:#fff;box-shadow:var(--sh-sm);margin-bottom:18px}
+.shot-tabs button{flex:1 1 auto;min-height:46px;padding:9px 14px;border:0;border-radius:11px;background:transparent;
+  color:var(--muted);font-family:var(--fb);font-size:13.5px;font-weight:600;cursor:pointer;transition:all .18s var(--ease)}
+.shot-tabs button:hover{background:#E6F0EA;color:var(--ink)}
+.shot-tabs button[aria-selected="true"]{background:var(--night-2);color:#fff}
+.shot-panel{display:none}
+.shot-panel.on{display:block}
+.shot-panel img{border-radius:16px;border:1px solid var(--line);box-shadow:var(--sh-md)}
+.shot-cap{margin-top:12px;font-size:14px;color:var(--muted)}
+.shot-cap b{color:var(--ink);font-family:var(--fd)}
+
+/* passos */
+.steps{counter-reset:s}
+.step{display:flex;gap:16px;padding:20px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:0}
+.step .n{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  font-family:var(--fm);font-weight:700;font-size:14px;background:var(--night-2);color:var(--lime)}
+.step h3{font-size:17px;margin-bottom:4px}
+
+/* recursos */
+.feat{display:flex;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}
+.feat:last-child{border-bottom:0}
+.feat b{font-family:var(--fd);font-size:15px;display:block;margin-bottom:3px}
+.feat span{color:var(--muted);font-size:14px}
+.feat i{flex:none;font-style:normal;font-family:var(--fm);font-size:11px;font-weight:700;color:var(--gold-deep);padding-top:3px}
+
+/* planos */
+.plans{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:30px}
+.plan{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--sh-sm);display:flex;flex-direction:column}
+.plan.featured{border-color:var(--night-2);box-shadow:var(--sh-md);position:relative}
+.plan.soon{background:#F7FAF8;border-style:dashed}
+.plan .badge{position:absolute;top:-11px;left:24px;padding:5px 11px;border-radius:999px;background:var(--lime);
+  color:var(--night);font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:.07em}
+.plan h3{font-size:20px}
+.plan .who{color:var(--muted);font-size:13.5px;margin:4px 0 16px}
+.plan .cap{font-family:var(--fm);font-size:26px;font-weight:600;color:var(--night)}
+.plan .cap small{font-family:var(--fb);font-size:13px;font-weight:400;color:var(--muted);display:block;margin-top:3px}
+.plan ul{list-style:none;padding:0;margin:18px 0}
+.plan li{font-size:14px;color:var(--muted);padding:6px 0 6px 22px;position:relative}
+.plan li::before{content:"";position:absolute;left:0;top:13px;width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.plan .btn{margin-top:auto;width:100%}
+.plan-note{margin-top:16px;font-size:13px;color:var(--muted)}
+
+/* roadmap teaser */
+.road{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:26px}
+.road div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--sh-sm)}
+.road b{display:block;font-family:var(--fd);font-size:15px;margin:9px 0 5px}
+.road span{font-size:13.5px;color:var(--muted);line-height:1.55}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%}
+.d-ok{background:var(--ok)}.d-dev{background:var(--gold-deep)}.d-plan{background:var(--violet)}.d-study{background:#9AA8A1}
+
+/* faq */
+details{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+summary{cursor:pointer;padding:18px 20px;font-family:var(--fd);font-weight:600;font-size:15.5px;list-style:none;
+  display:flex;justify-content:space-between;align-items:center;gap:14px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--fm);font-size:19px;color:var(--gold-deep);flex:none}
+details[open] summary::after{content:"–"}
+details p{padding:0 20px 20px;color:var(--muted);font-size:14.5px}
+details ul{padding:0 20px 20px 40px;color:var(--muted);font-size:14.5px;margin:0}
+details li{margin-bottom:6px;line-height:1.6}
+
+/* cta final */
+.final{margin:0 auto;max-width:1140px;padding:0 22px}
+.final-in{position:relative;isolation:isolate;overflow:hidden;border-radius:24px;color:#fff;padding:56px 44px;
+  border:1px solid rgba(255,255,255,.12);box-shadow:var(--sh-hero);
+  background:radial-gradient(circle at 86% 16%,rgba(231,247,123,.18),transparent 26%),linear-gradient(135deg,var(--night),var(--night-2) 70%)}
+.final-in::after{content:"";position:absolute;z-index:-1;right:-50px;bottom:-110px;width:300px;height:300px;
+  border:26px solid rgba(255,255,255,.045);border-radius:50%}
+.final h2{font-size:clamp(28px,3.6vw,40px);line-height:1.1;margin-bottom:14px;max-width:18ch}
+.final p{color:var(--hero-text);font-size:16px;max-width:56ch}
+
+footer{padding:52px 0 44px;color:var(--muted);font-size:13.5px}
+.foot-grid{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:30px}
+.foot-grid b{display:block;font-family:var(--fd);color:var(--ink);font-size:14px;margin-bottom:9px}
+.foot-grid a{display:block;text-decoration:none;padding:4px 0;color:var(--muted)}
+.foot-grid a:hover{color:var(--ink)}
+.foot-bot{border-top:1px solid var(--line);padding-top:20px;font-family:var(--fm);font-size:12px;
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}html{scroll-behavior:auto}}
+@media(max-width:640px){section{padding:56px 0}.final-in{padding:38px 26px}.hero .wrap{padding-top:38px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#topo">
+      <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M4 14 L16 5 L28 14 V28 H4 Z" fill="currentColor"/><rect x="22" y="7" width="3.4" height="5" fill="currentColor"/><rect x="10" y="17" width="4.6" height="4.6" fill="#102E27"/><rect x="17.4" y="17" width="4.6" height="4.6" fill="#102E27"/></svg>
+      Aluguel
+    </a>
+    <nav class="topnav" aria-label="Seções">
+      <a href="#problema">O problema</a>
+      <a href="#produto">O produto</a>
+      <a href="#recursos">Recursos</a>
+      <a href="#planos">Planos</a>
+      <a href="#futuro">O que vem</a>
+      <a href="#duvidas">Dúvidas</a>
+    </nav>
+    <div class="topbar-cta">
+      <a class="btn btn-lime btn-sm" href="https://aluguel-casas-anderton.netlify.app/">Começar grátis</a>
+    </div>
+  </div>
+</header>
+
+<!-- ======================= HERO ======================= -->
+<div class="hero" id="topo">
+  <div class="wrap">
+    <div class="switch" role="tablist" aria-label="Escolha seu perfil">
+      <button role="tab" aria-selected="true" data-p="a">Tenho casas para alugar</button>
+      <button role="tab" aria-selected="false" data-p="b">Administro uma carteira</button>
+      <button role="tab" aria-selected="false" data-p="c">Sou corretora</button>
+    </div>
+
+    <div id="conteudo">
+      <h1 id="heroH1">Quem ainda não pagou este mês?</h1>
+      <p class="sub" id="heroSub">Se responder exige abrir o extrato, a planilha e o WhatsApp, o Aluguel resolve isso em uma tela. Casas, contratos, recebimentos, energia e histórico no mesmo lugar.</p>
+    </div>
+
+    <div class="hero-actions">
+      <a class="btn btn-lime" href="https://aluguel-casas-anderton.netlify.app/">Começar com uma casa, de graça</a>
+      <a class="btn btn-ghost" href="#produto">Ver o produto por dentro</a>
+    </div>
+
+    <div class="hero-trust">
+      <span>Sem instalar nada</span>
+      <span>Funciona no celular</span>
+      <span>1 casa no plano gratuito</span>
+      <span>Exporte seus dados quando quiser</span>
+    </div>
+
+    <div class="hero-shot">
+      <img src="../mockups/screenshots/01-painel-resumo-desktop.png" alt="Painel do Aluguel: previsto no mês, recebido, falta receber, energia lançada e ocupação da carteira" width="1556" height="739" loading="eager">
+    </div>
+  </div>
+</div>
+
+<!-- ======================= PROBLEMA ======================= -->
+<section class="dark" id="problema">
+  <div class="wrap">
+    <div class="sec-label"><span class="num">01</span><span class="txt">Onde a gestão trava</span></div>
+    <h2 class="sec">A informação existe. Ela só não está junta.</h2>
+    <p class="sec-lead">Planilha, extrato, conversa e pasta de fotos guardam pedaços da mesma casa. Responder uma pergunta simples vira uma investigação.</p>
+
+    <div class="grid g3" style="margin-top:34px">
+      <div class="card">
+        <span class="q-num">01</span>
+        <h3>"O aluguel da Casa do Bosque caiu?"</h3>
+        <p>Sem visão consolidada, cada imóvel precisa ser conferido separadamente — e o extrato não diz a qual contrato o valor pertence.</p>
+      </div>
+      <div class="card">
+        <span class="q-num">02</span>
+        <h3>"Quando vence o contrato do 03?"</h3>
+        <p>Datas, reajustes e trocas de inquilino perdem o contexto quando ficam em lugares diferentes.</p>
+      </div>
+      <div class="card">
+        <span class="q-num">03</span>
+        <h3>"Cadê o recibo de março?"</h3>
+        <p>Pagamentos, energia, despesas, fotos e documentos precisam acompanhar o imóvel ao longo dos anos — não a memória de uma pessoa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= SOLUÇÃO ======================= -->
+<section id="solucao">
+  <div class="wrap">
+    <div class="sec-label"><span class="num">02</span><span class="txt">A resposta</span></div>
+    <h2 class="sec">Abra e saiba o que fazer hoje</h2>
+    <p class="sec-lead">O Aluguel não pede que você mude a forma como trabalha. Ele organiza o fluxo que você já executa — casa, contrato, vencimento, cobrança e registro.</p>
+
+    <div class="grid g2" style="margin-top:34px">
+      <div class="card">
+        <h3>Enxergue o mês antes de abrir qualquer ficha</h3>
+        <p>Previsto, recebido, o que falta receber, energia lançada e ocupação da carteira. Os alertas mostram o que precisa de atenção agora.</p>
+      </div>
+      <div class="card">
+        <h3>Cada casa guarda a própria história</h3>
+        <p>Inquilino, contrato, pagamentos, energia, despesas, reajustes, fotos e documentos ficam presos ao imóvel. Quando o inquilino muda, o histórico anterior não se mistura.</p>
+      </div>
+      <div class="card">
+        <h3>A cobrança sai pronta — você decide quando enviar</h3>
+        <p>O WhatsApp abre com mês, valor e vencimento já preenchidos, e o PIX Copia e Cola vai junto quando você configura a chave. O envio continua sendo seu.</p>
+      </div>
+      <div class="card">
+        <h3>O inquilino consulta sem te ligar</h3>
+        <p>Libere uma área de leitura com contrato, pagamentos, recibos, energia e os documentos que você autorizar. Ele para de pedir o mesmo comprovante todo mês.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PROVA ======================= -->
+<section id="produto" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label"><span class="num">03</span><span class="txt">Telas reais</span></div>
+    <h2 class="sec">Da chave ao recibo, sem trocar de ferramenta</h2>
+    <p class="sec-lead">Capturas do aplicativo em produção, feitas em 26 de julho de 2026. Os nomes e valores foram substituídos por dados de demonstração.</p>
+
+    <div class="shots">
+      <div class="shot-tabs" role="tablist" aria-label="Áreas do produto">
+        <button role="tab" aria-selected="true" data-s="s1">Painel</button>
+        <button role="tab" aria-selected="false" data-s="s2">Carteira</button>
+        <button role="tab" aria-selected="false" data-s="s3">Ficha do imóvel</button>
+        <button role="tab" aria-selected="false" data-s="s4">Financeiro</button>
+        <button role="tab" aria-selected="false" data-s="s5">Inquilinos</button>
+        <button role="tab" aria-selected="false" data-s="s6">Energia</button>
+      </div>
+
+      <div class="shot-panel on" id="s1">
+        <img src="../mockups/screenshots/01-painel-resumo-desktop.png" alt="Painel com previsto, recebido, falta receber, energia e ocupação" loading="lazy">
+        <p class="shot-cap"><b>Comece pelo que precisa de atenção.</b> Uma leitura do mês inteiro antes de abrir qualquer imóvel.</p>
+      </div>
+      <div class="shot-panel" id="s2">
+        <img src="../mockups/screenshots/02-carteira-casas-desktop.png" alt="Carteira de casas com filtros por situação e ações rápidas" loading="lazy">
+        <p class="shot-cap"><b>Filtre por situação e aja no card.</b> Alugadas, vagas, em manutenção ou em atraso — com aluguel pago e energia a um clique.</p>
+      </div>
+      <div class="shot-panel" id="s3">
+        <img src="../mockups/screenshots/03-ficha-imovel-desktop.png" alt="Ficha do imóvel com abas de inquilino, contratos, pagamentos, energia, reajustes, despesas, fotos e documentos" loading="lazy">
+        <p class="shot-cap"><b>A rotina inteira dentro da ficha.</b> Cobrança, acompanhamento e o ano fechado, sem procurar em outro lugar.</p>
+      </div>
+      <div class="shot-panel" id="s4">
+        <img src="../mockups/screenshots/04-financeiro-desktop.png" alt="Gestão financeira com fechamento mensal e resultado por imóvel" loading="lazy">
+        <p class="shot-cap"><b>O mês fecha na sua frente.</b> Previsto, recebido, despesas e saldo líquido — e o resultado imóvel por imóvel.</p>
+      </div>
+      <div class="shot-panel" id="s5">
+        <img src="../mockups/screenshots/05-inquilinos-desktop.png" alt="Lista de inquilinos com imóvel vinculado e situação do portal" loading="lazy">
+        <p class="shot-cap"><b>Cadastro único de pessoas.</b> Uma pessoa pode ocupar mais de um imóvel sem você refazer o cadastro.</p>
+      </div>
+      <div class="shot-panel" id="s6">
+        <img src="../mockups/screenshots/06-energia-desktop.png" alt="Energia dos imóveis com lançado, recebido, consumo e pendências" loading="lazy">
+        <p class="shot-cap"><b>Energia com controle próprio.</b> Leitura anterior e atual, kWh, tarifa, foto do medidor e vencimento separados do aluguel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= COMO FUNCIONA ======================= -->
+<section id="comecar">
+  <div class="wrap">
+    <div class="sec-label"><span class="num">04</span><span class="txt">Como começar</span></div>
+    <h2 class="sec">Da primeira casa ao primeiro recibo</h2>
+    <p class="sec-lead">Você não precisa cadastrar a carteira inteira para sentir diferença. Comece por uma casa.</p>
+
+    <div class="card steps" style="margin-top:30px">
+      <div class="step"><div class="n">1</div><div><h3>Cadastre uma casa</h3><p style="color:var(--muted);font-size:14.5px">Nome, endereço, valor do aluguel e dia de vencimento. Leva menos de dois minutos.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Vincule o inquilino e crie o contrato</h3><p style="color:var(--muted);font-size:14.5px">Período, valor e regra de vencimento. O ciclo de ocupação passa a ter começo, meio e fim.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Registre o pagamento do mês</h3><p style="color:var(--muted);font-size:14.5px">A situação da casa muda na hora: em dia, pendente ou em atraso.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>Gere o recibo e libere o portal</h3><p style="color:var(--muted);font-size:14.5px">O inquilino consulta o que você autorizar. Só então vale a pena cadastrar o resto da carteira.</p></div></div>
+    </div>
+
+    <div style="margin-top:26px"><a class="btn btn-primary" href="https://aluguel-casas-anderton.netlify.app/">Começar com uma casa, de graça</a></div>
+  </div>
+</section>
+
+<!-- ======================= RECURSOS ======================= -->
+<section id="recursos" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label"><span class="num">05</span><span class="txt">O que está incluído</span></div>
+    <h2 class="sec">Tudo que a rotina do aluguel exige</h2>
+    <p class="sec-lead">Recursos conectados pelo imóvel, pelo contrato e pelo período. Nada aqui promete automação que o produto não executa.</p>
+
+    <div class="grid g2" style="margin-top:30px">
+      <div class="card">
+        <div class="feat"><i>01</i><div><b>Carteira de imóveis</b><span>Busca, filtros, situação, características, vistoria e histórico.</span></div></div>
+        <div class="feat"><i>02</i><div><b>Inquilinos e contratos</b><span>Cadastro reutilizável, ciclos de ocupação, vencimento e ajuste de entrada.</span></div></div>
+        <div class="feat"><i>03</i><div><b>Recebimentos e recibos</b><span>Baixa manual, histórico por mês, recibo em PDF e cobrança preparada.</span></div></div>
+        <div class="feat"><i>04</i><div><b>Energia por imóvel</b><span>Leituras, consumo, tarifa, ajustes, foto do medidor e situação de recebimento.</span></div></div>
+        <div class="feat"><i>05</i><div><b>Despesas e manutenção</b><span>Categoria, descrição, prestador, valor, data e andamento.</span></div></div>
+      </div>
+      <div class="card">
+        <div class="feat"><i>06</i><div><b>Relatórios gerenciais</b><span>Visão mensal e anual, saldo, ageing e exportação em PDF e CSV.</span></div></div>
+        <div class="feat"><i>07</i><div><b>Interessados</b><span>Funil, preferências e combinação com casas vagas por critérios objetivos.</span></div></div>
+        <div class="feat"><i>08</i><div><b>Fotos e documentos</b><span>Arquivos privados, categorias e liberação seletiva ao inquilino.</span></div></div>
+        <div class="feat"><i>09</i><div><b>Catálogo público</b><span>Casas vagas publicadas com características, valor e contato por WhatsApp.</span></div></div>
+        <div class="feat"><i>10</i><div><b>Equipe e backup</b><span>Colaboradores, exportação completa e cópias operacionais de segurança.</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PLANOS ======================= -->
+<section id="planos">
+  <div class="wrap">
+    <div class="sec-label"><span class="num">06</span><span class="txt">Planos</span></div>
+    <h2 class="sec">Comece com a capacidade que faz sentido hoje</h2>
+    <p class="sec-lead">Os limites abaixo são os definidos no aplicativo. Valores e condições dos planos pagos são informados pela equipe comercial.</p>
+
+    <div class="plans">
+      <div class="plan">
+        <h3>Gratuito</h3>
+        <p class="who">Para testar com uma casa de verdade</p>
+        <span class="cap">1 casa<small>50 MB de armazenamento</small></span>
+        <ul>
+          <li>Todas as áreas do aplicativo</li>
+          <li>Cadastre um imóvel, um contrato e um pagamento</li>
+          <li>Sem cartão para começar</li>
+        </ul>
+        <a class="btn btn-primary" href="https://aluguel-casas-anderton.netlify.app/">Começar agora</a>
+      </div>
+
+      <div class="plan featured">
+        <span class="badge">MAIS ESCOLHIDO</span>
+        <h3>Básico</h3>
+        <p class="who">Para quem já não confia mais na memória</p>
+        <span class="cap">3 casas<small>1 GB de armazenamento</small></span>
+        <ul>
+          <li>Espaço para fotos e documentos de cada contrato</li>
+          <li>Três casas é onde a planilha começa a atrasar</li>
+          <li>Condições comerciais sob consulta</li>
+        </ul>
+        <a class="btn btn-outline" href="#duvidas">Consultar o Básico</a>
+      </div>
+
+      <div class="plan">
+        <h3>Premium</h3>
+        <p class="who">Para carteira que cresceu</p>
+        <span class="cap">até 100 casas<small>10 GB de armazenamento</small></span>
+        <ul>
+          <li>Histórico completo por contrato</li>
+          <li>Espaço para o arquivo inteiro da operação</li>
+          <li>Condições comerciais sob consulta</li>
+        </ul>
+        <a class="btn btn-outline" href="#duvidas">Consultar o Premium</a>
+      </div>
+
+      <div class="plan soon">
+        <h3>Corretora</h3>
+        <p class="who">Para quem administra imóveis dos outros</p>
+        <span class="cap mono" style="font-size:19px">Em preparação<small>Limites a definir</small></span>
+        <ul>
+          <li>Equipe com acesso controlado</li>
+          <li>Catálogo com a marca da corretora</li>
+          <li>Relatório para prestar contas ao proprietário</li>
+        </ul>
+        <a class="btn btn-outline" href="#duvidas">Quero ser avisado</a>
+      </div>
+    </div>
+
+    <p class="plan-note">O armazenamento é contabilizado para fotos e documentos. Nenhum plano é apresentado como ilimitado — o Premium tem limite técnico de 100 casas.</p>
+  </div>
+</section>
+
+<!-- ======================= ROADMAP ======================= -->
+<section id="futuro" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label"><span class="num">07</span><span class="txt">O que vem a seguir</span></div>
+    <h2 class="sec">O produto continua sendo construído</h2>
+    <p class="sec-lead">Publicamos o estágio real de cada item. O que está marcado como planejado ou em estudo não faz parte do que você contrata agora.</p>
+
+    <div class="road">
+      <div><span class="dot d-ok"></span><b>Funciona hoje</b><span>Painel, carteira, contratos, recebimentos, energia, portal do inquilino e catálogo público.</span></div>
+      <div><span class="dot d-dev"></span><b>Em desenvolvimento</b><span>Galeria de casas disponíveis, com filtros, página por imóvel, QR Code e formulário de interesse ligado ao seu funil.</span></div>
+      <div><span class="dot d-plan"></span><b>Planejado</b><span>Plano Corretora, lembretes de vencimento no aplicativo e relatório do proprietário.</span></div>
+      <div><span class="dot d-study"></span><b>Em estudo</b><span>Cobrança recorrente, notificação automática e assinatura eletrônica. Sem compromisso de entrega.</span></div>
+    </div>
+
+    <div style="margin-top:26px"><a class="btn btn-outline" href="../roadmap/aluguel-proximas-atualizacoes.html">Ver o roteiro completo</a></div>
+  </div>
+</section>
+
+<!-- ======================= FAQ ======================= -->
+<section id="duvidas">
+  <div class="wrap">
+    <div class="sec-label"><span class="num">08</span><span class="txt">Antes de decidir</span></div>
+    <h2 class="sec">O que perguntam com mais frequência</h2>
+    <p class="sec-lead">Inclusive o que o Aluguel não faz. É melhor você saber agora do que descobrir depois.</p>
+
+    <div style="margin-top:28px;max-width:820px">
+      <details open>
+        <summary>Minha planilha já resolve. Por que trocar?</summary>
+        <p>A planilha resolve o cálculo. Ela não guarda o recibo, não separa o contrato anterior do atual, não abre a cobrança com o valor preenchido e não deixa o inquilino consultar nada sozinho. Se a sua planilha faz tudo isso, o Aluguel provavelmente não vai te ajudar.</p>
+      </details>
+      <details>
+        <summary>O aplicativo cobra os inquilinos sozinho?</summary>
+        <p>Não. Ele monta a mensagem de WhatsApp com mês, valor e vencimento e gera o PIX Copia e Cola. Quem envia é você. Não existe disparo agendado nem integração com o banco: a baixa do pagamento também é feita por você.</p>
+      </details>
+      <details>
+        <summary>O que o Aluguel não faz?</summary>
+        <ul>
+          <li>Não é banco: não faz conciliação bancária nem confirma pagamento automaticamente.</li>
+          <li>Não substitui contabilidade, assessoria jurídica ou análise de crédito.</li>
+          <li>Não gera contrato com validade jurídica nem faz assinatura eletrônica.</li>
+          <li>Não dispara mensagem automática para o inquilino.</li>
+          <li>Não se conecta à concessionária de energia — as leituras são informadas por você.</li>
+        </ul>
+      </details>
+      <details>
+        <summary>Preciso cadastrar tudo de uma vez?</summary>
+        <p>Não. Comece por uma casa no plano gratuito e siga o fluxo até emitir o primeiro recibo. Só depois vale a pena trazer o resto da carteira. Existe importação e exportação para facilitar a migração.</p>
+      </details>
+      <details>
+        <summary>Meus dados e documentos estão seguros?</summary>
+        <p>O aplicativo usa autenticação e políticas de acesso no banco para separar os dados de cada conta. Fotos e documentos ficam em armazenamento privado, abertos por links temporários. Sendo transparente: não declaramos certificação de LGPD, criptografia ponta a ponta nem disponibilidade garantida — segurança é um processo contínuo, não um selo.</p>
+      </details>
+      <details>
+        <summary>E se eu ficar sem internet?</summary>
+        <p>Existe uma cópia local da sua conta para consulta quando a conexão cai. O modo offline é somente leitura: para registrar qualquer coisa, você precisa estar conectado.</p>
+      </details>
+      <details>
+        <summary>Minha equipe consegue usar?</summary>
+        <p>Existe estrutura de equipe com convite, ativação e bloqueio de colaborador. Sendo direto: o fluxo de iniciar e encerrar contrato por colaborador ainda está em validação técnica. Se a sua operação depende disso, fale com a gente antes de contratar.</p>
+      </details>
+      <details>
+        <summary>Quanto custa?</summary>
+        <p>O plano Gratuito é gratuito e cabe uma casa. Para Básico, Premium e Corretora, as condições são apresentadas pela equipe comercial de acordo com o tamanho da sua carteira. <span class="mono">[INSERIR PREÇO E PERIODICIDADE]</span></p>
+      </details>
+      <details>
+        <summary>Consigo tirar meus dados se eu sair?</summary>
+        <p>Sim. Exportação completa em JSON e relatórios em PDF e CSV, a qualquer momento, sem pedir autorização a ninguém.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= CTA FINAL ======================= -->
+<div class="final">
+  <div class="final-in">
+    <h2>Uma casa. Cinco minutos. Sem cartão.</h2>
+    <p>Cadastre um imóvel, vincule o inquilino, registre o pagamento e emita o recibo. Se não fizer diferença na sua rotina, você não perdeu nada.</p>
+    <div class="hero-actions">
+      <a class="btn btn-lime" href="https://aluguel-casas-anderton.netlify.app/">Começar com uma casa, de graça</a>
+      <a class="btn btn-ghost" href="#duvidas">Falar com a gente</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#topo" style="color:var(--ink);margin-bottom:12px">
+          <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" style="color:var(--gold-deep)"><path d="M4 14 L16 5 L28 14 V28 H4 Z" fill="currentColor"/><rect x="22" y="7" width="3.4" height="5" fill="currentColor"/><rect x="10" y="17" width="4.6" height="4.6" fill="#EEF3F0"/><rect x="17.4" y="17" width="4.6" height="4.6" fill="#EEF3F0"/></svg>
+          Aluguel
+        </a>
+        <p style="font-size:13.5px">Gestão de locações para proprietários e pequenas operações imobiliárias.</p>
+      </div>
+      <div><b>Produto</b>
+        <a href="#produto">Telas reais</a><a href="#recursos">Recursos</a><a href="#planos">Planos</a>
+        <a href="../roadmap/aluguel-proximas-atualizacoes.html">Próximas atualizações</a>
+      </div>
+      <div><b>Ajuda</b>
+        <a href="#duvidas">Dúvidas frequentes</a>
+        <a href="#">Suporte: [INSERIR ENDEREÇO]</a>
+        <a href="#">WhatsApp: [INSERIR NÚMERO]</a>
+      </div>
+      <div><b>Legal</b>
+        <a href="#">Termos de uso [INSERIR LINK]</a>
+        <a href="#">Privacidade [INSERIR LINK]</a>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>Aluguel · Aluguéis 1.3 · landing v2 · 26/07/2026</span>
+      <span>Telas de demonstração com dados fictícios</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  // --- troca de público no herói ---
+  var COPY = {
+    a:{h:'Quem ainda não pagou este mês?',
+       s:'Se responder exige abrir o extrato, a planilha e o WhatsApp, o Aluguel resolve isso em uma tela. Casas, contratos, recebimentos, energia e histórico no mesmo lugar.'},
+    b:{h:'Sua carteira não cabe mais na sua memória.',
+       s:'Contrato, vencimento, energia, despesa e documento ficam presos ao imóvel — não à pessoa que lembra deles. Assim dá para delegar sem perder o histórico.'},
+    c:{h:'Seu proprietário quer saber. Deixe ele ver.',
+       s:'Portal de consulta para o inquilino, catálogo público das casas vagas e histórico por contrato. Menos ligação para cobrar informação, mais tempo para fechar contrato.'}
+  };
+  var h1=document.getElementById('heroH1'), sub=document.getElementById('heroSub');
+  var tabs=[].slice.call(document.querySelectorAll('.switch button'));
+  tabs.forEach(function(b){
+    b.addEventListener('click',function(){
+      tabs.forEach(function(x){x.setAttribute('aria-selected','false');});
+      b.setAttribute('aria-selected','true');
+      var c=COPY[b.dataset.p]; h1.textContent=c.h; sub.textContent=c.s;
+    });
+  });
+
+  // --- abas das capturas ---
+  var st=[].slice.call(document.querySelectorAll('.shot-tabs button'));
+  st.forEach(function(b){
+    b.addEventListener('click',function(){
+      st.forEach(function(x){x.setAttribute('aria-selected','false');});
+      b.setAttribute('aria-selected','true');
+      [].slice.call(document.querySelectorAll('.shot-panel')).forEach(function(p){p.classList.remove('on');});
+      document.getElementById(b.dataset.s).classList.add('on');
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aluguel — Próximas atualizações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#102E27; --night-2:#1A473B; --night-3:#276153;
+  --canvas:#EEF3F0; --card:#FFFFFF; --line:#D9E3DD;
+  --ink:#19251F; --muted:#5A6A62; --hero-text:#D1DED8;
+  --lime:#E7F77B; --gold:#F0C76E; --gold-deep:#8A5F12;
+  --violet:#6D5BD0; --violet-soft:#ECE8FF;
+  --ok:#087F69; --ok-soft:#D9F4EB; --danger:#B83D4F;
+  --sh-sm:0 4px 15px rgba(16,46,39,.07); --sh-md:0 12px 36px rgba(16,46,39,.09);
+  --sh-hero:0 18px 44px rgba(16,46,39,.20);
+  --fd:'Space Grotesk',Arial,sans-serif; --fb:'IBM Plex Sans',Arial,sans-serif; --fm:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--fb);color:var(--ink);
+  background:radial-gradient(circle at 92% 0,rgba(231,247,123,.13),transparent 22%),linear-gradient(180deg,#F7FAF8,var(--canvas));}
+h1,h2,h3,h4{font-family:var(--fd);margin:0}
+p{line-height:1.62;margin:0}
+.mono{font-family:var(--fm)}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px 80px}
+
+.eyebrow{font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+
+/* HERO */
+.hero{position:relative;isolation:isolate;overflow:hidden;margin:26px 0 26px;padding:42px 40px;border-radius:22px;color:#fff;
+  border:1px solid rgba(255,255,255,.12);box-shadow:var(--sh-hero);
+  background:radial-gradient(circle at 88% 18%,rgba(231,247,123,.20),transparent 23%),
+             radial-gradient(circle at 17% 135%,rgba(51,120,101,.72),transparent 46%),
+             linear-gradient(135deg,var(--night),var(--night-2) 65%,#0C2721)}
+.hero::after{content:"";position:absolute;z-index:-1;right:-38px;bottom:-90px;width:250px;height:250px;border:24px solid rgba(255,255,255,.045);border-radius:50%}
+.hero .eyebrow{color:var(--lime)}
+.hero h1{font-size:clamp(32px,5vw,48px);line-height:1.03;margin:12px 0 14px}
+.hero p{color:var(--hero-text);max-width:680px;font-size:15px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:11px;font-family:var(--fm);font-size:11px;
+  border:1px solid rgba(255,255,255,.17);background:rgba(255,255,255,.075);color:#fff}
+
+/* LEGENDA DE ESTÁGIOS */
+.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:0 0 34px}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--sh-sm)}
+.stage b{display:block;font-family:var(--fd);font-size:14px;margin-bottom:4px}
+.stage span{font-size:12.5px;color:var(--muted);line-height:1.5}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.d-ok{background:var(--ok)} .d-dev{background:var(--gold-deep)} .d-plan{background:var(--violet)} .d-study{background:#9AA8A1}
+
+section{margin:40px 0}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+.sec-num{font-family:var(--fm);font-size:12px;font-weight:700;color:var(--gold-deep)}
+.sec-head h2{font-size:27px;letter-spacing:-.3px}
+.lead{color:var(--muted);font-size:14.5px;max-width:760px;margin:0 0 20px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 24px;box-shadow:var(--sh-sm)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+.tag{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.t-ok{background:var(--ok-soft);color:#05604F}
+.t-dev{background:#FBEFCB;color:var(--gold-deep)}
+.t-plan{background:var(--violet-soft);color:#4B3E8A}
+.t-study{background:#E7EBE9;color:#4E5C55}
+
+figure{margin:0}
+figure img{width:100%;display:block;border-radius:16px;border:1px solid var(--line);box-shadow:var(--sh-md)}
+figcaption{margin-top:10px;font-size:12.5px;color:var(--muted);font-family:var(--fm)}
+
+ul{margin:10px 0 0;padding-left:20px}
+li{line-height:1.62;margin-bottom:7px;font-size:14px}
+
+/* MAQUETE DA GALERIA */
+.mock{border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--sh-md);background:var(--card)}
+.mock-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#F3F6F4;border-bottom:1px solid var(--line)}
+.mock-bar i{width:10px;height:10px;border-radius:50%;display:block}
+.mock-url{flex:1;margin-left:8px;height:22px;border-radius:7px;background:#fff;border:1px solid var(--line);
+  font-family:var(--fm);font-size:10.5px;color:var(--muted);display:flex;align-items:center;padding:0 10px}
+.mock-body{background:linear-gradient(180deg,#F7FAF8,var(--canvas));padding:18px}
+.mock-hero{border-radius:16px;padding:22px 24px;color:#fff;margin-bottom:14px;
+  background:radial-gradient(circle at 88% 18%,rgba(231,247,123,.20),transparent 23%),linear-gradient(135deg,var(--night),var(--night-2) 70%)}
+.mock-hero .eyebrow{color:var(--lime);font-size:10px}
+.mock-hero h3{font-size:24px;margin:7px 0 5px}
+.mock-hero p{color:var(--hero-text);font-size:12.5px}
+.mock-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.mock-filters span{padding:7px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+.mock-filters span.on{background:var(--night-2);border-color:var(--night-2);color:#fff;font-weight:600}
+.mock-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mock-house{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.mock-photo{height:96px;background:linear-gradient(135deg,#D7E3DC,#C3D5CC);position:relative}
+.mock-photo b{position:absolute;left:9px;top:9px;padding:4px 9px;border-radius:999px;background:var(--lime);color:var(--night);
+  font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:.06em}
+.mock-info{padding:11px 12px}
+.mock-info strong{display:block;font-family:var(--fd);font-size:13px}
+.mock-info em{display:block;font-style:normal;font-size:11px;color:var(--muted);margin:2px 0 8px}
+.mock-info .val{font-family:var(--fm);font-weight:600;font-size:14px;color:var(--night)}
+.mock-info .feat{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.mock-info .feat i{font-style:normal;padding:3px 7px;border-radius:6px;background:var(--canvas);font-size:9.5px;color:var(--muted);font-family:var(--fm)}
+.mock-cta{margin-top:9px;padding:8px;border-radius:9px;background:var(--night);color:#fff;text-align:center;font-size:11px;font-weight:600}
+
+.note{border-radius:14px;padding:16px 18px;font-size:13.5px;line-height:1.6}
+.note.info{background:var(--violet-soft);border:1px solid #D6CEF7}
+.note.warn{background:#FFF8E4;border:1px solid #F0DFB0}
+.note.ok{background:var(--ok-soft);border:1px solid #B6E6D8}
+
+.step{display:flex;gap:14px;padding:15px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:0}
+.step .n{flex:none;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
+  font-family:var(--fm);font-weight:700;font-size:13px;background:var(--night-2);color:var(--lime)}
+.step h4{font-size:15px;margin-bottom:3px}
+.step p{font-size:13.5px;color:var(--muted)}
+
+.cta{margin-top:44px;padding:36px 38px;border-radius:22px;color:#fff;position:relative;overflow:hidden;isolation:isolate;
+  border:1px solid rgba(255,255,255,.12);box-shadow:var(--sh-hero);
+  background:radial-gradient(circle at 85% 20%,rgba(231,247,123,.18),transparent 24%),linear-gradient(135deg,var(--night),var(--night-2) 70%)}
+.cta h2{font-size:28px;margin-bottom:10px}
+.cta p{color:var(--hero-text);font-size:14.5px;max-width:620px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 22px;border-radius:12px;
+  font-weight:600;font-size:14px;margin-top:20px;background:var(--lime);color:var(--night);text-decoration:none}
+
+footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);font-family:var(--fm)}
+@media(max-width:700px){.mock-grid{grid-template-columns:1fr}}
+@media print{body{background:#fff}.hero,.cta{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <span class="eyebrow">Aluguel · Roteiro de produto</span>
+  <h1>O que vem a seguir</h1>
+  <p>Este documento mostra o que já funciona hoje e o que está sendo construído. Cada item traz o estágio real em que está. Nenhum recurso listado como planejado ou em estudo faz parte do que você contrata agora.</p>
+  <div class="hero-meta">
+    <span class="chip">Versão do app: Aluguéis 1.3</span>
+    <span class="chip">Atualizado em 26/07/2026</span>
+    <span class="chip">Telas reais · dados fictícios</span>
+  </div>
+</div>
+
+<div class="stages">
+  <div class="stage"><b><span class="dot d-ok"></span>Funciona hoje</b><span>Está no ar e você usa desde o primeiro dia.</span></div>
+  <div class="stage"><b><span class="dot d-dev"></span>Em desenvolvimento</b><span>Sendo construído agora. É a próxima entrega.</span></div>
+  <div class="stage"><b><span class="dot d-plan"></span>Planejado</b><span>Escopo definido, ainda sem data confirmada.</span></div>
+  <div class="stage"><b><span class="dot d-study"></span>Em estudo</b><span>Ideia em avaliação. Sem compromisso de entrega.</span></div>
+</div>
+
+<!-- 1 -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>O que já funciona</h2></div>
+  <p class="lead">Antes de falar do futuro, a base. Todas as imagens deste documento são capturas reais do aplicativo, com nomes e valores substituídos por dados de demonstração.</p>
+
+  <div class="grid g2">
+    <figure>
+      <img src="../mockups/screenshots/01-painel-resumo-desktop.png" alt="Painel do Aluguel mostrando previsto, recebido, falta receber, energia e ocupação">
+      <figcaption>Painel — previsto, recebido, falta receber e ocupação do mês</figcaption>
+    </figure>
+    <figure>
+      <img src="../mockups/screenshots/03-ficha-imovel-desktop.png" alt="Ficha do imóvel com abas de inquilino, contratos, pagamentos, energia, reajustes, despesas, fotos e documentos">
+      <figcaption>Ficha do imóvel — a rotina inteira de uma casa em um lugar</figcaption>
+    </figure>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <figure>
+      <img src="../mockups/screenshots/02-carteira-casas-desktop.png" alt="Carteira de casas com filtros por situação e ações de aluguel pago e registrar energia">
+      <figcaption>Carteira — filtros por situação e ação direta no card</figcaption>
+    </figure>
+    <figure>
+      <img src="../mockups/screenshots/04-financeiro-desktop.png" alt="Gestão financeira com fechamento mensal e resultado por imóvel">
+      <figcaption>Financeiro — fechamento do mês e resultado por imóvel</figcaption>
+    </figure>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <span class="tag t-ok">Funciona hoje</span>
+    <div class="grid g3" style="margin-top:14px">
+      <ul style="margin:0">
+        <li>Painel com pendências e alertas</li>
+        <li>Carteira de imóveis com filtros</li>
+        <li>Ficha do imóvel por abas</li>
+        <li>Inquilinos e contratos por ciclo</li>
+        <li>Pagamentos e recibo em PDF</li>
+      </ul>
+      <ul style="margin:0">
+        <li>Cobrança preparada por WhatsApp e PIX</li>
+        <li>Energia por leitura, com foto</li>
+        <li>Despesas e manutenção</li>
+        <li>Reajustes com histórico</li>
+        <li>Interessados e casas compatíveis</li>
+      </ul>
+      <ul style="margin:0">
+        <li>Agenda de vencimentos</li>
+        <li>Fotos e documentos privados</li>
+        <li>Portal de consulta do inquilino</li>
+        <li>Catálogo público de casas vagas</li>
+        <li>Backup, exportação e uso no celular</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Em desenvolvimento: galeria de casas disponíveis</h2></div>
+  <p class="lead">Hoje o aplicativo já publica a casa vaga em um catálogo com foto, características e contato por WhatsApp. A galeria é o próximo degrau: transformar esse catálogo em uma vitrine que funciona sozinha.</p>
+
+  <div class="mock">
+    <div class="mock-bar">
+      <i style="background:#E06E66"></i><i style="background:#E6C069"></i><i style="background:#96C48C"></i>
+      <span class="mock-url">seu-endereco/casas</span>
+    </div>
+    <div class="mock-body">
+      <div class="mock-hero">
+        <span class="eyebrow">Casas disponíveis</span>
+        <h3>6 casas para alugar agora</h3>
+        <p>Atualizado automaticamente. Quando uma casa é alugada, ela sai desta página sozinha.</p>
+      </div>
+      <div class="mock-filters">
+        <span class="on">Todas</span><span>Até R$ 800</span><span>R$ 800 a R$ 1.500</span>
+        <span>2 quartos</span><span>3 quartos</span><span>Com garagem</span><span>Centro</span>
+      </div>
+      <div class="mock-grid">
+        <div class="mock-house">
+          <div class="mock-photo"><b>DISPONÍVEL</b></div>
+          <div class="mock-info">
+            <strong>Casa do Bosque</strong><em>Rua do Bosque, 57</em>
+            <span class="val">R$ 750,00<span style="font-family:var(--fb);font-size:11px;color:var(--muted);font-weight:400"> /mês</span></span>
+            <div class="feat"><i>2 quartos</i><i>1 vaga</i><i>Quintal</i></div>
+            <div class="mock-cta">Tenho interesse</div>
+          </div>
+        </div>
+        <div class="mock-house">
+          <div class="mock-photo"><b>DISPONÍVEL</b></div>
+          <div class="mock-info">
+            <strong>Casa Aurora</strong><em>Rua Aurora, 903</em>
+            <span class="val">R$ 1.150,00<span style="font-family:var(--fb);font-size:11px;color:var(--muted);font-weight:400"> /mês</span></span>
+            <div class="feat"><i>3 quartos</i><i>2 vagas</i><i>Suíte</i></div>
+            <div class="mock-cta">Tenho interesse</div>
+          </div>
+        </div>
+        <div class="mock-house">
+          <div class="mock-photo"><b>DISPONÍVEL</b></div>
+          <div class="mock-info">
+            <strong>Quarteto 03</strong><em>Travessa São Bento, 22</em>
+            <span class="val">R$ 620,00<span style="font-family:var(--fb);font-size:11px;color:var(--muted);font-weight:400"> /mês</span></span>
+            <div class="feat"><i>1 quarto</i><i>Mobiliada</i></div>
+            <div class="mock-cta">Tenho interesse</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:12.5px;color:var(--muted);font-family:var(--fm);margin-top:10px">Representação da interface planejada. O layout final pode mudar.</p>
+
+  <div class="grid g2" style="margin-top:20px">
+    <div class="card">
+      <span class="tag t-dev">Em desenvolvimento</span>
+      <h4 style="font-size:16px;margin:12px 0 4px">O que a galeria vai fazer</h4>
+      <ul>
+        <li><b>Grade de fotos</b> com filtro por valor, número de quartos e bairro</li>
+        <li><b>Página própria de cada casa</b>, com galeria de fotos e características</li>
+        <li><b>Link e QR Code por imóvel</b> — para anúncio, placa na frente da casa e status de WhatsApp</li>
+        <li><b>Formulário de interesse</b> que entra direto no seu funil de Interessados</li>
+        <li><b>Entrada e saída automáticas:</b> a casa aparece quando fica Vaga e some quando é alugada</li>
+        <li>Para corretora: <b>galeria com logo e cores próprias</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag t-ok">Base que já existe</span>
+      <h4 style="font-size:16px;margin:12px 0 4px">Por que isso é rápido de entregar</h4>
+      <p style="color:var(--muted);font-size:13.5px">A galeria não começa do zero. O aplicativo já publica casas vagas com descrição, foto, características e contato por WhatsApp, e já tem um funil de Interessados que cruza preferências com imóveis disponíveis por critérios objetivos.</p>
+      <p style="color:var(--muted);font-size:13.5px;margin-top:10px">O trabalho é conectar as duas pontas que hoje são separadas: a vitrine pública e o funil interno.</p>
+      <div class="note ok" style="margin-top:14px">
+        <b>O ganho prático:</b> a pessoa que viu a casa no anúncio entra na sua lista de interessados sem você digitar nada — e continua lá quando surgir outra casa compatível.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Planejado</h2></div>
+  <p class="lead">Escopo definido, sem data confirmada. Entram na fila depois da galeria.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <span class="tag t-plan">Planejado</span>
+      <h4 style="font-size:16px;margin:12px 0 6px">Minha Casa para clientes</h4>
+      <p style="color:var(--muted);font-size:13.5px">Um espaço separado para o dinheiro da família: entradas, saídas, contas fixas, categorias e quem gastou. Hoje o módulo existe e funciona, mas está restrito à conta administradora.</p>
+      <figure style="margin-top:14px">
+        <img src="../mockups/screenshots/07-minha-casa-desktop.png" alt="Módulo Minha Casa com saldo do mês, entradas, saídas e gastos por categoria">
+        <figcaption>Módulo já construído, ainda não liberado para contas de cliente</figcaption>
+      </figure>
+    </div>
+    <div>
+      <div class="card">
+        <span class="tag t-plan">Planejado</span>
+        <h4 style="font-size:16px;margin:12px 0 6px">Plano Corretora</h4>
+        <p style="color:var(--muted);font-size:13.5px">Carteira maior, equipe com acesso controlado, catálogo com a marca da corretora e relatório para prestar contas a cada proprietário-cliente.</p>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <span class="tag t-plan">Planejado</span>
+        <h4 style="font-size:16px;margin:12px 0 6px">Lembretes de vencimento</h4>
+        <p style="color:var(--muted);font-size:13.5px">Aviso dentro do aplicativo quando um vencimento se aproxima. <b>Não</b> é disparo automático de mensagem para o inquilino — o envio continua sendo seu.</p>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <span class="tag t-plan">Planejado</span>
+        <h4 style="font-size:16px;margin:12px 0 6px">Relatório do proprietário</h4>
+        <p style="color:var(--muted);font-size:13.5px">Extrato por imóvel para a corretora enviar ao dono: o que entrou, o que saiu e o que ficou pendente no período.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Em estudo</h2></div>
+  <p class="lead">Estão sendo avaliados. Aparecem aqui por transparência, não como promessa — e é honesto dizer que alguns podem não sair.</p>
+  <div class="card">
+    <span class="tag t-study">Sem compromisso de entrega</span>
+    <div class="grid g2" style="margin-top:14px">
+      <ul style="margin:0">
+        <li>Cobrança recorrente e conciliação com o banco</li>
+        <li>Notificação automática por WhatsApp, e-mail ou push</li>
+        <li>Convite de acesso enviado por e-mail pelo sistema</li>
+        <li>Sincronização com Google Agenda e Outlook</li>
+      </ul>
+      <ul style="margin:0">
+        <li>Assinatura eletrônica de contrato</li>
+        <li>API e integração com sistema contábil</li>
+        <li>Uso offline com escrita e sincronização</li>
+        <li>Compatibilidade de interessados por localização</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note warn" style="margin-top:14px">
+    <b>O que o Aluguel não pretende ser.</b> Não é banco, não faz conciliação bancária, não gera contrato com validade jurídica, não substitui contabilidade e não se conecta à concessionária de energia. A cobrança é preparada pelo aplicativo e enviada por você.
+  </div>
+</section>
+
+<!-- 5 -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Como as atualizações chegam até você</h2></div>
+  <div class="card">
+    <div class="step"><div class="n">1</div><div><h4>Sem instalação</h4><p>O Aluguel é um aplicativo web. Ao abrir, você já está na versão mais recente.</p></div></div>
+    <div class="step"><div class="n">2</div><div><h4>Sem custo adicional dentro do seu plano</h4><p>Melhorias nas áreas que você já usa chegam sem cobrança extra. Um novo plano, se criado, é opcional.</p></div></div>
+    <div class="step"><div class="n">3</div><div><h4>Seus dados continuam seus</h4><p>Exportação completa e backup seguem disponíveis a qualquer momento, antes e depois de cada atualização.</p></div></div>
+    <div class="step"><div class="n">4</div><div><h4>Este documento é atualizado</h4><p>Quando um item muda de estágio, ele muda aqui. O que estiver marcado como "em estudo" continua sem compromisso até mudar de coluna.</p></div></div>
+  </div>
+</section>
+
+<div class="cta">
+  <h2>Quer ver funcionando?</h2>
+  <p>Comece com uma casa, de graça, e conheça o fluxo completo: cadastrar o imóvel, vincular o inquilino, registrar o pagamento e emitir o recibo.</p>
+  <a class="btn" href="https://aluguel-casas-anderton.netlify.app/">Abrir o Aluguel</a>
+  <p style="margin-top:18px;font-size:12.5px;font-family:var(--fm);color:#A9BDB4">WhatsApp comercial: [INSERIR NÚMERO] · Suporte: [INSERIR ENDEREÇO DE SUPORTE]</p>
+</div>
+
+<footer>
+  Aluguel — Próximas atualizações · versão 1.0 · 26 de julho de 2026 · Estágios e escopos podem mudar; nenhuma data é prometida neste documento.
+</footer>
+
+</div>
+</body>
+</html>

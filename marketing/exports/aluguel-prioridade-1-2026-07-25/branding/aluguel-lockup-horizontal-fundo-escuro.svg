@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Aluguel — lockup horizontal para fundo escuro, editável. Criado em 2026-07-22. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 56" role="img" aria-labelledby="title desc">
+  <title id="title">Aluguel — assinatura horizontal para fundo escuro</title>
+  <desc id="desc">Símbolo de casa em latão claro e nome Aluguel em papel claro.</desc>
+  <g transform="translate(4 8) scale(1.25)">
+    <polygon points="16,5 27,15 5,15" fill="#E2BE78"/>
+    <rect x="8" y="14" width="16" height="13" rx="1" fill="#E2BE78"/>
+    <rect x="21.5" y="8" width="3.5" height="7" fill="#E2BE78"/>
+    <rect x="11.5" y="18.5" width="3.5" height="3.5" fill="#14322A"/>
+    <rect x="17" y="18.5" width="3.5" height="3.5" fill="#14322A"/>
+  </g>
+  <text x="61" y="37" fill="#F7F6F2" font-family="'Space Grotesk', Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.7">Aluguel</text>
+</svg>

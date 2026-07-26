@@ -1,0 +1,1774 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/m6pzv1",
+    "id": "m6pzv1",
+    "slide": 1,
+    "layoutId": "cfe07c25-ab06-4198-ba34-2f2c7da993fb",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "dacddc55-c62f-4dac-96d5-df342867c53d",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#F4F6F3",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 794,
+      "height": 1123
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "bg1": "#FFFFFF",
+      "bg2": "#000000",
+      "tx1": "#1F1F1F",
+      "tx2": "#FFFFFF",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "typefaces": [
+      "+mn-lt"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "cfe07c25-ab06-4198-ba34-2f2c7da993fb",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "dacddc55-c62f-4dac-96d5-df342867c53d",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "dacddc55-c62f-4dac-96d5-df342867c53d",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/6dwralwr",
+      "id": "1",
+      "bbox": [
+        0,
+        0,
+        794,
+        196
+      ],
+      "geometry": "rect",
+      "fillColor": "#14322A",
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/c76pcjq1",
+      "id": "2",
+      "bbox": [
+        52,
+        38,
+        32,
+        32
+      ],
+      "geometry": "rect",
+      "alt": "Símbolo do Aluguel",
+      "contentType": "image/png",
+      "imageFit": "contain",
+      "imageMask": {
+        "geometry": "rect"
+      },
+      "asset": {
+        "assetId": "b891970d-2615-4c41-bab9-42880df1e5bc",
+        "contentType": "image/png",
+        "byteLength": 7720
+      }
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/8fy9cvex",
+      "id": "3",
+      "bbox": [
+        94,
+        37,
+        180,
+        36
+      ],
+      "geometry": "rect",
+      "text": "Aluguel",
+      "textPreview": "Aluguel",
+      "resolvedFontSize": 23,
+      "resolvedTextStyle": {
+        "fontSize": 23,
+        "typeface": "+mn-lt",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Aluguel"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Aluguel",
+          "resolvedTextStyle": {
+            "fontSize": 23,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Aluguel",
+              "fontSize": 23,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ja58zqxg",
+      "id": "4",
+      "bbox": [
+        52,
+        95,
+        270,
+        20
+      ],
+      "geometry": "rect",
+      "text": "GESTÃO DE ALUGUÉIS",
+      "textPreview": "GESTÃO DE ALUGUÉIS",
+      "resolvedFontSize": 10,
+      "resolvedTextStyle": {
+        "fontSize": 10,
+        "typeface": "+mn-lt",
+        "color": "#B8863C",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "GESTÃO DE ALUGUÉIS"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "GESTÃO DE ALUGUÉIS",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "color": "#B8863C",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "GESTÃO DE ALUGUÉIS",
+              "fontSize": 10,
+              "color": "#B8863C",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/y9wr6lwv",
+      "id": "5",
+      "bbox": [
+        52,
+        122,
+        610,
+        52
+      ],
+      "geometry": "rect",
+      "text": "Seus aluguéis sob controle.",
+      "textPreview": "Seus aluguéis sob controle.",
+      "resolvedFontSize": 38,
+      "resolvedTextStyle": {
+        "fontSize": 38,
+        "typeface": "+mn-lt",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Seus aluguéis sob controle."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Seus aluguéis sob controle.",
+          "resolvedTextStyle": {
+            "fontSize": 38,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Seus aluguéis sob controle.",
+              "fontSize": 38,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/lcnq1gf6",
+      "id": "6",
+      "bbox": [
+        52,
+        169,
+        610,
+        44
+      ],
+      "geometry": "rect",
+      "text": "Sem planilhas espalhadas.",
+      "textPreview": "Sem planilhas espalhadas.",
+      "resolvedFontSize": 31,
+      "resolvedTextStyle": {
+        "fontSize": 31,
+        "typeface": "+mn-lt",
+        "color": "#B8863C",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Sem planilhas espalhadas."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Sem planilhas espalhadas.",
+          "resolvedTextStyle": {
+            "fontSize": 31,
+            "color": "#B8863C",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Sem planilhas espalhadas.",
+              "fontSize": 31,
+              "color": "#B8863C",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/kbe98ve1",
+      "id": "7",
+      "bbox": [
+        52,
+        238,
+        690,
+        365
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#C8D2CC",
+      "lineWidth": 1
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/bml8v6x4",
+      "id": "8",
+      "bbox": [
+        52,
+        238,
+        690,
+        30
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#E9EEEB",
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/alc721wj",
+      "id": "9",
+      "bbox": [
+        68,
+        249,
+        7,
+        7
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#D99A8D",
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/4jmp0nat",
+      "id": "10",
+      "bbox": [
+        82,
+        249,
+        7,
+        7
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#D9B868",
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/5kv6tsre",
+      "id": "11",
+      "bbox": [
+        96,
+        249,
+        7,
+        7
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#83B08E",
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ih47ydsn",
+      "id": "12",
+      "bbox": [
+        120,
+        245,
+        180,
+        16
+      ],
+      "geometry": "rect",
+      "text": "aluguel.app",
+      "textPreview": "aluguel.app",
+      "resolvedFontSize": 9,
+      "resolvedTextStyle": {
+        "fontSize": 9,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "aluguel.app"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "aluguel.app",
+          "resolvedTextStyle": {
+            "fontSize": 9,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "aluguel.app",
+              "fontSize": 9,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/cjutg3uh",
+      "id": "13",
+      "bbox": [
+        54,
+        269,
+        686,
+        332
+      ],
+      "geometry": "rect",
+      "alt": "Painel do Aluguel",
+      "contentType": "image/jpeg",
+      "imageFit": "cover",
+      "imageMask": {
+        "geometry": "rect"
+      },
+      "asset": {
+        "assetId": "d482077b-ec2e-4ebb-bc38-f675559a1ef0",
+        "contentType": "image/jpeg",
+        "byteLength": 63947
+      }
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wv25w3ah",
+      "id": "14",
+      "bbox": [
+        52,
+        626,
+        214,
+        130
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hgv6p8r2",
+      "id": "15",
+      "bbox": [
+        290,
+        626,
+        214,
+        130
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#F1E4C8",
+      "lineColor": "#B8863C",
+      "lineWidth": 1
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/utknutsb",
+      "id": "16",
+      "bbox": [
+        528,
+        626,
+        214,
+        130
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/vutony9w",
+      "id": "17",
+      "bbox": [
+        70,
+        648,
+        178,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Veja o mês",
+      "textPreview": "Veja o mês",
+      "resolvedFontSize": 19,
+      "resolvedTextStyle": {
+        "fontSize": 19,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Veja o mês"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Veja o mês",
+          "resolvedTextStyle": {
+            "fontSize": 19,
+            "color": "#14322A",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Veja o mês",
+              "fontSize": 19,
+              "color": "#14322A",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/gb6p87q1",
+      "id": "18",
+      "bbox": [
+        70,
+        686,
+        178,
+        54
+      ],
+      "geometry": "rect",
+      "text": "Previsto, recebido, pendências e ocupação.",
+      "textPreview": "Previsto, recebido, pendências e ocupação.",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Previsto, recebido,"
+          },
+          {
+            "index": 2,
+            "text": "pendências e ocupação."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Previsto, recebido, pendências e ocupação.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Previsto, recebido, pendências e ocupação.",
+              "fontSize": 13,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/1cf61cr6",
+      "id": "19",
+      "bbox": [
+        308,
+        648,
+        178,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Centralize",
+      "textPreview": "Centralize",
+      "resolvedFontSize": 19,
+      "resolvedTextStyle": {
+        "fontSize": 19,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Centralize"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Centralize",
+          "resolvedTextStyle": {
+            "fontSize": 19,
+            "color": "#14322A",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Centralize",
+              "fontSize": 19,
+              "color": "#14322A",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/p8b6lsjq",
+      "id": "20",
+      "bbox": [
+        308,
+        686,
+        178,
+        54
+      ],
+      "geometry": "rect",
+      "text": "Imóvel, contrato, pagamentos e documentos.",
+      "textPreview": "Imóvel, contrato, pagamentos e documentos.",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Imóvel, contrato, pagamentos"
+          },
+          {
+            "index": 2,
+            "text": "e documentos."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Imóvel, contrato, pagamentos e documentos.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Imóvel, contrato, pagamentos e documentos.",
+              "fontSize": 13,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 21,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/o72psni5",
+      "id": "21",
+      "bbox": [
+        546,
+        648,
+        178,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Compartilhe",
+      "textPreview": "Compartilhe",
+      "resolvedFontSize": 19,
+      "resolvedTextStyle": {
+        "fontSize": 19,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Compartilhe"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Compartilhe",
+          "resolvedTextStyle": {
+            "fontSize": 19,
+            "color": "#14322A",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Compartilhe",
+              "fontSize": 19,
+              "color": "#14322A",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 22,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/n6toj21k",
+      "id": "22",
+      "bbox": [
+        546,
+        686,
+        178,
+        54
+      ],
+      "geometry": "rect",
+      "text": "Cobrança assistida e portal do inquilino.",
+      "textPreview": "Cobrança assistida e portal do inquilino.",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cobrança assistida e portal do"
+          },
+          {
+            "index": 2,
+            "text": "inquilino."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cobrança assistida e portal do inquilino.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cobrança assistida e portal do inquilino.",
+              "fontSize": 13,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 23,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/25knqx0z",
+      "id": "23",
+      "bbox": [
+        52,
+        790,
+        320,
+        32
+      ],
+      "geometry": "rect",
+      "text": "O que está incluído",
+      "textPreview": "O que está incluído",
+      "resolvedFontSize": 23,
+      "resolvedTextStyle": {
+        "fontSize": 23,
+        "typeface": "+mn-lt",
+        "color": "#1C2620",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "O que está incluído"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "O que está incluído",
+          "resolvedTextStyle": {
+            "fontSize": 23,
+            "color": "#1C2620",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "O que está incluído",
+              "fontSize": 23,
+              "color": "#1C2620",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 24,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/14b6hsje",
+      "id": "24",
+      "bbox": [
+        52,
+        836,
+        332,
+        36
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#F1E4C8",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 25,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0325onit",
+      "id": "25",
+      "bbox": [
+        68,
+        846,
+        300,
+        18
+      ],
+      "geometry": "rect",
+      "text": "✓  Imóveis e inquilinos",
+      "textPreview": "✓  Imóveis e inquilinos",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Imóveis e inquilinos"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Imóveis e inquilinos",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#14322A",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Imóveis e inquilinos",
+              "fontSize": 13,
+              "color": "#14322A",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 26,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/f2tofi18",
+      "id": "26",
+      "bbox": [
+        407,
+        836,
+        332,
+        36
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 27,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/e10nmd0n",
+      "id": "27",
+      "bbox": [
+        423,
+        846,
+        300,
+        18
+      ],
+      "geometry": "rect",
+      "text": "✓  Contratos e recebimentos",
+      "textPreview": "✓  Contratos e recebimentos",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Contratos e recebimentos"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Contratos e recebimentos",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#14322A",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Contratos e recebimentos",
+              "fontSize": 13,
+              "color": "#14322A",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 28,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/d0r6d8ji",
+      "id": "28",
+      "bbox": [
+        52,
+        882,
+        332,
+        36
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 29,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/sfi5k3ix",
+      "id": "29",
+      "bbox": [
+        68,
+        892,
+        300,
+        18
+      ],
+      "geometry": "rect",
+      "text": "✓  Energia e despesas",
+      "textPreview": "✓  Energia e despesas",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Energia e despesas"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Energia e despesas",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#14322A",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Energia e despesas",
+              "fontSize": 13,
+              "color": "#14322A",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 30,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ilg3e9gf",
+      "id": "30",
+      "bbox": [
+        407,
+        882,
+        332,
+        36
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 31,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/36p4neh0",
+      "id": "31",
+      "bbox": [
+        423,
+        892,
+        300,
+        18
+      ],
+      "geometry": "rect",
+      "text": "✓  Interessados e catálogo",
+      "textPreview": "✓  Interessados e catálogo",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Interessados e catálogo"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Interessados e catálogo",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#14322A",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Interessados e catálogo",
+              "fontSize": 13,
+              "color": "#14322A",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 32,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/47ylgjyl",
+      "id": "32",
+      "bbox": [
+        52,
+        928,
+        332,
+        36
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 33,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/587mpoz6",
+      "id": "33",
+      "bbox": [
+        68,
+        938,
+        300,
+        18
+      ],
+      "geometry": "rect",
+      "text": "✓  Relatórios e recibos",
+      "textPreview": "✓  Relatórios e recibos",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Relatórios e recibos"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Relatórios e recibos",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#14322A",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Relatórios e recibos",
+              "fontSize": 13,
+              "color": "#14322A",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 34,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/uhw3a9gj",
+      "id": "34",
+      "bbox": [
+        407,
+        928,
+        332,
+        36
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 35,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/vi5kjeh4",
+      "id": "35",
+      "bbox": [
+        423,
+        938,
+        300,
+        18
+      ],
+      "geometry": "rect",
+      "text": "✓  Portal e documentos",
+      "textPreview": "✓  Portal e documentos",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Portal e documentos"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Portal e documentos",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#14322A",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Portal e documentos",
+              "fontSize": 13,
+              "color": "#14322A",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 36,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/gjylcjyp",
+      "id": "36",
+      "bbox": [
+        52,
+        989,
+        690,
+        92
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#14322A",
+      "lineWidth": 0
+    },
+    {
+      "order": 37,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hk7ml4za",
+      "id": "37",
+      "bbox": [
+        72,
+        1007,
+        445,
+        25
+      ],
+      "geometry": "rect",
+      "text": "Grátis: 1 imóvel • Básico: 3 • Premium: 100",
+      "textPreview": "Grátis: 1 imóvel • Básico: 3 • Premium: 100",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "+mn-lt",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Grátis: 1 imóvel • Básico: 3 • Premium: 100"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Grátis: 1 imóvel • Básico: 3 • Premium: 100",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Grátis: 1 imóvel • Básico: 3 • Premium: 100",
+              "fontSize": 16,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 38,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/6dw36p0n",
+      "id": "38",
+      "bbox": [
+        72,
+        1041,
+        400,
+        20
+      ],
+      "geometry": "rect",
+      "text": "Valores dos planos pagos sob consulta.",
+      "textPreview": "Valores dos planos pagos sob consulta.",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "+mn-lt",
+        "color": "#B9CCC3",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Valores dos planos pagos sob consulta."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Valores dos planos pagos sob consulta.",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#B9CCC3",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Valores dos planos pagos sob consulta.",
+              "fontSize": 12,
+              "color": "#B9CCC3",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 39,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/0zmhkzy9",
+      "id": "39",
+      "bbox": [
+        646,
+        998,
+        77,
+        77
+      ],
+      "geometry": "rect",
+      "alt": "QR Code do aplicativo",
+      "contentType": "image/png",
+      "imageFit": "contain",
+      "imageMask": {
+        "geometry": "rect"
+      },
+      "asset": {
+        "assetId": "df3d483b-72fe-495a-b0af-a808c078bf2e",
+        "contentType": "image/png",
+        "byteLength": 3515
+      }
+    },
+    {
+      "order": 40,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/z6p0ralo",
+      "id": "40",
+      "bbox": [
+        52,
+        1092,
+        360,
+        18
+      ],
+      "geometry": "rect",
+      "text": "andertonaluguel@gmail.com",
+      "textPreview": "andertonaluguel@gmail.com",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "andertonaluguel@gmail.com"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "andertonaluguel@gmail.com",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#5C6B63",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "andertonaluguel@gmail.com",
+              "fontSize": 12,
+              "color": "#5C6B63",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 41,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/y5gzi5k3",
+      "id": "41",
+      "bbox": [
+        420,
+        1092,
+        322,
+        18
+      ],
+      "geometry": "rect",
+      "text": "22/07/2026 • produto real, dados demonstrativos",
+      "textPreview": "22/07/2026 • produto real, dados demonstrativos",
+      "resolvedFontSize": 9,
+      "resolvedTextStyle": {
+        "fontSize": 9,
+        "typeface": "+mn-lt",
+        "color": "#93A099",
+        "bold": true,
+        "alignment": "right",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "22/07/2026 • produto real, dados demonstrativos"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "22/07/2026 • produto real, dados demonstrativos",
+          "resolvedTextStyle": {
+            "fontSize": 9,
+            "color": "#93A099",
+            "bold": true,
+            "alignment": "right"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "22/07/2026 • produto real, dados demonstrativos",
+              "fontSize": 9,
+              "color": "#93A099",
+              "bold": true,
+              "alignment": "right"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

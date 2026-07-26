@@ -1,0 +1,32 @@
+.demo-capture-badge{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:9999;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;
+  background:rgba(20,50,42,.92);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(20,50,42,.22);
+  font:600 10px/1.2 "IBM Plex Mono",monospace;
+  letter-spacing:.08em;
+  pointer-events:none;
+  backdrop-filter:blur(8px);
+}
+
+.demo-capture-mode body{cursor:default;}
+
+@media (max-width:720px){
+  .demo-capture-badge{
+    right:10px;
+    bottom:72px;
+    max-width:210px;
+    font-size:8px;
+    text-align:center;
+  }
+}
+
+@media print{
+  .demo-capture-badge{display:none;}
+}

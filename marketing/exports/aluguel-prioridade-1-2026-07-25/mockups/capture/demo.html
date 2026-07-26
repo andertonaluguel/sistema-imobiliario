@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#14322A">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Aluguel - ambiente demonstrativo para capturas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../../motion.css">
+  <link rel="stylesheet" href="demo.css?v=20260722b">
+  <script>
+    (function(){
+      var params=new URLSearchParams(location.search);
+      if((params.get('screen')||'').toLowerCase()==='catalog' && !params.get('anuncios')){
+        params.set('anuncios','demonstracao');
+        history.replaceState(null,'',location.pathname+'?'+params.toString());
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="modalRoot"></div>
+  <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+  <input type="file" id="importInput" accept="application/json,.json" hidden disabled>
+  <input type="file" id="photoInput" accept="image/*" multiple hidden disabled>
+
+  <!-- Modulos reais do produto; apenas a camada de dados e substituida. -->
+  <script src="../../../config.js"></script>
+  <script src="../../../utils.js"></script>
+  <script src="demo-data.js?v=20260722b"></script>
+  <script src="../../../auth.js"></script>
+  <script src="../../../commercial.js"></script>
+  <script src="../../../features.js"></script>
+  <script src="../../../dashboard.js"></script>
+  <script src="../../../houses.js"></script>
+  <script src="../../../tenants.js"></script>
+  <script src="../../../interests.js"></script>
+  <script src="../../../contracts.js"></script>
+  <script src="../../../finance.js"></script>
+  <script src="../../../photos.js"></script>
+  <script src="../../../documents.js"></script>
+  <script src="../../../energy.js"></script>
+  <script src="../../../portal.js"></script>
+  <script src="../../../reports.js"></script>
+  <script src="../../../calendar.js"></script>
+  <script src="../../../app.js"></script>
+  <script src="../../../motion.js"></script>
+  <script src="demo-after.js?v=20260722b"></script>
+</body>
+</html>

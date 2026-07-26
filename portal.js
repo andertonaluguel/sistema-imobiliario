@@ -120,8 +120,8 @@ function renderTenantPortal(){
 }
 
 function renderPendingAccess(){
-  return '<div class="access-pending"><div class="auth-card"><div class="auth-brand">'+logoSvg()+'<span>Meu aluguel</span></div>'+
-    '<h1 class="auth-title">Acesso ainda não liberado</h1>'+
-    '<p class="auth-sub">Entre com o mesmo e-mail cadastrado pelo proprietário. Se esta é a primeira vez, peça a ele para liberar seu portal.</p>'+
+  return '<div class="access-pending"><div class="auth-card"><div class="auth-brand">'+logoSvg()+'<span>Meu aluguel</span></div>'+ 
+    '<span class="auth-role-badge tenant">Inquilino</span><h1 class="auth-title">Aguardando vínculo do imóvel</h1>'+ 
+    '<p class="auth-sub">Seu login está correto, mas o administrador ainda precisa liberar este mesmo e-mail no cadastro do inquilino. Depois da liberação, entre novamente.</p>'+supportContactButton('Falar com o suporte')+
     '<button class="btn btn-ghost auth-btn" onclick="doSignOut()">Sair e usar outro e-mail</button></div></div>';
 }

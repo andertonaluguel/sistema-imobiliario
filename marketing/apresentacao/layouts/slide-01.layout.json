@@ -1,0 +1,737 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/qjb8e5",
+    "id": "qjb8e5",
+    "slide": 1,
+    "layoutId": "bcf7a0c8-9568-4194-bbc3-d39da364dde8",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "ec67f3ee-5612-4911-86ae-069796f5ff36",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#14322A",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "bg1": "#FFFFFF",
+      "bg2": "#000000",
+      "tx1": "#1F1F1F",
+      "tx2": "#FFFFFF",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "typefaces": [
+      "+mn-lt"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "bcf7a0c8-9568-4194-bbc3-d39da364dde8",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "ec67f3ee-5612-4911-86ae-069796f5ff36",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "ec67f3ee-5612-4911-86ae-069796f5ff36",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/bm1c7i10",
+      "id": "1",
+      "bbox": [
+        880,
+        2,
+        380,
+        380
+      ],
+      "geometry": "roundRect",
+      "lineColor": "#305A4C",
+      "lineWidth": 2
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cnutgn2l",
+      "id": "2",
+      "bbox": [
+        950,
+        42,
+        270,
+        270
+      ],
+      "geometry": "roundRect",
+      "lineColor": "#3D6658",
+      "lineWidth": 1
+    },
+    {
+      "order": 3,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/0jahsz21",
+      "id": "3",
+      "bbox": [
+        68,
+        52,
+        32,
+        32
+      ],
+      "geometry": "rect",
+      "alt": "Símbolo do Aluguel",
+      "contentType": "image/png",
+      "imageFit": "contain",
+      "imageMask": {
+        "geometry": "rect"
+      },
+      "asset": {
+        "assetId": "b1b0b1a2-ad45-431e-b8d8-f7e9ac0b5df2",
+        "contentType": "image/png",
+        "byteLength": 7720
+      }
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/2xsbadkj",
+      "id": "4",
+      "bbox": [
+        110,
+        51,
+        180,
+        36
+      ],
+      "geometry": "rect",
+      "text": "Aluguel",
+      "textPreview": "Aluguel",
+      "resolvedFontSize": 23,
+      "resolvedTextStyle": {
+        "fontSize": 23,
+        "typeface": "+mn-lt",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Aluguel"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Aluguel",
+          "resolvedTextStyle": {
+            "fontSize": 23,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Aluguel",
+              "fontSize": 23,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ny1s3i14",
+      "id": "5",
+      "bbox": [
+        68,
+        154,
+        370,
+        24
+      ],
+      "geometry": "rect",
+      "text": "GESTÃO DE ALUGUÉIS",
+      "textPreview": "GESTÃO DE ALUGUÉIS",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "+mn-lt",
+        "color": "#B8863C",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "GESTÃO DE ALUGUÉIS"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "GESTÃO DE ALUGUÉIS",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#B8863C",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "GESTÃO DE ALUGUÉIS",
+              "fontSize": 12,
+              "color": "#B8863C",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ozatcn29",
+      "id": "6",
+      "bbox": [
+        68,
+        194,
+        485,
+        230
+      ],
+      "geometry": "rect",
+      "text": "Da casa vaga\nao pagamento\nrecebido.",
+      "textPreview": "Da casa vaga | ao pagamento | recebido.",
+      "resolvedFontSize": 58,
+      "resolvedTextStyle": {
+        "fontSize": 58,
+        "typeface": "+mn-lt",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 3,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Da casa vaga"
+          },
+          {
+            "index": 2,
+            "text": "ao pagamento"
+          },
+          {
+            "index": 3,
+            "text": "recebido."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Da casa vaga",
+          "resolvedTextStyle": {
+            "fontSize": 58,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Da casa vaga",
+              "fontSize": 58,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "ao pagamento",
+          "resolvedTextStyle": {
+            "fontSize": 58,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "ao pagamento",
+              "fontSize": 58,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "recebido.",
+          "resolvedTextStyle": {
+            "fontSize": 58,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "recebido.",
+              "fontSize": 58,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/pkja5sju",
+      "id": "7",
+      "bbox": [
+        68,
+        450,
+        84,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#B8863C",
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/et8b6dk7",
+      "id": "8",
+      "bbox": [
+        68,
+        478,
+        450,
+        100
+      ],
+      "geometry": "rect",
+      "text": "Uma visão organizada de imóveis, contratos, cobranças e documentos — feita para pequenos locadores.",
+      "textPreview": "Uma visão organizada de imóveis, contratos, cobranças e documentos — feita para pequenos locadores.",
+      "resolvedFontSize": 20,
+      "resolvedTextStyle": {
+        "fontSize": 20,
+        "typeface": "+mn-lt",
+        "color": "#C9D9D1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 3,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Uma visão organizada de imóveis, contratos,"
+          },
+          {
+            "index": 2,
+            "text": "cobranças e documentos — feita para pequenos"
+          },
+          {
+            "index": 3,
+            "text": "locadores."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Uma visão organizada de imóveis, contratos, cobranças e documentos — feita para pequenos locadores.",
+          "resolvedTextStyle": {
+            "fontSize": 20,
+            "color": "#C9D9D1",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Uma visão organizada de imóveis, contratos, cobranças e documentos — feita para pequenos locadores.",
+              "fontSize": 20,
+              "color": "#C9D9D1",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fuhszyls",
+      "id": "9",
+      "bbox": [
+        545,
+        150,
+        690,
+        440
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#C8D2CC",
+      "lineWidth": 1
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/jupgj2hk",
+      "id": "10",
+      "bbox": [
+        545,
+        150,
+        690,
+        30
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#E9EEEB",
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ytwfqxgz",
+      "id": "11",
+      "bbox": [
+        561,
+        161,
+        7,
+        7
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#D99A8D",
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/lw7ylczq",
+      "id": "12",
+      "bbox": [
+        575,
+        161,
+        7,
+        7
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#D9B868",
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/kvyxs7y5",
+      "id": "13",
+      "bbox": [
+        589,
+        161,
+        7,
+        7
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#83B08E",
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/7ypgn2hw",
+      "id": "14",
+      "bbox": [
+        613,
+        157,
+        180,
+        16
+      ],
+      "geometry": "rect",
+      "text": "aluguel.app",
+      "textPreview": "aluguel.app",
+      "resolvedFontSize": 9,
+      "resolvedTextStyle": {
+        "fontSize": 9,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "aluguel.app"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "aluguel.app",
+          "resolvedTextStyle": {
+            "fontSize": 9,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "aluguel.app",
+              "fontSize": 9,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/14ru1kre",
+      "id": "15",
+      "bbox": [
+        547,
+        181,
+        686,
+        407
+      ],
+      "geometry": "rect",
+      "alt": "Painel demonstrativo do Aluguel",
+      "contentType": "image/jpeg",
+      "imageFit": "cover",
+      "imageMask": {
+        "geometry": "rect"
+      },
+      "asset": {
+        "assetId": "367f73eb-359e-455e-a732-c0982a032259",
+        "contentType": "image/jpeg",
+        "byteLength": 63947
+      }
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/t07ypczm",
+      "id": "16",
+      "bbox": [
+        69,
+        660,
+        380,
+        20
+      ],
+      "geometry": "rect",
+      "text": "PRODUTO REAL • DADOS DEMONSTRATIVOS",
+      "textPreview": "PRODUTO REAL • DADOS DEMONSTRATIVOS",
+      "resolvedFontSize": 10,
+      "resolvedTextStyle": {
+        "fontSize": 10,
+        "typeface": "+mn-lt",
+        "color": "#AFC5BA",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "PRODUTO REAL • DADOS DEMONSTRATIVOS"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "PRODUTO REAL • DADOS DEMONSTRATIVOS",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "color": "#AFC5BA",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "PRODUTO REAL • DADOS DEMONSTRATIVOS",
+              "fontSize": 10,
+              "color": "#AFC5BA",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/szyhw7yh",
+      "id": "17",
+      "bbox": [
+        1010,
+        660,
+        200,
+        20
+      ],
+      "geometry": "rect",
+      "text": "Aluguel Comercial 1.0",
+      "textPreview": "Aluguel Comercial 1.0",
+      "resolvedFontSize": 10,
+      "resolvedTextStyle": {
+        "fontSize": 10,
+        "typeface": "+mn-lt",
+        "color": "#B8863C",
+        "bold": true,
+        "alignment": "right",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Aluguel Comercial 1.0"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Aluguel Comercial 1.0",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "color": "#B8863C",
+            "bold": true,
+            "alignment": "right"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Aluguel Comercial 1.0",
+              "fontSize": 10,
+              "color": "#B8863C",
+              "bold": true,
+              "alignment": "right"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

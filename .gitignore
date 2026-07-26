@@ -17,3 +17,6 @@ backups/
 .DS_Store
 Thumbs.db
 *.log
+
+# Pasta de trabalho temporaria
+tmp/

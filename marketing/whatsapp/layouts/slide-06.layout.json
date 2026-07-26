@@ -1,0 +1,910 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/2jrqv6",
+    "id": "2jrqv6",
+    "slide": 6,
+    "layoutId": "9cd0e97c-9e7f-4e04-92fa-8c1624fb49ca",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "074da881-8695-4cab-8a79-e5bf4a34ea34",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#14322A",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1080,
+      "height": 1350
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "bg1": "#FFFFFF",
+      "bg2": "#000000",
+      "tx1": "#1F1F1F",
+      "tx2": "#FFFFFF",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "typefaces": [
+      "+mn-lt"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "9cd0e97c-9e7f-4e04-92fa-8c1624fb49ca",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "074da881-8695-4cab-8a79-e5bf4a34ea34",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "074da881-8695-4cab-8a79-e5bf4a34ea34",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/0j65gjyh",
+      "id": "1",
+      "bbox": [
+        70,
+        60,
+        32,
+        32
+      ],
+      "geometry": "rect",
+      "alt": "Símbolo do Aluguel",
+      "contentType": "image/png",
+      "imageFit": "contain",
+      "imageMask": {
+        "geometry": "rect"
+      },
+      "asset": {
+        "assetId": "42b8d117-a182-4ab2-a1fa-e8bc55fe2670",
+        "contentType": "image/png",
+        "byteLength": 7720
+      }
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qhs7mpgf",
+      "id": "2",
+      "bbox": [
+        112,
+        59,
+        180,
+        36
+      ],
+      "geometry": "rect",
+      "text": "Aluguel",
+      "textPreview": "Aluguel",
+      "resolvedFontSize": 23,
+      "resolvedTextStyle": {
+        "fontSize": 23,
+        "typeface": "+mn-lt",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Aluguel"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Aluguel",
+          "resolvedTextStyle": {
+            "fontSize": 23,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Aluguel",
+              "fontSize": 23,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ril8vuh0",
+      "id": "3",
+      "bbox": [
+        690,
+        67,
+        320,
+        22
+      ],
+      "geometry": "rect",
+      "text": "GESTÃO DE ALUGUÉIS",
+      "textPreview": "GESTÃO DE ALUGUÉIS",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "+mn-lt",
+        "color": "#B9CCC3",
+        "bold": true,
+        "alignment": "right",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "GESTÃO DE ALUGUÉIS"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "GESTÃO DE ALUGUÉIS",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#B9CCC3",
+            "bold": true,
+            "alignment": "right"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "GESTÃO DE ALUGUÉIS",
+              "fontSize": 13,
+              "color": "#B9CCC3",
+              "bold": true,
+              "alignment": "right"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/4vapkfy9",
+      "id": "4",
+      "bbox": [
+        70,
+        188,
+        760,
+        160
+      ],
+      "geometry": "rect",
+      "text": "Veja sua rotina\ndentro do Aluguel.",
+      "textPreview": "Veja sua rotina | dentro do Aluguel.",
+      "resolvedFontSize": 64,
+      "resolvedTextStyle": {
+        "fontSize": 64,
+        "typeface": "+mn-lt",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Veja sua rotina"
+          },
+          {
+            "index": 2,
+            "text": "dentro do Aluguel."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Veja sua rotina",
+          "resolvedTextStyle": {
+            "fontSize": 64,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Veja sua rotina",
+              "fontSize": 64,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "dentro do Aluguel.",
+          "resolvedTextStyle": {
+            "fontSize": 64,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "dentro do Aluguel.",
+              "fontSize": 64,
+              "color": "#FFFFFF",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/pgjqtkzu",
+      "id": "5",
+      "bbox": [
+        70,
+        380,
+        760,
+        72
+      ],
+      "geometry": "rect",
+      "text": "Solicite uma demonstração ou comece grátis com 1 imóvel.",
+      "textPreview": "Solicite uma demonstração ou comece grátis com 1 imóvel.",
+      "resolvedFontSize": 25,
+      "resolvedTextStyle": {
+        "fontSize": 25,
+        "typeface": "+mn-lt",
+        "color": "#C9D9D1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Solicite uma demonstração ou comece grátis com 1 imóvel."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Solicite uma demonstração ou comece grátis com 1 imóvel.",
+          "resolvedTextStyle": {
+            "fontSize": 25,
+            "color": "#C9D9D1",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Solicite uma demonstração ou comece grátis com 1 imóvel.",
+              "fontSize": 25,
+              "color": "#C9D9D1",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/2ts7ipg3",
+      "id": "6",
+      "bbox": [
+        70,
+        500,
+        940,
+        560
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/m5onitgn",
+      "id": "7",
+      "bbox": [
+        150,
+        585,
+        390,
+        390
+      ],
+      "geometry": "rect",
+      "alt": "QR Code do aplicativo",
+      "contentType": "image/png",
+      "imageFit": "contain",
+      "imageMask": {
+        "geometry": "rect"
+      },
+      "asset": {
+        "assetId": "67f05abf-d5c9-4792-b815-c9cd9113d41d",
+        "contentType": "image/png",
+        "byteLength": 3515
+      }
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ore9wjyd",
+      "id": "8",
+      "bbox": [
+        602,
+        625,
+        330,
+        28
+      ],
+      "geometry": "rect",
+      "text": "ABRA O APLICATIVO",
+      "textPreview": "ABRA O APLICATIVO",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "+mn-lt",
+        "color": "#8C631F",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "ABRA O APLICATIVO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "ABRA O APLICATIVO",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#8C631F",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "ABRA O APLICATIVO",
+              "fontSize": 15,
+              "color": "#8C631F",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/9cnq5ozy",
+      "id": "9",
+      "bbox": [
+        602,
+        682,
+        330,
+        105
+      ],
+      "geometry": "rect",
+      "text": "Começar\ngrátis",
+      "textPreview": "Começar | grátis",
+      "resolvedFontSize": 45,
+      "resolvedTextStyle": {
+        "fontSize": 45,
+        "typeface": "+mn-lt",
+        "color": "#1C2620",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Começar"
+          },
+          {
+            "index": 2,
+            "text": "grátis"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Começar",
+          "resolvedTextStyle": {
+            "fontSize": 45,
+            "color": "#1C2620",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Começar",
+              "fontSize": 45,
+              "color": "#1C2620",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "grátis",
+          "resolvedTextStyle": {
+            "fontSize": 45,
+            "color": "#1C2620",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "grátis",
+              "fontSize": 45,
+              "color": "#1C2620",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/1cbuh4fe",
+      "id": "10",
+      "bbox": [
+        602,
+        820,
+        330,
+        70
+      ],
+      "geometry": "rect",
+      "text": "aluguel-casas-anderton\n.netlify.app",
+      "textPreview": "aluguel-casas-anderton | .netlify.app",
+      "resolvedFontSize": 22,
+      "resolvedTextStyle": {
+        "fontSize": 22,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "aluguel-casas-anderton"
+          },
+          {
+            "index": 2,
+            "text": ".netlify.app"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "aluguel-casas-anderton",
+          "resolvedTextStyle": {
+            "fontSize": 22,
+            "color": "#14322A",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "aluguel-casas-anderton",
+              "fontSize": 22,
+              "color": "#14322A",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": ".netlify.app",
+          "resolvedTextStyle": {
+            "fontSize": 22,
+            "color": "#14322A",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": ".netlify.app",
+              "fontSize": 22,
+              "color": "#14322A",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0r2tozet",
+      "id": "11",
+      "bbox": [
+        602,
+        930,
+        330,
+        25
+      ],
+      "geometry": "rect",
+      "text": "Demonstração comercial:",
+      "textPreview": "Demonstração comercial:",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Demonstração comercial:"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Demonstração comercial:",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Demonstração comercial:",
+              "fontSize": 16,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/zqtcfux8",
+      "id": "12",
+      "bbox": [
+        602,
+        966,
+        330,
+        26
+      ],
+      "geometry": "rect",
+      "text": "andertonaluguel@gmail.com",
+      "textPreview": "andertonaluguel@gmail.com",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "andertonaluguel@gmail.com"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "andertonaluguel@gmail.com",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "color": "#14322A",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "andertonaluguel@gmail.com",
+              "fontSize": 18,
+              "color": "#14322A",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ep0bmpw3",
+      "id": "13",
+      "bbox": [
+        70,
+        1108,
+        940,
+        104
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#1B4035",
+      "lineColor": "#36594E",
+      "lineWidth": 1
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/dorudkfi",
+      "id": "14",
+      "bbox": [
+        102,
+        1139,
+        876,
+        40
+      ],
+      "geometry": "rect",
+      "text": "WhatsApp oficial será incluído após a confirmação do número com DDD.",
+      "textPreview": "WhatsApp oficial será incluído após a confirmação do número com DDD.",
+      "resolvedFontSize": 20,
+      "resolvedTextStyle": {
+        "fontSize": 20,
+        "typeface": "+mn-lt",
+        "color": "#B8863C",
+        "bold": true,
+        "alignment": "center",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "WhatsApp oficial será incluído após a confirmação do número com DDD."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "WhatsApp oficial será incluído após a confirmação do número com DDD.",
+          "resolvedTextStyle": {
+            "fontSize": 20,
+            "color": "#B8863C",
+            "bold": true,
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "WhatsApp oficial será incluído após a confirmação do número com DDD.",
+              "fontSize": 20,
+              "color": "#B8863C",
+              "bold": true,
+              "alignment": "center"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cnitkfex",
+      "id": "15",
+      "bbox": [
+        70,
+        1287,
+        940,
+        24
+      ],
+      "geometry": "rect",
+      "text": "6/6 • Aluguel — cada aluguel no lugar certo",
+      "textPreview": "6/6 • Aluguel — cada aluguel no lugar certo",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "+mn-lt",
+        "color": "#AFC5BA",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "6/6 • Aluguel — cada aluguel no lugar certo"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "6/6 • Aluguel — cada aluguel no lugar certo",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#AFC5BA",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "6/6 • Aluguel — cada aluguel no lugar certo",
+              "fontSize": 12,
+              "color": "#AFC5BA",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Aluguel — símbolo oficial editável. Fonte geométrica: app.js:66-72. Criado em 2026-07-22. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="title desc">
+  <title id="title">Símbolo Aluguel</title>
+  <desc id="desc">Casa compacta com telhado, chaminé e duas janelas.</desc>
+  <style>
+    .aluguel-house { fill: var(--aluguel-symbol, #B8863C); }
+    .aluguel-window { fill: var(--aluguel-cutout, #14322A); }
+  </style>
+  <polygon class="aluguel-house" points="16,5 27,15 5,15"/>
+  <rect class="aluguel-house" x="8" y="14" width="16" height="13" rx="1"/>
+  <rect class="aluguel-house" x="21.5" y="8" width="3.5" height="7"/>
+  <rect class="aluguel-window" x="11.5" y="18.5" width="3.5" height="3.5"/>
+  <rect class="aluguel-window" x="17" y="18.5" width="3.5" height="3.5"/>
+</svg>

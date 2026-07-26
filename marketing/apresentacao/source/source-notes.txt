@@ -1,0 +1,8 @@
+Fontes e rastreabilidade — apresentação comercial do Aluguel
+
+- Produto e funcionalidades: arquivos locais do aplicativo (app.js, config.js, modules/, tenant/, public/) e diagnóstico comercial em marketing/estrategia/diagnostico-comercial.md.
+- Identidade visual: tokens e logotipos locais em marketing/branding/.
+- Imagens: capturas reais do aplicativo com dados demonstrativos, armazenadas em marketing/mockups/screenshots/.
+- QR Code: destino oficial público do aplicativo, https://aluguel-casas-anderton.netlify.app.
+- Nenhum depoimento, resultado estatístico, preço pago ou ativo externo foi utilizado.
+- Data de consolidação: 25/07/2026.

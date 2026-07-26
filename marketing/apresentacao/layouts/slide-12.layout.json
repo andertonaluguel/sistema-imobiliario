@@ -1,0 +1,1020 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/7fv6lb",
+    "id": "7fv6lb",
+    "slide": 12,
+    "layoutId": "bcf7a0c8-9568-4194-bbc3-d39da364dde8",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "ec67f3ee-5612-4911-86ae-069796f5ff36",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#F4F6F3",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "bg1": "#FFFFFF",
+      "bg2": "#000000",
+      "tx1": "#1F1F1F",
+      "tx2": "#FFFFFF",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "typefaces": [
+      "+mn-lt"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "bcf7a0c8-9568-4194-bbc3-d39da364dde8",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "ec67f3ee-5612-4911-86ae-069796f5ff36",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "ec67f3ee-5612-4911-86ae-069796f5ff36",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/725g3294",
+      "id": "1",
+      "bbox": [
+        64,
+        54,
+        520,
+        22
+      ],
+      "geometry": "rect",
+      "text": "ADERÊNCIA",
+      "textPreview": "ADERÊNCIA",
+      "resolvedFontSize": 11,
+      "resolvedTextStyle": {
+        "fontSize": 11,
+        "typeface": "+mn-lt",
+        "color": "#8C631F",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "ADERÊNCIA"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "ADERÊNCIA",
+          "resolvedTextStyle": {
+            "fontSize": 11,
+            "color": "#8C631F",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "ADERÊNCIA",
+              "fontSize": 11,
+              "color": "#8C631F",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/83ehc7qp",
+      "id": "2",
+      "bbox": [
+        64,
+        88,
+        1060,
+        66
+      ],
+      "geometry": "rect",
+      "text": "Feito para pequenos locadores que operam a própria carteira.",
+      "textPreview": "Feito para pequenos locadores que operam a própria carteira.",
+      "resolvedFontSize": 40,
+      "resolvedTextStyle": {
+        "fontSize": 40,
+        "typeface": "+mn-lt",
+        "color": "#1C2620",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Feito para pequenos locadores que operam a própria carteira."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Feito para pequenos locadores que operam a própria carteira.",
+          "resolvedTextStyle": {
+            "fontSize": 40,
+            "color": "#1C2620",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Feito para pequenos locadores que operam a própria carteira.",
+              "fontSize": 40,
+              "color": "#1C2620",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/94ny5cra",
+      "id": "3",
+      "bbox": [
+        64,
+        154,
+        1040,
+        48
+      ],
+      "geometry": "rect",
+      "text": "O melhor encaixe é uma rotina que precisa de centralização e controle, sem depender de integrações corporativas.",
+      "textPreview": "O melhor encaixe é uma rotina que precisa de centralização e controle, sem depender de integrações corporativas.",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "O melhor encaixe é uma rotina que precisa de centralização e controle, sem depender de integrações corporativas."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "O melhor encaixe é uma rotina que precisa de centralização e controle, sem depender de integrações corporativas.",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "O melhor encaixe é uma rotina que precisa de centralização e controle, sem depender de integrações corporativas.",
+              "fontSize": 18,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/u5wzeh8f",
+      "id": "4",
+      "bbox": [
+        64,
+        680,
+        430,
+        20
+      ],
+      "geometry": "rect",
+      "text": "APRESENTAÇÃO COMERCIAL",
+      "textPreview": "APRESENTAÇÃO COMERCIAL",
+      "resolvedFontSize": 10,
+      "resolvedTextStyle": {
+        "fontSize": 10,
+        "typeface": "+mn-lt",
+        "color": "#93A099",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "APRESENTAÇÃO COMERCIAL"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "APRESENTAÇÃO COMERCIAL",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "color": "#93A099",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "APRESENTAÇÃO COMERCIAL",
+              "fontSize": 10,
+              "color": "#93A099",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/v65g7290",
+      "id": "5",
+      "bbox": [
+        1165,
+        678,
+        50,
+        20
+      ],
+      "geometry": "rect",
+      "text": "12",
+      "textPreview": "12",
+      "resolvedFontSize": 11,
+      "resolvedTextStyle": {
+        "fontSize": 11,
+        "typeface": "+mn-lt",
+        "color": "#8C631F",
+        "bold": true,
+        "alignment": "right",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "12"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "12",
+          "resolvedTextStyle": {
+            "fontSize": 11,
+            "color": "#8C631F",
+            "bold": true,
+            "alignment": "right"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "12",
+              "fontSize": 11,
+              "color": "#8C631F",
+              "bold": true,
+              "alignment": "right"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/w7ehg7ql",
+      "id": "6",
+      "bbox": [
+        64,
+        235,
+        550,
+        350
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#EAF5ED",
+      "lineColor": "#BFD8C6",
+      "lineWidth": 1
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/h8ny9c76",
+      "id": "7",
+      "bbox": [
+        96,
+        270,
+        450,
+        40
+      ],
+      "geometry": "rect",
+      "text": "É para você se...",
+      "textPreview": "É para você se...",
+      "resolvedFontSize": 30,
+      "resolvedTextStyle": {
+        "fontSize": 30,
+        "typeface": "+mn-lt",
+        "color": "#14322A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "É para você se..."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "É para você se...",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "color": "#14322A",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "É para você se...",
+              "fontSize": 30,
+              "color": "#14322A",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/a9sf2d8b",
+      "id": "8",
+      "bbox": [
+        98,
+        333,
+        470,
+        32
+      ],
+      "geometry": "rect",
+      "text": "✓  Administra uma carteira pequena",
+      "textPreview": "✓  Administra uma carteira pequena",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "+mn-lt",
+        "color": "#1C2620",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Administra uma carteira pequena"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Administra uma carteira pequena",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#1C2620",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Administra uma carteira pequena",
+              "fontSize": 17,
+              "color": "#1C2620",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/balgvi9w",
+      "id": "9",
+      "bbox": [
+        98,
+        385,
+        470,
+        32
+      ],
+      "geometry": "rect",
+      "text": "✓  Quer histórico por imóvel e contrato",
+      "textPreview": "✓  Quer histórico por imóvel e contrato",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "+mn-lt",
+        "color": "#1C2620",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Quer histórico por imóvel e contrato"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Quer histórico por imóvel e contrato",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#1C2620",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Quer histórico por imóvel e contrato",
+              "fontSize": 17,
+              "color": "#1C2620",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fadg7u9k",
+      "id": "10",
+      "bbox": [
+        98,
+        437,
+        470,
+        32
+      ],
+      "geometry": "rect",
+      "text": "✓  Registra recebimentos e despesas manualmente",
+      "textPreview": "✓  Registra recebimentos e despesas manualmente",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "+mn-lt",
+        "color": "#1C2620",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Registra recebimentos e despesas manualmente"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Registra recebimentos e despesas manualmente",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#1C2620",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Registra recebimentos e despesas manualmente",
+              "fontSize": 17,
+              "color": "#1C2620",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/up4fep8z",
+      "id": "11",
+      "bbox": [
+        98,
+        489,
+        470,
+        32
+      ],
+      "geometry": "rect",
+      "text": "✓  Precisa organizar vagas e interessados",
+      "textPreview": "✓  Precisa organizar vagas e interessados",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "+mn-lt",
+        "color": "#1C2620",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "✓  Precisa organizar vagas e interessados"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "✓  Precisa organizar vagas e interessados",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#1C2620",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "✓  Precisa organizar vagas e interessados",
+              "fontSize": 17,
+              "color": "#1C2620",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hcfy94rq",
+      "id": "12",
+      "bbox": [
+        666,
+        235,
+        550,
+        350
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#DDE4DE",
+      "lineWidth": 1
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/gb6xgzq5",
+      "id": "13",
+      "bbox": [
+        698,
+        270,
+        465,
+        62
+      ],
+      "geometry": "rect",
+      "text": "Pode não ser o melhor encaixe se...",
+      "textPreview": "Pode não ser o melhor encaixe se...",
+      "resolvedFontSize": 28,
+      "resolvedTextStyle": {
+        "fontSize": 28,
+        "typeface": "+mn-lt",
+        "color": "#1C2620",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Pode não ser o melhor encaixe se..."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Pode não ser o melhor encaixe se...",
+          "resolvedTextStyle": {
+            "fontSize": 28,
+            "color": "#1C2620",
+            "bold": true,
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Pode não ser o melhor encaixe se...",
+              "fontSize": 28,
+              "color": "#1C2620",
+              "bold": true,
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/7mdg3a9o",
+      "id": "14",
+      "bbox": [
+        700,
+        350,
+        470,
+        32
+      ],
+      "geometry": "rect",
+      "text": "—  Exige conciliação bancária automática",
+      "textPreview": "—  Exige conciliação bancária automática",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "—  Exige conciliação bancária automática"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "—  Exige conciliação bancária automática",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "—  Exige conciliação bancária automática",
+              "fontSize": 17,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/6l4fap83",
+      "id": "15",
+      "bbox": [
+        700,
+        402,
+        470,
+        32
+      ],
+      "geometry": "rect",
+      "text": "—  Precisa de assinatura digital integrada",
+      "textPreview": "—  Precisa de assinatura digital integrada",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "—  Precisa de assinatura digital integrada"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "—  Precisa de assinatura digital integrada",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "—  Precisa de assinatura digital integrada",
+              "fontSize": 17,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/tovy5kru",
+      "id": "16",
+      "bbox": [
+        700,
+        454,
+        470,
+        32
+      ],
+      "geometry": "rect",
+      "text": "—  Depende de integrações contábeis/ERP",
+      "textPreview": "—  Depende de integrações contábeis/ERP",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "—  Depende de integrações contábeis/ERP"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "—  Depende de integrações contábeis/ERP",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "—  Depende de integrações contábeis/ERP",
+              "fontSize": 17,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/snmxcfq9",
+      "id": "17",
+      "bbox": [
+        700,
+        506,
+        470,
+        32
+      ],
+      "geometry": "rect",
+      "text": "—  Quer edição totalmente offline",
+      "textPreview": "—  Quer edição totalmente offline",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "+mn-lt",
+        "color": "#5C6B63",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "—  Quer edição totalmente offline"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "—  Quer edição totalmente offline",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#5C6B63",
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "—  Quer edição totalmente offline",
+              "fontSize": 17,
+              "color": "#5C6B63",
+              "alignment": "left"
+            }
+          ],
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

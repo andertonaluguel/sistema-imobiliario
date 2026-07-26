@@ -331,7 +331,7 @@ function renderSimpleDashboard(o){
       '<div class="simple-panel-body">'+renderAlerts(paymentOnly)+'</div>'+
     '</div>'+
     '<div class="panel panel-collapsible">'+
-      '<button class="panel-toggle" onclick="toggleMovs()"><span class="panel-title-inline">Histórico recente</span><span class="panel-chevron">'+(state.movsExpanded?'▾':'▸')+'</span></button>'+
+      '<button class="panel-toggle" aria-expanded="'+(state.movsExpanded?'true':'false')+'" onclick="toggleMovs()"><span class="panel-title-inline">Histórico recente</span><span class="panel-chevron">'+(state.movsExpanded?'▾':'▸')+'</span></button>'+
       (state.movsExpanded?'<div class="panel-body">'+renderRecentes()+'</div>':'')+
     '</div>';
 }
@@ -353,33 +353,30 @@ function renderDashboard(){
   if(isSimpleMode()) return renderSimpleDashboard(o);
 
   return '<div class="page-header"><div>'+
-      '<div class="eyebrow">PAINEL</div>'+
-      pageTitleWithIcon(dashIconSvg(), 'Olá!')+
-      '<div class="page-sub">Resumo de '+monthLabel(currentMonthStr())+'</div>'+
+      '<div class="eyebrow">GESTÃO DOS ALUGUÉIS</div>'+
+      pageTitleWithIcon(dashIconSvg(), 'Visão geral')+
+      '<div class="page-sub">Tudo que precisa da sua atenção em '+monthLabel(currentMonthStr())+'.</div>'+
     '</div><div class="page-date">'+fmtDateBR(todayISO())+'</div></div>'+
 
     '<div class="dashboard-actions">'+
       '<button onclick="openGlobalSearch()"><span>⌕</span><strong>Buscar</strong><small>casa ou inquilino</small></button>'+
       '<button onclick="openAddHouseModal()"><span>＋</span><strong>Nova casa</strong><small>cadastrar imóvel</small></button>'+
       '<button onclick="openAddTenantModal()"><span>＋</span><strong>Novo inquilino</strong><small>cadastro rápido</small></button>'+
-      '<button onclick="openAddInterestModal()"><span>♥</span><strong>Novo cliente</strong><small>guardar interessado</small></button>'+
+      '<button onclick="openAddInterestModal()"><span>♥</span><strong>Novo interessado</strong><small>pessoa procurando casa</small></button>'+
       (energyModuleEnabled()?'<button onclick="irEnergia()"><span>⚡</span><strong>Energia</strong><small>lançar ou consultar</small></button>':'')+
     '</div>'+
 
-    '<div class="stat-grid">'+
-      statCard('Aluguel do mês', fmtMoney(o.receitaMensal), 'projeção pelo aluguel atual', 'brass')+
-      (energyModuleEnabled()?statCard('Energia do mês', fmtMoney(o.energiaMes), 'lançado neste mês', 'warn'):'')+
-      statCard('Total do mês', fmtMoney(o.totalMes), energyModuleEnabled()?'aluguel + energia':'aluguéis', 'brass')+
+    '<div class="stat-grid rent-dashboard-stats">'+
+      statCard('Previsto no mês', fmtMoney(o.totalMes), energyModuleEnabled()?'aluguéis + energia':'aluguéis', 'brass')+
       statCard('Recebido', fmtMoney(o.recebidoMes + o.energiaRecebida), energyModuleEnabled()?'aluguel + energia até agora':'aluguéis até agora', null)+
+      statCard('Falta receber', fmtMoney(o.faltaReceber), o.nAtraso+' em atraso', o.faltaReceber>0?'rust':null)+
+      (energyModuleEnabled()?statCard('Energia lançada', fmtMoney(o.energiaMes), 'controle separado dos imóveis', 'warn'):'')+
     '</div>'+
 
-    '<div class="dashboard-status-row">'+
-      statCard('Falta receber', fmtMoney(o.faltaReceber), o.nAtraso+' em atraso', o.faltaReceber>0?'rust':null)+
-      renderOccupancySummary(o)+
-    '</div>'+
+    '<div class="dashboard-status-row rent-occupancy-row">'+renderOccupancySummary(o)+'</div>'+
 
     '<div class="panel panel-collapsible">'+
-      '<button class="panel-toggle" onclick="toggleAlerts()">'+
+      '<button class="panel-toggle" aria-expanded="'+(state.alertsExpanded?'true':'false')+'" onclick="toggleAlerts()">'+
         '<span class="panel-title-inline">Alertas'+(countAlerts(o)>0?'<span class="alert-badge">'+countAlerts(o)+'</span>':'')+'</span>'+
         '<span class="panel-chevron">'+(state.alertsExpanded?'▾':'▸')+'</span>'+
       '</button>'+
@@ -387,7 +384,7 @@ function renderDashboard(){
     '</div>'+
 
     '<div class="panel panel-collapsible">'+
-      '<button class="panel-toggle" onclick="toggleMovs()">'+
+      '<button class="panel-toggle" aria-expanded="'+(state.movsExpanded?'true':'false')+'" onclick="toggleMovs()">'+
         '<span class="panel-title-inline">Últimas movimentações</span>'+
         '<span class="panel-chevron">'+(state.movsExpanded?'▾':'▸')+'</span>'+
       '</button>'+

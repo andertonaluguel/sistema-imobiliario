@@ -6,16 +6,18 @@
 /* ---------- card e grade ---------- */
 function houseFeatureLabels(h){
   const labels=[];
-  if(Number(h.quartos)>0) labels.push(h.quartos+' quarto'+(Number(h.quartos)===1?'':'s'));
-  if(Number(h.banheiros)>0) labels.push(h.banheiros+' banheiro'+(Number(h.banheiros)===1?'':'s'));
-  if(h.garagem) labels.push('Garagem');
-  if(h.quintal) labels.push('Quintal');
-  if(h.pocoAgua) labels.push('Poço com água');
+  if(Number(h.quartos)>0) labels.push({icon:FICO.bed,label:h.quartos+' quarto'+(Number(h.quartos)===1?'':'s')});
+  if(Number(h.banheiros)>0) labels.push({icon:FICO.bath,label:h.banheiros+' banheiro'+(Number(h.banheiros)===1?'':'s')});
+  if(h.sala) labels.push({icon:FICO.sofa,label:'Sala'});
+  if(h.cozinha) labels.push({icon:FICO.kitchen,label:'Cozinha'});
+  if(h.quintal) labels.push({icon:FICO.yard,label:'Quintal'});
+  if(h.areaServico) labels.push({icon:FICO.laundry,label:'Área de serviço'});
+  if(h.garagem) labels.push({icon:FICO.garage,label:'Garagem'});
   return labels;
 }
 function renderHouseFeatures(h){
   const labels=houseFeatureLabels(h);
-  return '<div class="house-features">'+(labels.length?labels.map(function(label){return '<span>'+esc(label)+'</span>';}).join(''):'<span class="feature-empty">Características não informadas</span>')+'</div>';
+  return '<div class="house-features">'+(labels.length?labels.map(function(item){return '<span><i class="feature-icon">'+item.icon+'</i>'+esc(item.label)+'</span>';}).join(''):'<span class="feature-empty">Características não informadas</span>')+'</div>';
 }
 
 function renderHouseCard(h){
@@ -216,7 +218,14 @@ var FICO = {
   building: svgIco('<rect x="6" y="3" width="12" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2" stroke-linecap="round"/>'),
   hammer:   svgIco('<path d="M14 4l6 6-2 2-6-6 2-2z" stroke-linejoin="round"/><path d="M12 8l-8 8 2 2 8-8" stroke-linecap="round" stroke-linejoin="round"/>'),
   tag:      svgIco('<path d="M3 12V4h8l9 9-8 8-9-9z" stroke-linejoin="round"/><circle cx="8" cy="8" r="1.4"/>'),
-  bolt:     svgIco('<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke-linejoin="round"/>')
+  bolt:     svgIco('<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke-linejoin="round"/>'),
+  bed:      svgIco('<path d="M3 17V8M21 17v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5M3 14h18M5 10V8a2 2 0 012-2h2a2 2 0 012 2v2M3 19v-2h18v2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  bath:     svgIco('<path d="M4 12h16v3a4 4 0 01-4 4H8a4 4 0 01-4-4v-3zM7 12V6a3 3 0 016 0M7 19l-1 2M17 19l1 2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  sofa:     svgIco('<path d="M6 11V8a3 3 0 013-3h6a3 3 0 013 3v3M5 10a2 2 0 00-2 2v5h18v-5a2 2 0 00-2-2M6 17v2M18 17v2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  kitchen:  svgIco('<path d="M4 5h16v15H4zM4 11h16M9 11v9M7 8h.01M11 8h.01M15 8h2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  yard:     svgIco('<path d="M12 21V9M12 14c-4 0-7-2-7-6 4 0 7 2 7 6zM12 11c3 0 6-2 6-6-3 0-6 2-6 6z" stroke-linecap="round" stroke-linejoin="round"/>'),
+  laundry:  svgIco('<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M8 7h.01M12 7h3" stroke-linecap="round"/>'),
+  garage:   svgIco('<path d="M3 10l9-6 9 6v11H3V10zM7 21v-8h10v8M7 16h10" stroke-linecap="round" stroke-linejoin="round"/>')
 };
 /* ícone por categoria de despesa */
 function catIcon(cat){
@@ -314,6 +323,7 @@ function renderGeralTab(h){
       ? '<button class="btn btn-sm btn-energia" onclick="openEnergiaModal(\''+h.id+'\',\''+cur+'\',\''+contractId+'\')">'+(enerSt==='pago'?'Energia paga ✓':'Registrar / pagar energia')+'</button>'
       : '')+
     (h.status==='alugada' && (st==='atrasado'||st==='pendente') ? '<button class="btn btn-ghost btn-sm" onclick="cobrarWhatsApp(\''+h.id+'\',\''+cur+'\',\''+contractId+'\')">Cobrar via WhatsApp</button>' : '')+
+    (h.status==='alugada' && (st==='atrasado'||st==='pendente') && state.config.pixChave ? '<button class="btn btn-ghost btn-sm" onclick="openPixCharge(\''+h.id+'\',\''+cur+'\',\''+contractId+'\',false)">Copiar PIX</button>' : '')+
     '<button class="btn btn-ghost btn-sm" onclick="registrarVistoria(\''+h.id+'\')">Registrar vistoria hoje</button>'+
     '<button class="btn btn-ghost btn-sm" onclick="openAssignTenantModal(\''+h.id+'\')">'+(t?'Trocar inquilino':'Vincular inquilino')+'</button>'+
   '</div>';
@@ -457,16 +467,27 @@ function renderHouseDetail(){
 }
 
 /* ---------- CRUD: casas ---------- */
-function houseCharacteristicsFields(h){
+function houseDescriptionFields(h){
   h=h||{};
-  const energyFields=energyModuleEnabled()?'<div class="house-energy-settings"><label class="field-check"><input type="checkbox" id="f_house_energy"'+(h.energiaAtiva!==false?' checked':'')+' onchange="syncHouseEnergyFields()"><span><strong>Esta casa utiliza Energia</strong><small>Permite leituras e cobranças separadas.</small></span></label>'+
-    '<label class="field"><span>Dia padrão do vencimento da energia</span><input id="f_energy_due" type="number" min="1" max="31" value="'+(h.energiaDiaVencimento||5)+'"></label></div>':'';
-  return '<div class="form-section-title">Características da casa</div>'+
+  return '<div class="house-description-intro"><strong>Quais ambientes esta casa possui?</strong><span>Essas informações aparecem nos cartões e ajudam a encontrar interessados compatíveis.</span></div>'+
     '<div class="field-row"><label class="field"><span>Quartos</span><input id="f_quartos" type="number" min="0" step="1" value="'+(h.quartos||0)+'"></label>'+
     '<label class="field"><span>Banheiros</span><input id="f_banheiros" type="number" min="0" step="1" value="'+(h.banheiros||0)+'"></label></div>'+
-    '<div class="feature-check-grid"><label class="field-check"><input type="checkbox" id="f_garagem"'+(h.garagem?' checked':'')+'> Garagem</label>'+
-    '<label class="field-check"><input type="checkbox" id="f_quintal"'+(h.quintal?' checked':'')+'> Quintal</label>'+
-    '<label class="field-check"><input type="checkbox" id="f_poco"'+(h.pocoAgua?' checked':'')+'> Poço com água</label></div>'+energyFields;
+    '<div class="feature-check-grid house-room-checks">'+
+      '<label class="field-check"><input type="checkbox" id="f_sala"'+(h.sala?' checked':'')+'><span class="room-check-icon">'+FICO.sofa+'</span><span>Sala</span></label>'+
+      '<label class="field-check"><input type="checkbox" id="f_cozinha"'+(h.cozinha?' checked':'')+'><span class="room-check-icon">'+FICO.kitchen+'</span><span>Cozinha</span></label>'+
+      '<label class="field-check"><input type="checkbox" id="f_quintal"'+(h.quintal?' checked':'')+'><span class="room-check-icon">'+FICO.yard+'</span><span>Quintal</span></label>'+
+      '<label class="field-check"><input type="checkbox" id="f_area_servico"'+(h.areaServico?' checked':'')+'><span class="room-check-icon">'+FICO.laundry+'</span><span>Área de serviço</span></label>'+
+      '<label class="field-check"><input type="checkbox" id="f_garagem"'+(h.garagem?' checked':'')+'><span class="room-check-icon">'+FICO.garage+'</span><span>Garagem</span></label></div>'+ 
+    '<div class="house-public-settings"><label class="field-check"><input type="checkbox" id="f_publicado"'+(h.publicado?' checked':'')+'><span><strong>Publicar esta casa no catálogo</strong><small>Ela só aparecerá enquanto estiver com status Vaga.</small></span></label>'+ 
+    '<label class="field"><span>Descrição para o anúncio</span><textarea id="f_descricao_publica" maxlength="3000" rows="4" placeholder="Conte os principais diferenciais da casa…">'+esc(h.descricaoPublica||'')+'</textarea></label></div>';
+}
+function houseEnergyFields(h){
+  h=h||{};
+  return energyModuleEnabled()?'<div class="house-energy-settings"><label class="field-check"><input type="checkbox" id="f_house_energy"'+(h.energiaAtiva!==false?' checked':'')+' onchange="syncHouseEnergyFields()"><span><strong>Esta casa utiliza Energia</strong><small>Permite leituras e cobranças separadas.</small></span></label>'+
+    '<label class="field"><span>Dia padrão do vencimento da energia</span><input id="f_energy_due" type="number" min="1" max="31" value="'+(h.energiaDiaVencimento||5)+'"></label></div>':'';
+}
+function houseCharacteristicsFields(h){
+  return '<div class="form-section-title">Descrição da casa</div>'+houseDescriptionFields(h)+houseEnergyFields(h);
 }
 function syncHouseEnergyFields(){
   const check=document.getElementById('f_house_energy'),due=document.getElementById('f_energy_due');
@@ -476,9 +497,13 @@ function readHouseCharacteristics(h){
   const energyCheck=document.getElementById('f_house_energy'),energyDue=document.getElementById('f_energy_due');
   h.quartos=Math.max(0,parseInt(document.getElementById('f_quartos').value,10)||0);
   h.banheiros=Math.max(0,parseInt(document.getElementById('f_banheiros').value,10)||0);
+  h.sala=document.getElementById('f_sala').checked;
+  h.cozinha=document.getElementById('f_cozinha').checked;
   h.garagem=document.getElementById('f_garagem').checked;
   h.quintal=document.getElementById('f_quintal').checked;
-  h.pocoAgua=document.getElementById('f_poco').checked;
+  h.areaServico=document.getElementById('f_area_servico').checked;
+  const published=document.getElementById('f_publicado'),description=document.getElementById('f_descricao_publica');
+  h.publicado=!!(published&&published.checked);h.descricaoPublica=description?description.value.trim():(h.descricaoPublica||'');
   if(energyCheck) h.energiaAtiva=energyCheck.checked;
   else if(h.energiaAtiva==null) h.energiaAtiva=true;
   if(energyDue) h.energiaDiaVencimento=Math.min(31,Math.max(1,parseInt(energyDue.value,10)||5));
@@ -487,6 +512,12 @@ function readHouseCharacteristics(h){
 }
 
 function openAddHouseModal(){
+  const access=state.commercialAccess||{},limit=Number(access.limiteCasas)||1;
+  if(state.houses.length>=limit){
+    openModal('<h3 class="modal-title">Limite do plano atingido</h3><p class="modal-text">O plano '+esc(commercialPlanLabel(access.plano||'gratuito'))+' permite até <strong>'+limit+' casa(s)</strong>. Você já cadastrou '+state.houses.length+'.</p>'+ 
+      '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button>'+(access.plano==='premium'?'':supportContactButton('Solicitar mudança de plano'))+'</div>');
+    return;
+  }
   openModal(
     '<h3 class="modal-title">Nova casa</h3>'+
     '<label class="field"><span>Nome / apelido</span><input id="f_nome" placeholder="Ex: Casa 11"></label>'+
@@ -506,28 +537,32 @@ async function addHouse(){
       aluguelValor:0, diaVencimento:5, ultimaVistoria:'', tenantId:'', contratoInicio:'', contratoFim:'' });
     const novo = await db.insertHouse(draft);
     state.houses.push(novo);
+    if(state.commercialAccess)state.commercialAccess.quantidadeCasas=state.houses.length;
     closeModal(); render();
-  }catch(e){ console.error(e); showToast('Erro ao adicionar a casa.', 'error'); }
+  }catch(e){ console.error(e); showToast(e&&e.message&&e.message.toLowerCase().includes('limite')?e.message:'Erro ao adicionar a casa.', 'error'); }
 }
 function openEditHouseModal(houseId){
   const h = state.houses.find(function(x){ return x.id===houseId; });
   openModal(
     '<h3 class="modal-title">Editar casa</h3>'+
-    '<label class="field"><span>Nome / apelido</span><input id="f_nome" value="'+esc(h.nome)+'"></label>'+
-    '<label class="field"><span>Endereço</span><input id="f_endereco" value="'+esc(h.endereco)+'" placeholder="Rua, número, bairro"></label>'+
-    '<div class="field-row">'+
-      '<label class="field"><span>Status</span><select id="f_status">'+
-        '<option value="alugada"'+(h.status==='alugada'?' selected':'')+'>Alugada</option>'+
-        '<option value="vaga"'+(h.status==='vaga'?' selected':'')+'>Vaga</option>'+
-        '<option value="manutencao"'+(h.status==='manutencao'?' selected':'')+'>Em manutenção</option>'+
-      '</select></label>'+
-      '<label class="field"><span>Aluguel mensal (R$)</span><input id="f_aluguel" type="number" step="0.01" value="'+(h.aluguelValor||0)+'"></label>'+
+    '<div class="house-edit-tabs"><button class="active" data-edit-section="dados" onclick="switchHouseEditSection(\'dados\')">Dados</button><button data-edit-section="descricao" onclick="switchHouseEditSection(\'descricao\')">Descrição</button></div>'+
+    '<div class="house-edit-section active" data-edit-panel="dados">'+
+      '<label class="field"><span>Nome / apelido</span><input id="f_nome" value="'+esc(h.nome)+'"></label>'+
+      '<label class="field"><span>Endereço</span><input id="f_endereco" value="'+esc(h.endereco)+'" placeholder="Rua, número, bairro"></label>'+
+      '<div class="field-row">'+
+        '<label class="field"><span>Status</span><select id="f_status">'+
+          '<option value="alugada"'+(h.status==='alugada'?' selected':'')+'>Alugada</option>'+
+          '<option value="vaga"'+(h.status==='vaga'?' selected':'')+'>Vaga</option>'+
+          '<option value="manutencao"'+(h.status==='manutencao'?' selected':'')+'>Em manutenção</option>'+
+        '</select></label>'+
+        '<label class="field"><span>Aluguel mensal (R$)</span><input id="f_aluguel" type="number" step="0.01" value="'+(h.aluguelValor||0)+'"></label>'+
+      '</div>'+
+      '<div class="field-row">'+
+        '<label class="field"><span>Dia de vencimento</span><input id="f_dia" type="number" min="1" max="31" value="'+(h.diaVencimento||5)+'"></label>'+
+        '<label class="field"><span>Última vistoria</span><input id="f_vist" type="date" value="'+(h.ultimaVistoria||'')+'"></label>'+
+      '</div>'+houseEnergyFields(h)+
     '</div>'+
-    houseCharacteristicsFields(h)+
-    '<div class="field-row">'+
-      '<label class="field"><span>Dia de vencimento</span><input id="f_dia" type="number" min="1" max="31" value="'+(h.diaVencimento||5)+'"></label>'+
-      '<label class="field"><span>Última vistoria</span><input id="f_vist" type="date" value="'+(h.ultimaVistoria||'')+'"></label>'+
-    '</div>'+
+    '<div class="house-edit-section" data-edit-panel="descricao">'+houseDescriptionFields(h)+'</div>'+
     '<div class="modal-actions">'+
       '<button class="btn btn-danger" onclick="confirmDeleteHouse(\''+h.id+'\')">Excluir casa</button>'+
       '<div class="modal-actions-right">'+
@@ -536,6 +571,10 @@ function openEditHouseModal(houseId){
       '</div>'+
     '</div>'
   );
+}
+function switchHouseEditSection(section){
+  document.querySelectorAll('[data-edit-section]').forEach(function(button){button.classList.toggle('active',button.getAttribute('data-edit-section')===section);});
+  document.querySelectorAll('[data-edit-panel]').forEach(function(panel){panel.classList.toggle('active',panel.getAttribute('data-edit-panel')===section);});
 }
 async function saveHouseEdit(id){
   const h = state.houses.find(function(x){ return x.id===id; });
@@ -627,6 +666,7 @@ function openPaymentModal(houseId, mes,contractId){
       (rec ? '<button class="btn btn-danger" onclick="removePayment(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\')">Desfazer pagamento</button>' : '<span></span>')+
       '<div class="modal-actions-right">'+
         (!rec && (st==='atrasado'||st==='pendente') ? '<button class="btn btn-ghost" onclick="cobrarWhatsApp(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\')">Cobrar via WhatsApp</button>' : '')+
+        (!rec && state.config.pixChave ? '<button class="btn btn-ghost" onclick="openPixCharge(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\',false)">Copiar PIX</button>' : '')+
         (rec ? '<button class="btn btn-ghost" onclick="generateReceiptPDF(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\')">Gerar recibo PDF</button>' : '')+
         '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
         '<button class="btn btn-primary" onclick="savePayment(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\')">Marcar como pago</button>'+
@@ -690,6 +730,7 @@ function openEnergiaModal(houseId, mes,contractId){
       (e ? '<button class="btn btn-danger" onclick="removeEnergia(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\')">Excluir registro</button>' : '<span></span>')+
       '<div class="modal-actions-right">'+
         (e && !pago ? '<button class="btn btn-ghost" onclick="cobrarEnergiaWhatsApp(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\')">Cobrar via WhatsApp</button>' : '')+
+        (e && !pago && state.config.pixChave ? '<button class="btn btn-ghost" onclick="openPixCharge(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\',true)">Copiar PIX</button>' : '')+
         '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
         '<button class="btn btn-primary" onclick="saveEnergia(\''+houseId+'\',\''+mes+'\',\''+resolvedId+'\')">Salvar registro</button>'+
       '</div>'+
@@ -770,7 +811,7 @@ function cobrarEnergiaWhatsApp(houseId, mes,contractId){
   const val = energiaValorMes(h, mes,contract&&contract.id);
   let phone = (t.telefone||'').replace(/\D/g,'');
   if(phone && phone.length<=11) phone = '55'+phone;
-  const msg = 'Olá'+(t.nome?(' '+t.nome):'')+'! Passando para lembrar da conta de energia de '+(h.endereco||h.nome)+' referente a '+monthLabel(mes)+', no valor de '+fmtMoney(val)+'. Qualquer dúvida me chama por aqui!';
+  const msg = appendPixToMessage('Olá'+(t.nome?(' '+t.nome):'')+'! Passando para lembrar da conta de energia de '+(h.endereco||h.nome)+' referente a '+monthLabel(mes)+', no valor de '+fmtMoney(val)+'. Qualquer dúvida me chama por aqui!',val);
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg), '_blank');
 }
 
@@ -782,7 +823,7 @@ function buildWhatsAppUrl(house, mes,contractId){
   if(phone && phone.length<=11) phone = '55'+phone;
   const value=contract?contractExpectedRent(contract,mes):aluguelValorMes(house,mes);
   const dueDay=contract?contractBillingDay(contract):(house.diaVencimento||5);
-  const msg = 'Olá'+(t.nome?(' '+t.nome):'')+'! Passando para lembrar do aluguel de '+(house.endereco||house.nome)+' referente a '+monthLabel(mes)+', no valor de '+fmtMoney(value)+' (vencimento dia '+dueDayForMonth(mes,dueDay)+'). Qualquer dúvida me chama por aqui!';
+  const msg = appendPixToMessage('Olá'+(t.nome?(' '+t.nome):'')+'! Passando para lembrar do aluguel de '+(house.endereco||house.nome)+' referente a '+monthLabel(mes)+', no valor de '+fmtMoney(value)+' (vencimento dia '+dueDayForMonth(mes,dueDay)+'). Qualquer dúvida me chama por aqui!',value);
   return 'https://wa.me/'+phone+'?text='+encodeURIComponent(msg);
 }
 function cobrarWhatsApp(houseId, mes,contractId){
@@ -831,6 +872,7 @@ function cobrarAlerta(houseId){
   } else {
     msg = 'Olá'+nome+'! Constam em aberto, referentes a '+local+': '+itens.join(' e ')+', somando '+fmtMoney(cob.total)+'. Pode acertar quando possível? Qualquer dúvida me chama por aqui!';
   }
+  msg=appendPixToMessage(msg,cob.total);
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg), '_blank');
 }
 

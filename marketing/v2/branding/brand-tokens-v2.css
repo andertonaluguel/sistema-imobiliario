@@ -1,0 +1,163 @@
+/* ============================================================
+   brand-tokens-v2.css — Aluguel, identidade comercial 2.0
+   Espelha a interface em produção (aluguel-ui.css + minha-casa.css).
+   Gerado em 26/07/2026. Substitui ../../branding/brand-tokens.css
+   apenas para materiais novos; a versão 1.0 segue válida para o
+   catálogo público e o portal do inquilino.
+   ============================================================ */
+
+:root{
+  /* --- base escura --- */
+  --al-night:        #102E27;
+  --al-night-2:      #1A473B;
+  --al-night-3:      #276153;
+
+  /* --- superfícies claras --- */
+  --al-canvas:       #EEF3F0;
+  --al-card:         #FFFFFF;
+  --al-line:         #D9E3DD;
+
+  /* --- texto --- */
+  --al-ink:          #19251F;
+  --al-muted:        #63736B;  /* só sobre cartão branco */
+  --al-muted-aa:     #5A6A62;  /* aprovado também sobre o canvas */
+  --al-hero-text:    #D1DED8;
+  --al-cover-muted:  #C6D5CE;
+
+  /* --- acentos --- */
+  --al-lime:         #E7F77B;  /* superfície e acento sobre escuro. NUNCA texto sobre claro */
+  --al-gold:         #F0C76E;  /* decorativo sobre escuro. NUNCA texto sobre claro */
+  --al-gold-deep:    #9C6C15;  /* texto de destaque sobre branco */
+  --al-gold-deep-aa: #8A5F12;  /* texto de destaque sobre canvas e branco */
+  --al-violet:       #6D5BD0;
+  --al-violet-soft:  #ECE8FF;
+
+  /* --- estados --- */
+  --al-ok:           #087F69;
+  --al-ok-soft:      #D9F4EB;
+  --al-danger:       #B83D4F;
+  --al-danger-soft:  #FCE2E7;
+
+  /* --- legado (catálogo público, portal, impressos antigos) --- */
+  --al-legacy-cover: #14322A;
+  --al-legacy-paper: #F7F6F2;
+  --al-legacy-brass: #B8863C;
+  --al-legacy-brass-deep: #8C631F;
+
+  /* --- tipografia --- */
+  --al-font-display: 'Space Grotesk', Arial, sans-serif;
+  --al-font-body:    'IBM Plex Sans', Arial, sans-serif;
+  --al-font-data:    'IBM Plex Mono', 'Courier New', monospace;
+
+  /* --- raio --- */
+  --al-radius-sm:    11px;
+  --al-radius-md:    12px;
+  --al-radius-card:  18px;
+  --al-radius-hero:  22px;
+  --al-radius-app:   25px;
+  --al-radius-pill:  999px;
+
+  /* --- sombra --- */
+  --al-shadow-sm:    0 4px 15px rgba(16,46,39,.07);
+  --al-shadow-md:    0 12px 36px rgba(16,46,39,.09);
+  --al-shadow-hero:  0 18px 44px rgba(16,46,39,.20);
+  --al-shadow-topbar:0 1px 0 rgba(255,255,255,.08), 0 10px 30px rgba(8,31,25,.14);
+
+  /* --- movimento --- */
+  --al-ease:         cubic-bezier(.2,.7,.2,1);
+  --al-fast:         150ms;
+  --al-standard:     220ms;
+
+  /* --- layout --- */
+  --al-content-max:  1440px;
+  --al-copy-max:     672px;
+
+  /* --- gradientes oficiais --- */
+  --al-grad-hero:
+    radial-gradient(circle at 88% 18%, rgba(231,247,123,.20), transparent 23%),
+    radial-gradient(circle at 17% 135%, rgba(51,120,101,.72), transparent 46%),
+    linear-gradient(135deg, #102E27, #1A473B 65%, #0C2721);
+  --al-grad-topbar:
+    radial-gradient(circle at 76% -90%, rgba(231,247,123,.17), transparent 31%),
+    linear-gradient(110deg, #0D2923, #1A473B);
+  --al-grad-canvas:
+    radial-gradient(circle at 92% 0, rgba(231,247,123,.13), transparent 22%),
+    linear-gradient(180deg, #F7FAF8 0%, #EEF3F0 100%);
+  --al-grad-minha-casa:
+    radial-gradient(circle at 95% 4%, rgba(109,91,208,.13), transparent 25%),
+    linear-gradient(180deg, #F7F5FE 0%, #F2F0FA 100%);
+}
+
+/* ------------------------------------------------------------
+   Blocos prontos para materiais de marketing
+   ------------------------------------------------------------ */
+
+.al-hero{
+  position:relative; isolation:isolate; overflow:hidden;
+  min-height:168px; padding:29px 32px;
+  color:#fff; border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--al-radius-hero);
+  background:var(--al-grad-hero);
+  box-shadow:var(--al-shadow-hero);
+}
+.al-hero::after{
+  content:""; position:absolute; z-index:-1; right:-38px; bottom:-80px;
+  width:235px; height:235px; border:24px solid rgba(255,255,255,.045); border-radius:50%;
+}
+.al-hero .al-eyebrow{ color:var(--al-lime); }
+.al-hero p{ color:var(--al-hero-text); max-width:680px; }
+
+.al-eyebrow{
+  font-family:var(--al-font-data); font-size:11px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase;
+}
+
+.al-title{
+  font-family:var(--al-font-display); font-weight:700;
+  font-size:clamp(30px,4.4vw,42px); line-height:1.05;
+}
+
+.al-card{
+  background:var(--al-card); border:1px solid var(--al-line);
+  border-radius:var(--al-radius-card); box-shadow:var(--al-shadow-sm);
+}
+
+.al-btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:44px; padding:12px 20px; border-radius:var(--al-radius-md);
+  font-family:var(--al-font-body); font-weight:600; font-size:14px;
+  border:1px solid transparent; cursor:pointer;
+  transition:transform var(--al-fast) var(--al-ease), background var(--al-fast) var(--al-ease);
+}
+.al-btn:hover{ transform:translateY(-1px); }
+.al-btn--primary{ background:var(--al-night); color:#fff; }
+.al-btn--on-dark{ background:var(--al-lime); color:var(--al-night); }
+.al-btn--ghost{ background:transparent; border-color:var(--al-line); color:var(--al-night); }
+
+.al-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 12px; border-radius:var(--al-radius-pill);
+  font-family:var(--al-font-data); font-size:11px; font-weight:600;
+  border:1px solid var(--al-line); background:var(--al-card);
+}
+
+.al-value{ font-family:var(--al-font-data); font-weight:600; letter-spacing:-.01em; }
+
+/* Foco visível — obrigatório em todo material interativo */
+.al-hero :focus-visible{ outline:3px solid var(--al-lime); outline-offset:2px; }
+:focus-visible{ outline:3px solid var(--al-violet); outline-offset:2px; }
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+}
+
+/* ------------------------------------------------------------
+   REGRAS QUE NÃO PODEM SER QUEBRADAS
+
+   1. --al-lime e --al-gold nunca são cor de texto sobre fundo claro.
+      Contraste medido: 1,17:1 e 1,60:1 sobre branco.
+   2. Sobre o canvas #EEF3F0 use --al-muted-aa e --al-gold-deep-aa.
+      Os tokens sem sufixo -aa ficam abaixo de 4,5:1 nesse fundo.
+   3. Status nunca é comunicado só por cor: cor + rótulo + valor.
+   4. Botão tem no mínimo 44px de altura.
+   ------------------------------------------------------------ */

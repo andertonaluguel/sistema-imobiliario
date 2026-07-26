@@ -1,0 +1,119 @@
+{"kind":"deck","id":"pr/juiwym","name":"Deck"}
+{"kind":"layout","layoutId":"074da881-8695-4cab-8a79-e5bf4a34ea34","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"9cd0e97c-9e7f-4e04-92fa-8c1624fb49ca","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/yszb17","slide":1,"title":"Aluguel","textShapes":9}
+{"kind":"textbox","id":"sh/xgnuhcfe","slide":1,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[112,59,180,36]}
+{"kind":"textbox","id":"sh/wfud87et","slide":1,"text":"GESTÃO DE ALUGUÉIS","textPreview":"GESTÃO DE ALUGUÉIS","textChars":18,"textLines":1,"bbox":[690,67,320,22]}
+{"kind":"textbox","id":"sh/j25cjmxk","slide":1,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[70,170,430,24]}
+{"kind":"textbox","id":"sh/yhwvahwz","slide":1,"text":"Seus aluguéis\nsob controle.","textPreview":"Seus aluguéis | sob controle.","textChars":27,"textLines":2,"bbox":[70,214,830,164]}
+{"kind":"textbox","id":"sh/l4nulwfq","slide":1,"text":"Sem planilhas espalhadas.","textPreview":"Sem planilhas espalhadas.","textChars":25,"textLines":1,"bbox":[70,389,760,48]}
+{"kind":"textbox","id":"sh/k3edcre5","slide":1,"text":"Da casa vaga ao pagamento recebido, com a rotina em uma visão única.","textPreview":"Da casa vaga ao pagamento recebido, com a rotina em uma visão única.","textChars":68,"textLines":1,"bbox":[70,458,860,66]}
+{"kind":"shape","id":"sh/765cn6xg","slide":1,"bbox":[70,575,940,585]}
+{"kind":"shape","id":"sh/65wve1wb","slide":1,"bbox":[70,575,940,30]}
+{"kind":"shape","id":"sh/wbid0zad","slide":1,"bbox":[86,586,7,7]}
+{"kind":"shape","id":"sh/xwre94ri","slide":1,"bbox":[100,586,7,7]}
+{"kind":"shape","id":"sh/a90vy9s7","slide":1,"bbox":[114,586,7,7]}
+{"kind":"textbox","id":"sh/ba9c7e9s","slide":1,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[138,582,180,16]}
+{"kind":"shape","id":"sh/l0redoru","slide":1,"bbox":[70,1197,940,74]}
+{"kind":"textbox","id":"sh/yx0v29s3","slide":1,"text":"Produto real • dados demonstrativos • leitura clara da operação","textPreview":"Produto real • dados demonstrativos • leitura clara da operação","textChars":63,"textLines":1,"bbox":[100,1220,880,30]}
+{"kind":"textbox","id":"sh/jy9wbe9o","slide":1,"text":"1/6 • Aluguel — cada aluguel no lugar certo","textPreview":"1/6 • Aluguel — cada aluguel no lugar certo","textChars":43,"textLines":1,"bbox":[70,1287,940,24]}
+{"kind":"image","id":"im/fqls76l4","slide":1,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[70,60,32,32]}
+{"kind":"image","id":"im/vmdkrmt8","slide":1,"name":"","geometry":"rect","alt":"Painel real do Aluguel","bbox":[72,606,936,552]}
+{"kind":"notes","id":"nt/yszb17","slide":1,"text":""}
+{"kind":"slide","id":"sl/hrmrhx","slide":2,"title":"Aluguel","textShapes":7}
+{"kind":"textbox","id":"sh/u583i5wn","slide":2,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[112,59,180,36]}
+{"kind":"textbox","id":"sh/f6h4bad8","slide":2,"text":"GESTÃO DE ALUGUÉIS","textPreview":"GESTÃO DE ALUGUÉIS","textChars":18,"textLines":1,"bbox":[690,67,320,22]}
+{"kind":"textbox","id":"sh/s36lgveh","slide":2,"text":"Veja o mês\nantes de agir.","textPreview":"Veja o mês | antes de agir.","textChars":25,"textLines":2,"bbox":[70,180,850,150]}
+{"kind":"textbox","id":"sh/t4fm90v2","slide":2,"text":"Previsto, recebido, pendências, ocupação e alertas em uma visão única.","textPreview":"Previsto, recebido, pendências, ocupação e alertas em uma visão única.","textChars":70,"textLines":1,"bbox":[70,350,820,74]}
+{"kind":"shape","id":"sh/61o3e5wb","slide":2,"bbox":[70,470,940,610]}
+{"kind":"shape","id":"sh/72xknqdw","slide":2,"bbox":[70,470,940,30]}
+{"kind":"shape","id":"sh/czalszul","slide":2,"bbox":[86,481,7,7]}
+{"kind":"shape","id":"sh/d0jml4v6","slide":2,"bbox":[100,481,7,7]}
+{"kind":"shape","id":"sh/1o3ehove","slide":2,"bbox":[114,481,7,7]}
+{"kind":"textbox","id":"sh/gnadojet","slide":2,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[138,477,180,16]}
+{"kind":"shape","id":"sh/elsvmtwn","slide":2,"bbox":[70,1124,940,105]}
+{"kind":"textbox","id":"sh/t0jedov2","slide":2,"text":"Clareza para priorizar cobranças e manutenção.","textPreview":"Clareza para priorizar cobranças e manutenção.","textChars":46,"textLines":1,"bbox":[100,1157,880,40]}
+{"kind":"textbox","id":"sh/szadkjeh","slide":2,"text":"2/6 • Captura real com dados demonstrativos","textPreview":"2/6 • Captura real com dados demonstrativos","textChars":43,"textLines":1,"bbox":[70,1287,940,24]}
+{"kind":"image","id":"im/0nu9gfeh","slide":2,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[70,60,32,32]}
+{"kind":"image","id":"im/cbul436x","slide":2,"name":"","geometry":"rect","alt":"Painel do Aluguel","bbox":[72,501,936,577]}
+{"kind":"notes","id":"nt/hrmrhx","slide":2,"text":""}
+{"kind":"slide","id":"sl/mvd767","slide":3,"title":"Aluguel","textShapes":9}
+{"kind":"textbox","id":"sh/epojmts7","slide":3,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[112,59,180,36]}
+{"kind":"textbox","id":"sh/fqxkve9s","slide":3,"text":"GESTÃO DE ALUGUÉIS","textPreview":"GESTÃO DE ALUGUÉIS","textChars":18,"textLines":1,"bbox":[690,67,320,22]}
+{"kind":"textbox","id":"sh/ofqls3a9","slide":3,"text":"Do conjunto\nao detalhe.","textPreview":"Do conjunto | ao detalhe.","textChars":23,"textLines":2,"bbox":[70,178,760,150]}
+{"kind":"textbox","id":"sh/pgz218ru","slide":3,"text":"Cada imóvel mantém contrato, cobrança, histórico e documentos no mesmo contexto.","textPreview":"Cada imóvel mantém contrato, cobrança, histórico e documentos no mesmo contexto.","textChars":80,"textLines":1,"bbox":[70,350,870,68]}
+{"kind":"shape","id":"sh/2t83qts3","slide":3,"bbox":[70,470,940,430]}
+{"kind":"shape","id":"sh/nehkzy9o","slide":3,"bbox":[70,470,940,30]}
+{"kind":"shape","id":"sh/cjalw3a5","slide":3,"bbox":[86,481,7,7]}
+{"kind":"shape","id":"sh/xkj258rq","slide":3,"bbox":[100,481,7,7]}
+{"kind":"shape","id":"sh/p8rm5grm","slide":3,"bbox":[114,481,7,7]}
+{"kind":"textbox","id":"sh/o7i5wbq1","slide":3,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[138,477,180,16]}
+{"kind":"shape","id":"sh/250nu18v","slide":3,"bbox":[70,950,170,208]}
+{"kind":"textbox","id":"sh/xcbm9gri","slide":3,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[100,985,110,58]}
+{"kind":"textbox","id":"sh/cb250vqx","slide":3,"text":"imóvel,\ntoda a história","textPreview":"imóvel, | toda a história","textChars":23,"textLines":2,"bbox":[92,1054,126,78]}
+{"kind":"shape","id":"sh/bat47q9c","slide":3,"bbox":[270,930,740,310]}
+{"kind":"shape","id":"sh/a90nyl8r","slide":3,"bbox":[270,930,740,30]}
+{"kind":"shape","id":"sh/dg7mxwre","slide":3,"bbox":[286,941,7,7]}
+{"kind":"shape","id":"sh/sfylorat","slide":3,"bbox":[300,941,7,7]}
+{"kind":"shape","id":"sh/4vmd0vml","slide":3,"bbox":[314,941,7,7]}
+{"kind":"textbox","id":"sh/5wvet036","slide":3,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[338,937,180,16]}
+{"kind":"textbox","id":"sh/3udwrqlg","slide":3,"text":"3/6 • Capturas reais com dados demonstrativos","textPreview":"3/6 • Capturas reais com dados demonstrativos","textChars":45,"textLines":1,"bbox":[70,1287,940,24]}
+{"kind":"image","id":"im/oritofuh","slide":3,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[70,60,32,32]}
+{"kind":"image","id":"im/8n6l8nqp","slide":3,"name":"","geometry":"rect","alt":"Carteira real de imóveis","bbox":[72,501,936,397]}
+{"kind":"image","id":"im/hkbi14nu","slide":3,"name":"","geometry":"rect","alt":"Detalhe real do imóvel","bbox":[272,961,736,277]}
+{"kind":"notes","id":"nt/mvd767","slide":3,"text":""}
+{"kind":"slide","id":"sl/7xynlu","slide":4,"title":"Aluguel","textShapes":7}
+{"kind":"textbox","id":"sh/kje10bu9","slide":4,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[112,59,180,36]}
+{"kind":"textbox","id":"sh/lkn29wbu","slide":4,"text":"GESTÃO DE ALUGUÉIS","textPreview":"GESTÃO DE ALUGUÉIS","textChars":18,"textLines":1,"bbox":[690,67,320,22]}
+{"kind":"textbox","id":"sh/65wj21sf","slide":4,"text":"Previsto, recebido\ne despesas.","textPreview":"Previsto, recebido | e despesas.","textChars":30,"textLines":2,"bbox":[70,178,850,150]}
+{"kind":"textbox","id":"sh/765kb6t0","slide":4,"text":"Registros manuais transformados em visão por imóvel e por mês.","textPreview":"Registros manuais transformados em visão por imóvel e por mês.","textChars":62,"textLines":1,"bbox":[70,350,850,62]}
+{"kind":"shape","id":"sh/87e14bal","slide":4,"bbox":[70,470,940,620]}
+{"kind":"shape","id":"sh/t8n2dgb6","slide":4,"bbox":[70,470,940,30]}
+{"kind":"shape","id":"sh/u9wj6lsb","slide":4,"bbox":[86,481,7,7]}
+{"kind":"shape","id":"sh/vapkfqtw","slide":4,"bbox":[100,481,7,7]}
+{"kind":"shape","id":"sh/zi58jqpk","slide":4,"bbox":[114,481,7,7]}
+{"kind":"textbox","id":"sh/ehw7qloz","slide":4,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[138,477,180,16]}
+{"kind":"shape","id":"sh/0jepsv65","slide":4,"bbox":[70,1135,940,90]}
+{"kind":"textbox","id":"sh/ru58f6po","slide":4,"text":"Mais clareza para cobrar, conferir e planejar.","textPreview":"Mais clareza para cobrar, conferir e planejar.","textChars":46,"textLines":1,"bbox":[105,1163,870,36]}
+{"kind":"textbox","id":"sh/qtw7mlo3","slide":4,"text":"4/6 • Captura real com dados demonstrativos","textPreview":"4/6 • Captura real com dados demonstrativos","textChars":43,"textLines":1,"bbox":[70,1287,940,24]}
+{"kind":"image","id":"im/m1gvyp87","slide":4,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[70,60,32,32]}
+{"kind":"image","id":"im/yhszm10f","slide":4,"name":"","geometry":"rect","alt":"Visão financeira real do Aluguel","bbox":[72,501,936,587]}
+{"kind":"notes","id":"nt/7xynlu","slide":4,"text":""}
+{"kind":"slide","id":"sl/5jid9r","slide":5,"title":"Aluguel","textShapes":10}
+{"kind":"textbox","id":"sh/ylwjmx0v","slide":5,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[112,59,180,36]}
+{"kind":"textbox","id":"sh/jm5kf2hg","slide":5,"text":"GESTÃO DE ALUGUÉIS","textPreview":"GESTÃO DE ALUGUÉIS","textChars":18,"textLines":1,"bbox":[690,67,320,22]}
+{"kind":"textbox","id":"sh/wje1knip","slide":5,"text":"Uma área clara\npara o inquilino.","textPreview":"Uma área clara | para o inquilino.","textChars":32,"textLines":2,"bbox":[70,190,500,158]}
+{"kind":"textbox","id":"sh/xkn2dsza","slide":5,"text":"Acesso somente leitura aos dados que o locador libera.","textPreview":"Acesso somente leitura aos dados que o locador libera.","textChars":54,"textLines":1,"bbox":[70,382,450,72]}
+{"kind":"shape","id":"sh/ahcjid0z","slide":5,"bbox":[70,515,420,66]}
+{"kind":"textbox","id":"sh/bilkbihk","slide":5,"text":"✓  Contrato","textPreview":"✓  Contrato","textChars":11,"textLines":1,"bbox":[100,536,360,28]}
+{"kind":"shape","id":"sh/ofu1g3it","slide":5,"bbox":[70,605,420,66]}
+{"kind":"textbox","id":"sh/9g3298ze","slide":5,"text":"✓  Pagamentos","textPreview":"✓  Pagamentos","textChars":13,"textLines":1,"bbox":[100,626,360,28]}
+{"kind":"shape","id":"sh/t8ba98rm","slide":5,"bbox":[70,695,420,66]}
+{"kind":"textbox","id":"sh/872tg3q1","slide":5,"text":"✓  Energia","textPreview":"✓  Energia","textChars":10,"textLines":1,"bbox":[100,716,360,28]}
+{"kind":"shape","id":"sh/76ts7y9g","slide":5,"bbox":[70,785,420,66]}
+{"kind":"textbox","id":"sh/65kbet8b","slide":5,"text":"✓  Arquivos","textPreview":"✓  Arquivos","textChars":11,"textLines":1,"bbox":[100,806,360,28]}
+{"kind":"shape","id":"sh/l4ra5orq","slide":5,"bbox":[590,170,410,920]}
+{"kind":"shape","id":"sh/k3itc3q5","slide":5,"bbox":[744,190,102,12]}
+{"kind":"shape","id":"sh/y10bat8z","slide":5,"bbox":[70,1140,930,84]}
+{"kind":"textbox","id":"sh/xgra1ore","slide":5,"text":"Menos mensagens repetidas. Mais autonomia com controle.","textPreview":"Menos mensagens repetidas. Mais autonomia com controle.","textChars":55,"textLines":1,"bbox":[102,1166,866,34]}
+{"kind":"textbox","id":"sh/wfit8jqt","slide":5,"text":"5/6 • Captura real com dados demonstrativos","textPreview":"5/6 • Captura real com dados demonstrativos","textChars":43,"textLines":1,"bbox":[70,1287,940,24]}
+{"kind":"image","id":"im/ova10f61","slide":5,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[70,60,32,32]}
+{"kind":"image","id":"im/kfupovi5","slide":5,"name":"","geometry":"roundRect","alt":"Portal real do inquilino","bbox":[614,224,362,810]}
+{"kind":"notes","id":"nt/5jid9r","slide":5,"text":""}
+{"kind":"slide","id":"sl/2jrqv6","slide":6,"title":"Aluguel","textShapes":11}
+{"kind":"textbox","id":"sh/qhs7mpgf","slide":6,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[112,59,180,36]}
+{"kind":"textbox","id":"sh/ril8vuh0","slide":6,"text":"GESTÃO DE ALUGUÉIS","textPreview":"GESTÃO DE ALUGUÉIS","textChars":18,"textLines":1,"bbox":[690,67,320,22]}
+{"kind":"textbox","id":"sh/4vapkfy9","slide":6,"text":"Veja sua rotina\ndentro do Aluguel.","textPreview":"Veja sua rotina | dentro do Aluguel.","textChars":34,"textLines":2,"bbox":[70,188,760,160]}
+{"kind":"textbox","id":"sh/pgjqtkzu","slide":6,"text":"Solicite uma demonstração ou comece grátis com 1 imóvel.","textPreview":"Solicite uma demonstração ou comece grátis com 1 imóvel.","textChars":56,"textLines":1,"bbox":[70,380,760,72]}
+{"kind":"shape","id":"sh/2ts7ipg3","slide":6,"bbox":[70,500,940,560]}
+{"kind":"textbox","id":"sh/ore9wjyd","slide":6,"text":"ABRA O APLICATIVO","textPreview":"ABRA O APLICATIVO","textChars":17,"textLines":1,"bbox":[602,625,330,28]}
+{"kind":"textbox","id":"sh/9cnq5ozy","slide":6,"text":"Começar\ngrátis","textPreview":"Começar | grátis","textChars":14,"textLines":2,"bbox":[602,682,330,105]}
+{"kind":"textbox","id":"sh/1cbuh4fe","slide":6,"text":"aluguel-casas-anderton\n.netlify.app","textPreview":"aluguel-casas-anderton | .netlify.app","textChars":35,"textLines":2,"bbox":[602,820,330,70]}
+{"kind":"textbox","id":"sh/0r2tozet","slide":6,"text":"Demonstração comercial:","textPreview":"Demonstração comercial:","textChars":23,"textLines":1,"bbox":[602,930,330,25]}
+{"kind":"textbox","id":"sh/zqtcfux8","slide":6,"text":"andertonaluguel@gmail.com","textPreview":"andertonaluguel@gmail.com","textChars":25,"textLines":1,"bbox":[602,966,330,26]}
+{"kind":"shape","id":"sh/ep0bmpw3","slide":6,"bbox":[70,1108,940,104]}
+{"kind":"textbox","id":"sh/dorudkfi","slide":6,"text":"WhatsApp oficial será incluído após a confirmação do número com DDD.","textPreview":"WhatsApp oficial será incluído após a confirmação do número com DDD.","textChars":68,"textLines":1,"bbox":[102,1139,876,40]}
+{"kind":"textbox","id":"sh/cnitkfex","slide":6,"text":"6/6 • Aluguel — cada aluguel no lugar certo","textPreview":"6/6 • Aluguel — cada aluguel no lugar certo","textChars":43,"textLines":1,"bbox":[70,1287,940,24]}
+{"kind":"image","id":"im/0j65gjyh","slide":6,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[70,60,32,32]}
+{"kind":"image","id":"im/m5onitgn","slide":6,"name":"","geometry":"rect","alt":"QR Code do aplicativo","bbox":[150,585,390,390]}
+{"kind":"notes","id":"nt/2jrqv6","slide":6,"text":""}

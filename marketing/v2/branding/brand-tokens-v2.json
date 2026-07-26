@@ -1,0 +1,138 @@
+{
+  "format": "aluguel-brand-tokens/2.0",
+  "meta": {
+    "brand": "Aluguel",
+    "version": "2.0.0",
+    "created": "2026-07-26",
+    "supersedes": "../../branding/brand-tokens.json (1.0.0)",
+    "locale": "pt-BR",
+    "source": [
+      "aluguel-ui.css:6-30",
+      "minha-casa.css:5-27",
+      "style.css:1-31",
+      "config.js:12-14"
+    ],
+    "editable": true,
+    "nota": "A versão 1.0 descrevia a interface antiga (papel + latão). Esta versão descreve a interface em produção a partir de julho de 2026: painel escuro, herói em gradiente e acento lima. A paleta 1.0 permanece válida apenas como camada histórica do catálogo público e do portal."
+  },
+
+  "arquitetura": {
+    "nota": "O aplicativo passou a ter três superfícies com identidades próprias dentro da mesma marca.",
+    "superficies": [
+      { "id": "alugueis", "nome": "Aluguéis", "acento": "lime", "base": "night", "publico": "cliente proprietário" },
+      { "id": "minhaCasa", "nome": "Minha Casa", "acento": "lime", "base": "violet-night", "publico": "hoje restrito à conta Mestre" },
+      { "id": "comercial", "nome": "Comercial", "acento": "violet", "base": "night", "publico": "hoje restrito à conta Mestre" }
+    ]
+  },
+
+  "color": {
+    "night":        { "value": "#102E27", "role": "base escura, topbar, herói, CTA primário sobre claro" },
+    "night2":       { "value": "#1A473B", "role": "profundidade do gradiente, aba ativa, superfície escura secundária" },
+    "night3":       { "value": "#276153", "role": "brilho interno do gradiente e estados hover escuros" },
+    "canvas":       { "value": "#EEF3F0", "role": "fundo do produto" },
+    "card":         { "value": "#FFFFFF", "role": "cartões e áreas de leitura" },
+    "ink":          { "value": "#19251F", "role": "texto principal" },
+    "muted":        { "value": "#63736B", "role": "texto secundário — ver ressalva em accessibility.correcoesRecomendadas" },
+    "mutedAA":      { "value": "#5A6A62", "role": "texto secundário aprovado sobre canvas e sobre card" },
+    "line":         { "value": "#D9E3DD", "role": "bordas e divisores" },
+    "lime":         { "value": "#E7F77B", "role": "acento da marca — fundo de botão, aba ativa, eyebrow sobre escuro. NUNCA texto sobre claro" },
+    "gold":         { "value": "#F0C76E", "role": "destaque decorativo sobre escuro, ícones e molduras" },
+    "goldDeep":     { "value": "#9C6C15", "role": "texto de destaque sobre branco — ver ressalva" },
+    "goldDeepAA":   { "value": "#8A5F12", "role": "texto de destaque aprovado sobre canvas e sobre card" },
+    "violet":       { "value": "#6D5BD0", "role": "módulo Minha Casa, foco de teclado, área Comercial" },
+    "violetSoft":   { "value": "#ECE8FF", "role": "fundo de aviso informativo" },
+    "danger":       { "value": "#B83D4F", "role": "atraso, erro e ação destrutiva" },
+    "dangerSoft":   { "value": "#FCE2E7", "role": "fundo de erro e card em atraso" },
+    "ok":           { "value": "#087F69", "role": "entrada, recebido e confirmação" },
+    "okSoft":       { "value": "#D9F4EB", "role": "fundo de confirmação" },
+    "heroText":     { "value": "#D1DED8", "role": "texto de apoio dentro do herói escuro" },
+    "coverMuted":   { "value": "#C6D5CE", "role": "texto secundário na topbar" }
+  },
+
+  "colorLegado": {
+    "nota": "Mantidos para o catálogo público, o portal do inquilino e materiais impressos já distribuídos.",
+    "cover":     { "value": "#14322A" },
+    "paper":     { "value": "#F7F6F2" },
+    "brass":     { "value": "#B8863C" },
+    "brassDeep": { "value": "#8C631F" }
+  },
+
+  "gradiente": {
+    "heroi": "radial-gradient(circle at 88% 18%, rgba(231,247,123,.20), transparent 23%), radial-gradient(circle at 17% 135%, rgba(51,120,101,.72), transparent 46%), linear-gradient(135deg, #102E27, #1A473B 65%, #0C2721)",
+    "topbar": "radial-gradient(circle at 76% -90%, rgba(231,247,123,.17), transparent 31%), linear-gradient(110deg, #0D2923, #1A473B)",
+    "canvas": "radial-gradient(circle at 92% 0, rgba(231,247,123,.13), transparent 22%), linear-gradient(180deg, #F7FAF8 0%, #EEF3F0 100%)",
+    "minhaCasa": "radial-gradient(circle at 95% 4%, rgba(109,91,208,.13), transparent 25%), linear-gradient(180deg, #F7F5FE 0%, #F2F0FA 100%)"
+  },
+
+  "typography": {
+    "display": { "family": "Space Grotesk", "fallback": "Arial, sans-serif", "weights": [500,600,700], "use": "marca, títulos de herói, headlines" },
+    "body":    { "family": "IBM Plex Sans", "fallback": "Arial, sans-serif", "weights": [400,500,600], "use": "texto corrido, botões, formulários" },
+    "data":    { "family": "IBM Plex Mono", "fallback": "Courier New, monospace", "weights": [400,500,600], "use": "valores, datas, status, eyebrows" },
+    "heroTitle": { "clamp": "clamp(30px, 4.4vw, 42px)", "lineHeight": 1.05, "weight": 700 },
+    "eyebrow": { "size": 11, "weight": 700, "tracking": "0.14em", "transform": "uppercase", "family": "IBM Plex Mono" },
+    "scaleRem": { "2xs": 0.6875, "xs": 0.75, "sm": 0.875, "md": 1, "lg": 1.25, "xl": 1.625, "2xl": 2.125 }
+  },
+
+  "radiusRem": { "sm": 0.6875, "md": 0.75, "lg": 1.0, "card": 1.125, "hero": 1.375, "app": 1.5625, "pill": 999 },
+
+  "shadow": {
+    "sm": "0 4px 15px rgba(16,46,39,.07)",
+    "md": "0 12px 36px rgba(16,46,39,.09)",
+    "hero": "0 18px 44px rgba(16,46,39,.20)",
+    "topbar": "0 1px 0 rgba(255,255,255,.08), 0 10px 30px rgba(8,31,25,.14)"
+  },
+
+  "componentes": {
+    "topbar": { "minHeight": 76, "maxWidth": 1440, "brandSeparator": "1px rgba(255,255,255,.13)" },
+    "heroi": { "minHeight": 168, "padding": "29px 32px", "radius": 22, "ornamento": "círculo de borda 24px em rgba(255,255,255,.045), canto inferior direito" },
+    "abas": { "layout": "grid auto-fit minmax(112px,1fr)", "gap": 5, "radius": 16, "itemRadius": 11, "itemMinHeight": 46, "ativo": "fundo night2, texto branco, ícone lime" },
+    "cartao": { "radius": 18, "borda": "1px line", "sombra": "sm", "fundo": "card" },
+    "botaoPrimario": { "fundo": "night", "texto": "#FFFFFF", "minHeight": 44, "noHeroi": "fundo lime, texto night" },
+    "foco": { "outline": "3px solid violet", "offset": 2, "noHeroi": "outline lime" }
+  },
+
+  "accessibility": {
+    "minimoTextoNormal": 4.5,
+    "paresVerificados": [
+      { "fg": "#19251F", "bg": "#EEF3F0", "ratio": 14.12, "uso": "texto principal sobre canvas" },
+      { "fg": "#19251F", "bg": "#FFFFFF", "ratio": 15.84, "uso": "texto principal em cartão" },
+      { "fg": "#102E27", "bg": "#EEF3F0", "ratio": 12.98, "uso": "títulos sobre canvas" },
+      { "fg": "#FFFFFF", "bg": "#102E27", "ratio": 14.56, "uso": "texto no herói e na topbar" },
+      { "fg": "#FFFFFF", "bg": "#1A473B", "ratio": 10.46, "uso": "texto na aba ativa" },
+      { "fg": "#D1DED8", "bg": "#102E27", "ratio": 10.51, "uso": "subtítulo do herói" },
+      { "fg": "#E7F77B", "bg": "#102E27", "ratio": 12.47, "uso": "eyebrow e ícone sobre escuro" },
+      { "fg": "#E7F77B", "bg": "#1A473B", "ratio": 8.96, "uso": "ícone na aba ativa" },
+      { "fg": "#F0C76E", "bg": "#102E27", "ratio": 9.08, "uso": "destaque decorativo sobre escuro" },
+      { "fg": "#102E27", "bg": "#E7F77B", "ratio": 12.47, "uso": "botão primário dentro do herói" },
+      { "fg": "#5A6A62", "bg": "#EEF3F0", "ratio": 5.10, "uso": "texto secundário aprovado" },
+      { "fg": "#8A5F12", "bg": "#EEF3F0", "ratio": 5.02, "uso": "destaque em texto aprovado" },
+      { "fg": "#B83D4F", "bg": "#FFFFFF", "ratio": 5.50, "uso": "atraso e erro" },
+      { "fg": "#6D5BD0", "bg": "#FFFFFF", "ratio": 5.18, "uso": "informação e Minha Casa" },
+      { "fg": "#087F69", "bg": "#FFFFFF", "ratio": 4.94, "uso": "entrada e confirmação" }
+    ],
+    "reprovados": [
+      { "fg": "#E7F77B", "bg": "#FFFFFF", "ratio": 1.17, "regra": "Lima nunca é cor de texto sobre fundo claro. Só fundo de botão, chip ou elemento decorativo." },
+      { "fg": "#F0C76E", "bg": "#FFFFFF", "ratio": 1.60, "regra": "Ouro claro nunca é cor de texto sobre fundo claro. Sobre escuro é aprovado." }
+    ],
+    "correcoesRecomendadas": [
+      { "token": "muted #63736B", "problema": "4.46:1 sobre o canvas #EEF3F0 — fica 0,04 abaixo do mínimo AA para texto normal.", "correcao": "Usar #5A6A62 (5.10:1) quando o texto estiver diretamente sobre o canvas. Sobre cartão branco o valor original passa (5.01:1)." },
+      { "token": "goldDeep #9C6C15", "problema": "4.10:1 sobre o canvas #EEF3F0 — reprovado para texto normal.", "correcao": "Usar #8A5F12 (5.02:1) sobre canvas e sobre cartão." }
+    ],
+    "regrasGerais": [
+      "Status nunca depende apenas da cor: combinar rótulo, valor e, quando útil, ícone.",
+      "Lima e ouro claro são cores de superfície e de acento sobre escuro, nunca de texto sobre claro.",
+      "Todo botão tem altura mínima de 44px.",
+      "O foco visível usa violeta de 3px, exceto dentro do herói, onde usa lima."
+    ]
+  },
+
+  "logo": {
+    "sourceViewBox": "0 0 32 32",
+    "minimumSymbolPx": 24,
+    "minimumLockupPx": 140,
+    "clearSpaceRule": "Manter ao redor pelo menos a largura de uma janela do símbolo.",
+    "fundoEscuro": { "symbol": "#F0C76E", "window": "#102E27", "wordmark": "#FFFFFF" },
+    "fundoClaro":  { "symbol": "#8A5F12", "window": "#102E27", "wordmark": "#102E27" },
+    "nota": "A geometria do símbolo não muda em relação à versão 1.0 (app.js:65-72). Apenas as cores foram atualizadas para o novo sistema."
+  }
+}

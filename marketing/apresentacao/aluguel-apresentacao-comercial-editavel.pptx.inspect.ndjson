@@ -1,0 +1,321 @@
+{"kind":"deck","id":"pr/zofhmv","name":"Deck"}
+{"kind":"layout","layoutId":"ec67f3ee-5612-4911-86ae-069796f5ff36","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"bcf7a0c8-9568-4194-bbc3-d39da364dde8","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/qjb8e5","slide":1,"title":"Aluguel","textShapes":7}
+{"kind":"shape","id":"sh/bm1c7i10","slide":1,"bbox":[880,2,380,380]}
+{"kind":"shape","id":"sh/cnutgn2l","slide":1,"bbox":[950,42,270,270]}
+{"kind":"textbox","id":"sh/2xsbadkj","slide":1,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[110,51,180,36]}
+{"kind":"textbox","id":"sh/ny1s3i14","slide":1,"text":"GESTÃO DE ALUGUÉIS","textPreview":"GESTÃO DE ALUGUÉIS","textChars":18,"textLines":1,"bbox":[68,154,370,24]}
+{"kind":"textbox","id":"sh/ozatcn29","slide":1,"text":"Da casa vaga\nao pagamento\nrecebido.","textPreview":"Da casa vaga | ao pagamento | recebido.","textChars":35,"textLines":3,"bbox":[68,194,485,230]}
+{"kind":"shape","id":"sh/pkja5sju","slide":1,"bbox":[68,450,84,5]}
+{"kind":"textbox","id":"sh/et8b6dk7","slide":1,"text":"Uma visão organizada de imóveis, contratos, cobranças e documentos — feita para pequenos locadores.","textPreview":"Uma visão organizada de imóveis, contratos, cobranças e documentos — feita para pequenos locadores.","textChars":99,"textLines":1,"bbox":[68,478,450,100]}
+{"kind":"shape","id":"sh/fuhszyls","slide":1,"bbox":[545,150,690,440]}
+{"kind":"shape","id":"sh/jupgj2hk","slide":1,"bbox":[545,150,690,30]}
+{"kind":"shape","id":"sh/ytwfqxgz","slide":1,"bbox":[561,161,7,7]}
+{"kind":"shape","id":"sh/lw7ylczq","slide":1,"bbox":[575,161,7,7]}
+{"kind":"shape","id":"sh/kvyxs7y5","slide":1,"bbox":[589,161,7,7]}
+{"kind":"textbox","id":"sh/7ypgn2hw","slide":1,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[613,157,180,16]}
+{"kind":"textbox","id":"sh/t07ypczm","slide":1,"text":"PRODUTO REAL • DADOS DEMONSTRATIVOS","textPreview":"PRODUTO REAL • DADOS DEMONSTRATIVOS","textChars":35,"textLines":1,"bbox":[69,660,380,20]}
+{"kind":"textbox","id":"sh/szyhw7yh","slide":1,"text":"Aluguel Comercial 1.0","textPreview":"Aluguel Comercial 1.0","textChars":21,"textLines":1,"bbox":[1010,660,200,20]}
+{"kind":"image","id":"im/0jahsz21","slide":1,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[68,52,32,32]}
+{"kind":"image","id":"im/14ru1kre","slide":1,"name":"","geometry":"rect","alt":"Painel demonstrativo do Aluguel","bbox":[547,181,686,407]}
+{"kind":"notes","id":"nt/qjb8e5","slide":1,"text":""}
+{"kind":"slide","id":"sl/7ij2z7","slide":2,"title":"O PROBLEMA","textShapes":15}
+{"kind":"textbox","id":"sh/r2xovudg","slide":2,"text":"O PROBLEMA","textPreview":"O PROBLEMA","textChars":10,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/s365ozu1","slide":2,"text":"A informação existe. O difícil é encontrá-la na hora certa.","textPreview":"A informação existe. O difícil é encontrá-la na hora certa.","textChars":59,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/t4f6x4v6","slide":2,"text":"Quando a operação se espalha, perguntas simples exigem conferências demoradas.","textPreview":"Quando a operação se espalha, perguntas simples exigem conferências demoradas.","textChars":78,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/ix4nipcj","slide":2,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/jydorad4","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/4zm5kfup","slide":2,"bbox":[64,238,350,310]}
+{"kind":"shape","id":"sh/50f6tkva","slide":2,"bbox":[64,238,7,310]}
+{"kind":"textbox","id":"sh/u94ne5cn","slide":2,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[90,260,60,22]}
+{"kind":"textbox","id":"sh/vad4nad8","slide":2,"text":"Planilhas","textPreview":"Planilhas","textChars":9,"textLines":1,"bbox":[90,292,298,46]}
+{"kind":"textbox","id":"sh/3ap4fetg","slide":2,"text":"Recebimentos e despesas ficam separados do imóvel e do contrato que explicam cada valor.","textPreview":"Recebimentos e despesas ficam separados do imóvel e do contrato que explicam cada valor.","textChars":88,"textLines":1,"bbox":[90,342,298,190]}
+{"kind":"shape","id":"sh/29gn69sv","slide":2,"bbox":[465,238,350,310]}
+{"kind":"shape","id":"sh/pcrmh4bm","slide":2,"bbox":[465,238,7,310]}
+{"kind":"textbox","id":"sh/obi58ja1","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[491,260,60,22]}
+{"kind":"textbox","id":"sh/by94jetc","slide":2,"text":"Conversas","textPreview":"Conversas","textChars":9,"textLines":1,"bbox":[491,292,298,46]}
+{"kind":"textbox","id":"sh/qd0na9s7","slide":2,"text":"Cobranças, interessados e combinações importantes se perdem em históricos difíceis de consultar.","textPreview":"Cobranças, interessados e combinações importantes se perdem em históricos difíceis de consultar.","textChars":96,"textLines":1,"bbox":[491,342,298,190]}
+{"kind":"shape","id":"sh/d0rmlobi","slide":2,"bbox":[866,238,350,310]}
+{"kind":"shape","id":"sh/czi5cjax","slide":2,"bbox":[866,238,7,310]}
+{"kind":"textbox","id":"sh/ri547ut8","slide":2,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[892,260,60,22]}
+{"kind":"textbox","id":"sh/6hw3ypsn","slide":2,"text":"Arquivos","textPreview":"Arquivos","textChars":8,"textLines":1,"bbox":[892,292,298,46]}
+{"kind":"textbox","id":"sh/ax47mxcb","slide":2,"text":"Fotos, contratos, recibos e leituras ficam sem vínculo claro com a rotina de cada casa.","textPreview":"Fotos, contratos, recibos e leituras ficam sem vínculo claro com a rotina de cada casa.","textChars":87,"textLines":1,"bbox":[892,342,298,190]}
+{"kind":"textbox","id":"sh/vyd8f2dw","slide":2,"text":"O resultado é menos clareza para decidir o próximo passo.","textPreview":"O resultado é menos clareza para decidir o próximo passo.","textChars":57,"textLines":1,"bbox":[64,594,820,34]}
+{"kind":"notes","id":"nt/7ij2z7","slide":2,"text":""}
+{"kind":"slide","id":"sl/uzpmsj","slide":3,"title":"A SOLUÇÃO","textShapes":25}
+{"kind":"textbox","id":"sh/ho361cv2","slide":3,"text":"A SOLUÇÃO","textPreview":"A SOLUÇÃO","textChars":9,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/ulcnqxwb","slide":3,"text":"Uma operação conectada, da entrada à consulta.","textPreview":"Uma operação conectada, da entrada à consulta.","textChars":46,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/vmloz2dw","slide":3,"text":"O Aluguel reúne as etapas essenciais sem esconder as confirmações que ainda dependem do usuário.","textPreview":"O Aluguel reúne as etapas essenciais sem esconder as confirmações que ainda dependem do usuário.","textChars":96,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/8ja5o7e5","slide":3,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/9k36xsvq","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/mxsnmxwz","slide":3,"bbox":[64,270,202,214]}
+{"kind":"textbox","id":"sh/7y1ov2dk","slide":3,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[86,292,52,24]}
+{"kind":"textbox","id":"sh/kva5kne9","slide":3,"text":"Cadastrar","textPreview":"Cadastrar","textChars":9,"textLines":1,"bbox":[86,346,160,40]}
+{"kind":"textbox","id":"sh/lwj6tsvu","slide":3,"text":"Imóvel e pessoas","textPreview":"Imóvel e pessoas","textChars":16,"textLines":1,"bbox":[86,402,160,54]}
+{"kind":"textbox","id":"sh/t8z6h47u","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[270,352,28,30]}
+{"kind":"shape","id":"sh/s765oz69","slide":3,"bbox":[299,270,202,214]}
+{"kind":"textbox","id":"sh/r6xofupo","slide":3,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[321,292,52,24]}
+{"kind":"textbox","id":"sh/65onmpo3","slide":3,"text":"Contratar","textPreview":"Contratar","textChars":9,"textLines":1,"bbox":[321,346,160,40]}
+{"kind":"textbox","id":"sh/54fmdk7y","slide":3,"text":"Período e vencimento","textPreview":"Período e vencimento","textChars":20,"textLines":1,"bbox":[321,402,160,54]}
+{"kind":"textbox","id":"sh/4365kz6d","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[505,352,28,30]}
+{"kind":"shape","id":"sh/j2x4bups","slide":3,"bbox":[534,270,202,214]}
+{"kind":"textbox","id":"sh/i1onipo7","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[556,292,52,24]}
+{"kind":"textbox","id":"sh/h0fm9k7m","slide":3,"text":"Acompanhar","textPreview":"Acompanhar","textChars":10,"textLines":1,"bbox":[556,346,160,40]}
+{"kind":"textbox","id":"sh/wfm5gf61","slide":3,"text":"Aluguel, energia e despesas","textPreview":"Aluguel, energia e despesas","textChars":27,"textLines":1,"bbox":[556,402,160,54]}
+{"kind":"textbox","id":"sh/8jq5wfex","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[740,352,28,30]}
+{"kind":"shape","id":"sh/9kz6pkfi","slide":3,"bbox":[769,270,202,214]}
+{"kind":"textbox","id":"sh/mh8nu5wr","slide":3,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[791,292,52,24]}
+{"kind":"textbox","id":"sh/nihonaxc","slide":3,"text":"Cobrar","textPreview":"Cobrar","textChars":6,"textLines":1,"bbox":[791,346,160,40]}
+{"kind":"textbox","id":"sh/0fq5sfe1","slide":3,"text":"WhatsApp e PIX manuais","textPreview":"WhatsApp e PIX manuais","textChars":22,"textLines":1,"bbox":[791,402,160,54]}
+{"kind":"textbox","id":"sh/lgz6lkfm","slide":3,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[975,352,28,30]}
+{"kind":"shape","id":"sh/ytonq5wv","slide":3,"bbox":[1004,270,202,214]}
+{"kind":"textbox","id":"sh/zuh4jaxg","slide":3,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1026,292,52,24]}
+{"kind":"textbox","id":"sh/kba54ze5","slide":3,"text":"Consultar","textPreview":"Consultar","textChars":9,"textLines":1,"bbox":[1026,346,160,40]}
+{"kind":"textbox","id":"sh/5cj6x4fq","slide":3,"text":"Painel, relatórios e portal","textPreview":"Painel, relatórios e portal","textChars":27,"textLines":1,"bbox":[1026,402,160,54]}
+{"kind":"textbox","id":"sh/f6583yhs","slide":3,"text":"Gestão assistida: o sistema organiza e prepara; o responsável confirma e envia.","textPreview":"Gestão assistida: o sistema organiza e prepara; o responsável confirma e envia.","textChars":79,"textLines":1,"bbox":[64,548,1080,32]}
+{"kind":"notes","id":"nt/uzpmsj","slide":3,"text":""}
+{"kind":"slide","id":"sl/dba13y","slide":4,"title":"PAINEL","textShapes":10}
+{"kind":"textbox","id":"sh/itkzedsv","slide":4,"text":"PAINEL","textPreview":"PAINEL","textChars":6,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/5wvi9sr6","slide":4,"text":"Comece o dia sabendo o que exige atenção.","textPreview":"Comece o dia sabendo o que exige atenção.","textChars":41,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/kvmhgnal","slide":4,"text":"Previsto, recebido, pendências, ocupação, manutenção e movimentações em uma visão única.","textPreview":"Previsto, recebido, pendências, ocupação, manutenção e movimentações em uma visão única.","textChars":88,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/7yd0b29c","slide":4,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/6x4zix8r","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/tkvidcri","slide":4,"bbox":[64,222,870,430]}
+{"kind":"shape","id":"sh/sjmhk7qx","slide":4,"bbox":[64,222,870,30]}
+{"kind":"shape","id":"sh/fmd0f298","slide":4,"bbox":[80,233,7,7]}
+{"kind":"shape","id":"sh/ul4zmx83","slide":4,"bbox":[94,233,7,7]}
+{"kind":"shape","id":"sh/gz6dgj2x","slide":4,"bbox":[108,233,7,7]}
+{"kind":"textbox","id":"sh/10fu94ji","slide":4,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[132,229,180,16]}
+{"kind":"shape","id":"sh/fyxc7e1s","slide":4,"bbox":[970,222,246,198]}
+{"kind":"shape","id":"sh/o3qdkj29","slide":4,"bbox":[970,222,7,198]}
+{"kind":"textbox","id":"sh/p4zudoju","slide":4,"text":"O mês em contexto","textPreview":"O mês em contexto","textChars":17,"textLines":1,"bbox":[996,248,194,46]}
+{"kind":"textbox","id":"sh/21ovi9k3","slide":4,"text":"Aluguel, energia e recebido aparecem lado a lado.","textPreview":"Aluguel, energia e recebido aparecem lado a lado.","textChars":49,"textLines":1,"bbox":[996,299,194,106]}
+{"kind":"shape","id":"sh/n2xcbe1o","slide":4,"bbox":[970,442,246,210]}
+{"kind":"shape","id":"sh/crqdo325","slide":4,"bbox":[970,442,7,210]}
+{"kind":"textbox","id":"sh/xszuhojq","slide":4,"text":"Ação priorizada","textPreview":"Ação priorizada","textChars":15,"textLines":1,"bbox":[996,468,194,46]}
+{"kind":"textbox","id":"sh/lovu1obu","slide":4,"text":"Atrasos, próximos vencimentos e manutenção ficam visíveis.","textPreview":"Atrasos, próximos vencimentos e manutenção ficam visíveis.","textChars":58,"textLines":1,"bbox":[996,519,194,118]}
+{"kind":"image","id":"im/xszqhkve","slide":4,"name":"","geometry":"rect","alt":"Painel com indicadores e alertas","bbox":[66,253,866,397]}
+{"kind":"notes","id":"nt/dba13y","slide":4,"text":""}
+{"kind":"slide","id":"sl/eklcxm","slide":5,"title":"CAPTURAS REAIS • DADOS DEMO","textShapes":1}
+{"kind":"shape","id":"sh/rutofids","slide":5,"bbox":[930,620,286,54]}
+{"kind":"textbox","id":"sh/6tk76dc7","slide":5,"text":"CAPTURAS REAIS • DADOS DEMO","textPreview":"CAPTURAS REAIS • DADOS DEMO","textChars":27,"textLines":1,"bbox":[951,637,240,18]}
+{"kind":"image","id":"im/5cf61wry","slide":5,"name":"","geometry":"rect","alt":"Mockup da carteira e do detalhe do imóvel","bbox":[0,0,1280,720]}
+{"kind":"notes","id":"nt/eklcxm","slide":5,"text":""}
+{"kind":"slide","id":"sl/4bn8ve","slide":6,"title":"RECEBIMENTOS SÃO REGISTRADOS MANUALMENTE","textShapes":1}
+{"kind":"shape","id":"sh/e103elgn","slide":6,"bbox":[885,623,331,52]}
+{"kind":"textbox","id":"sh/z29kn6h8","slide":6,"text":"RECEBIMENTOS SÃO REGISTRADOS MANUALMENTE","textPreview":"RECEBIMENTOS SÃO REGISTRADOS MANUALMENTE","textChars":40,"textLines":1,"bbox":[904,639,292,18]}
+{"kind":"image","id":"im/crid0v25","slide":6,"name":"","geometry":"rect","alt":"Mockup da gestão financeira","bbox":[0,0,1280,720]}
+{"kind":"notes","id":"nt/4bn8ve","slide":6,"text":""}
+{"kind":"slide","id":"sl/32x5kn","slide":7,"title":"COBRANÇA ASSISTIDA","textShapes":19}
+{"kind":"textbox","id":"sh/fu9cbi1c","slide":7,"text":"COBRANÇA ASSISTIDA","textPreview":"COBRANÇA ASSISTIDA","textChars":18,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/gv2tk32x","slide":7,"text":"Prepare a cobrança. Mantenha o envio sob seu controle.","textPreview":"Prepare a cobrança. Mantenha o envio sob seu controle.","textChars":54,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/1wbud8ji","slide":7,"text":"O aplicativo monta o contexto e oferece atalhos; nenhuma mensagem ou baixa acontece sem ação humana.","textPreview":"O aplicativo monta o contexto e oferece atalhos; nenhuma mensagem ou baixa acontece sem ação humana.","textChars":100,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/2xkbmdkn","slide":7,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/3ytcfi18","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/oz2ton2t","slide":7,"bbox":[64,240,52,52]}
+{"kind":"textbox","id":"sh/p0buhsje","slide":7,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[64,252,52,25]}
+{"kind":"textbox","id":"sh/i1gbatkj","slide":7,"text":"Identifique a pendência","textPreview":"Identifique a pendência","textChars":23,"textLines":1,"bbox":[136,238,355,28]}
+{"kind":"textbox","id":"sh/j2ps3yl4","slide":7,"text":"O painel e a ficha mostram o mês e o valor.","textPreview":"O painel e a ficha mostram o mês e o valor.","textChars":43,"textLines":1,"bbox":[136,270,390,38]}
+{"kind":"shape","id":"sh/3u9cfu9o","slide":7,"bbox":[64,332,52,52]}
+{"kind":"textbox","id":"sh/it0v69s3","slide":7,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[64,344,52,25]}
+{"kind":"textbox","id":"sh/5wruh4re","slide":7,"text":"Abra a mensagem","textPreview":"Abra a mensagem","textChars":15,"textLines":1,"bbox":[136,330,355,28]}
+{"kind":"textbox","id":"sh/4vid8za9","slide":7,"text":"O WhatsApp recebe um texto pré-preenchido.","textPreview":"O WhatsApp recebe um texto pré-preenchido.","textChars":42,"textLines":1,"bbox":[136,362,390,38]}
+{"kind":"shape","id":"sh/vqpcbu9c","slide":7,"bbox":[64,424,52,52]}
+{"kind":"textbox","id":"sh/upgv2psr","slide":7,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[64,436,52,25]}
+{"kind":"textbox","id":"sh/hsrud4ri","slide":7,"text":"Inclua o PIX","textPreview":"Inclua o PIX","textChars":12,"textLines":1,"bbox":[136,422,355,28]}
+{"kind":"textbox","id":"sh/grid4zax","slide":7,"text":"Use o Copia e Cola quando a chave estiver configurada.","textPreview":"Use o Copia e Cola quando a chave estiver configurada.","textChars":54,"textLines":1,"bbox":[136,454,390,38]}
+{"kind":"shape","id":"sh/72pc7a9g","slide":7,"bbox":[64,516,52,52]}
+{"kind":"textbox","id":"sh/61gvypsv","slide":7,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[64,528,52,25]}
+{"kind":"textbox","id":"sh/axwvq5cn","slide":7,"text":"Confirme o recebimento","textPreview":"Confirme o recebimento","textChars":22,"textLines":1,"bbox":[136,514,355,28]}
+{"kind":"textbox","id":"sh/by5wjad8","slide":7,"text":"A baixa é registrada manualmente no aplicativo.","textPreview":"A baixa é registrada manualmente no aplicativo.","textChars":47,"textLines":1,"bbox":[136,546,390,38]}
+{"kind":"shape","id":"sh/wzedsfut","slide":7,"bbox":[565,236,650,390]}
+{"kind":"shape","id":"sh/x07elkve","slide":7,"bbox":[565,236,650,30]}
+{"kind":"shape","id":"sh/y1gvupcz","slide":7,"bbox":[581,247,7,7]}
+{"kind":"shape","id":"sh/j2pwnud4","slide":7,"bbox":[595,247,7,7]}
+{"kind":"shape","id":"sh/k3ydwzup","slide":7,"bbox":[609,247,7,7]}
+{"kind":"textbox","id":"sh/lo7ep4ba","slide":7,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[633,243,180,16]}
+{"kind":"shape","id":"sh/7qpwrutg","slide":7,"bbox":[842,584,344,60]}
+{"kind":"textbox","id":"sh/hwbqdsju","slide":7,"text":"Sem gateway • sem conciliação bancária automática","textPreview":"Sem gateway • sem conciliação bancária automática","textChars":49,"textLines":1,"bbox":[861,603,306,20]}
+{"kind":"image","id":"im/ts3i5wb2","slide":7,"name":"","geometry":"rect","alt":"Ficha do imóvel com cobrança","bbox":[567,267,646,357]}
+{"kind":"notes","id":"nt/32x5kn","slide":7,"text":""}
+{"kind":"slide","id":"sl/tf4tz8","slide":8,"title":"VACÂNCIA E DEMANDA","textShapes":9}
+{"kind":"textbox","id":"sh/ixsva18f","slide":8,"text":"VACÂNCIA E DEMANDA","textPreview":"VACÂNCIA E DEMANDA","textChars":18,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/50julwr6","slide":8,"text":"Da casa vaga ao próximo contrato, sem perder o fio.","textPreview":"Da casa vaga ao próximo contrato, sem perder o fio.","textChars":51,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/kzadcrql","slide":8,"text":"Publique imóveis vagos, organize interessados e encontre combinações por regras de preço, cômodos e comodidades.","textPreview":"Publique imóveis vagos, organize interessados e encontre combinações por regras de preço, cômodos e comodidades.","textChars":112,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/vuhcfm94","slide":8,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/at8v6hsj","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/xwjuhwra","slide":8,"bbox":[64,230,690,410]}
+{"kind":"shape","id":"sh/wvqd8rqp","slide":8,"bbox":[64,230,690,30]}
+{"kind":"shape","id":"sh/n6hcb29s","slide":8,"bbox":[80,241,7,7]}
+{"kind":"shape","id":"sh/m58b2hsn","slide":8,"bbox":[94,241,7,7]}
+{"kind":"shape","id":"sh/ozupwnq1","slide":8,"bbox":[108,241,7,7]}
+{"kind":"textbox","id":"sh/p03q5s7m","slide":8,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[132,237,180,16]}
+{"kind":"shape","id":"sh/nyl83ipg","slide":8,"bbox":[784,230,432,270]}
+{"kind":"shape","id":"sh/0vupsnq5","slide":8,"bbox":[784,230,432,30]}
+{"kind":"shape","id":"sh/1w3q1s7q","slide":8,"bbox":[800,241,7,7]}
+{"kind":"shape","id":"sh/ets7qd8z","slide":8,"bbox":[814,241,7,7]}
+{"kind":"shape","id":"sh/ful8zipk","slide":8,"bbox":[828,241,7,7]}
+{"kind":"textbox","id":"sh/kre947q9","slide":8,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[852,237,180,16]}
+{"kind":"shape","id":"sh/t83qhczy","slide":8,"bbox":[784,520,432,120]}
+{"kind":"shape","id":"sh/87apo7yd","slide":8,"bbox":[784,520,7,120]}
+{"kind":"textbox","id":"sh/7m18f2hs","slide":8,"text":"Matching transparente","textPreview":"Matching transparente","textChars":21,"textLines":1,"bbox":[810,546,380,46]}
+{"kind":"textbox","id":"sh/6ls7mx0n","slide":8,"text":"Filtro por critérios definidos — não é inteligência artificial.","textPreview":"Filtro por critérios definidos — não é inteligência artificial.","textChars":63,"textLines":1,"bbox":[810,597,380,28]}
+{"kind":"image","id":"im/hcbax4ju","slide":8,"name":"","geometry":"rect","alt":"Funil de interessados","bbox":[66,261,686,377]}
+{"kind":"image","id":"im/ih0ru5kb","slide":8,"name":"","geometry":"rect","alt":"Catálogo público de imóveis","bbox":[786,261,428,237]}
+{"kind":"notes","id":"nt/tf4tz8","slide":8,"text":""}
+{"kind":"slide","id":"sl/c44knz","slide":9,"title":"ACESSO DE CONSULTA • PERFIL SEPARADO","textShapes":1}
+{"kind":"shape","id":"sh/zulcfu9w","slide":9,"bbox":[70,624,360,51]}
+{"kind":"textbox","id":"sh/ytcb6p8b","slide":9,"text":"ACESSO DE CONSULTA • PERFIL SEPARADO","textPreview":"ACESSO DE CONSULTA • PERFIL SEPARADO","textChars":36,"textLines":1,"bbox":[92,640,318,18]}
+{"kind":"image","id":"im/94bihc7y","slide":9,"name":"","geometry":"rect","alt":"Mockup do portal do inquilino","bbox":[0,0,1280,720]}
+{"kind":"notes","id":"nt/c44knz","slide":9,"text":""}
+{"kind":"slide","id":"sl/wly0tl","slide":10,"title":"COBERTURA OPERACIONAL","textShapes":17}
+{"kind":"textbox","id":"sh/oju1gv61","slide":10,"text":"COBERTURA OPERACIONAL","textPreview":"COBERTURA OPERACIONAL","textChars":21,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/ni10nqpg","slide":10,"text":"O essencial da locação em uma única rotina.","textPreview":"O essencial da locação em uma única rotina.","textChars":43,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/mhsjelov","slide":10,"text":"Cada módulo preserva o contexto do imóvel, do contrato e do período correspondente.","textPreview":"Cada módulo preserva o contexto do imóvel, do contrato e do período correspondente.","textChars":83,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/1gjilg7a","slide":10,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/0fa1cb6p","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/ze10j6p4","slide":10,"bbox":[64,236,352,154]}
+{"kind":"shape","id":"sh/edsja1oj","slide":10,"bbox":[64,236,7,154]}
+{"kind":"textbox","id":"sh/5cn2x07e","slide":10,"text":"Imóveis","textPreview":"Imóveis","textChars":7,"textLines":1,"bbox":[90,262,300,46]}
+{"kind":"textbox","id":"sh/kbe1of6t","slide":10,"text":"Status, características, fotos, documentos e histórico","textPreview":"Status, características, fotos, documentos e histórico","textChars":54,"textLines":1,"bbox":[90,313,300,62]}
+{"kind":"shape","id":"sh/u1wfulsj","slide":10,"bbox":[456,236,352,154]}
+{"kind":"shape","id":"sh/v25g3q94","slide":10,"bbox":[456,236,7,154]}
+{"kind":"textbox","id":"sh/w3ehwvap","slide":10,"text":"Inquilinos","textPreview":"Inquilinos","textChars":10,"textLines":1,"bbox":[482,262,300,46]}
+{"kind":"textbox","id":"sh/hony5gru","slide":10,"text":"Cadastro reutilizável, vínculos e portal","textPreview":"Cadastro reutilizável, vínculos e portal","textChars":40,"textLines":1,"bbox":[482,313,300,62]}
+{"kind":"shape","id":"sh/mxcfq1s7","slide":10,"bbox":[848,236,352,154]}
+{"kind":"shape","id":"sh/7ylgz69s","slide":10,"bbox":[848,236,7,154]}
+{"kind":"textbox","id":"sh/8zuxsbad","slide":10,"text":"Contratos","textPreview":"Contratos","textChars":9,"textLines":1,"bbox":[874,262,300,46]}
+{"kind":"textbox","id":"sh/903y1gry","slide":10,"text":"Período, vencimento, proporcional e ciclos","textPreview":"Período, vencimento, proporcional e ciclos","textChars":42,"textLines":1,"bbox":[874,313,300,62]}
+{"kind":"shape","id":"sh/6tgz25sr","slide":10,"bbox":[64,421,352,154]}
+{"kind":"shape","id":"sh/rupgba9c","slide":10,"bbox":[64,421,7,154]}
+{"kind":"textbox","id":"sh/32x47ylc","slide":10,"text":"Financeiro","textPreview":"Financeiro","textChars":10,"textLines":1,"bbox":[90,447,300,46]}
+{"kind":"textbox","id":"sh/21o3et4r","slide":10,"text":"Previsto, recebido, despesas, saldo e relatórios","textPreview":"Previsto, recebido, despesas, saldo e relatórios","textChars":48,"textLines":1,"bbox":[90,498,300,62]}
+{"kind":"shape","id":"sh/pofm983i","slide":10,"bbox":[456,421,352,154]}
+{"kind":"shape","id":"sh/on65g3mx","slide":10,"bbox":[456,421,7,154]}
+{"kind":"textbox","id":"sh/bqh4bil8","slide":10,"text":"Energia","textPreview":"Energia","textChars":7,"textLines":1,"bbox":[482,447,300,46]}
+{"kind":"textbox","id":"sh/qp8nid43","slide":10,"text":"Leituras, consumo, vencimento e comprovante","textPreview":"Leituras, consumo, vencimento e comprovante","textChars":43,"textLines":1,"bbox":[482,498,300,62]}
+{"kind":"shape","id":"sh/dszmd83e","slide":10,"bbox":[848,421,352,154]}
+{"kind":"shape","id":"sh/crq5knmt","slide":10,"bbox":[848,421,7,154]}
+{"kind":"textbox","id":"sh/zuh4filk","slide":10,"text":"Interessados","textPreview":"Interessados","textChars":12,"textLines":1,"bbox":[874,447,300,46]}
+{"kind":"textbox","id":"sh/yt8nmd4z","slide":10,"text":"Funil, preferências, matching e conversão","textPreview":"Funil, preferências, matching e conversão","textChars":41,"textLines":1,"bbox":[874,498,300,62]}
+{"kind":"notes","id":"nt/wly0tl","slide":10,"text":""}
+{"kind":"slide","id":"sl/h17muv","slide":11,"title":"COMEÇAR","textShapes":21}
+{"kind":"textbox","id":"sh/e1w7u1cf","slide":11,"text":"COMEÇAR","textPreview":"COMEÇAR","textChars":7,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/14nq5wb6","slide":11,"text":"Da primeira casa à visão completa da carteira.","textPreview":"Da primeira casa à visão completa da carteira.","textChars":46,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/g3epwbul","slide":11,"text":"Uma sequência simples, ajustada ao volume e ao nível de apoio contratado.","textPreview":"Uma sequência simples, ajustada ao volume e ao nível de apoio contratado.","textChars":73,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/re58zmt4","slide":11,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/6dc7qhcj","slide":11,"text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/tgnq1wbu","slide":11,"bbox":[150,357,980,4]}
+{"kind":"shape","id":"sh/sfepsru9","slide":11,"bbox":[83,315,88,88]}
+{"kind":"textbox","id":"sh/bap8bqt8","slide":11,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[83,340,88,30]}
+{"kind":"textbox","id":"sh/q9gr2lsn","slide":11,"text":"Criar conta","textPreview":"Criar conta","textChars":11,"textLines":1,"bbox":[41,424,172,30]}
+{"kind":"textbox","id":"sh/8zip07y9","slide":11,"text":"Comece grátis","textPreview":"Comece grátis","textChars":13,"textLines":1,"bbox":[31,462,192,42]}
+{"kind":"shape","id":"sh/t0r69czu","slide":11,"bbox":[321,315,88,88]}
+{"kind":"textbox","id":"sh/6xg7yxg3","slide":11,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[321,340,88,30]}
+{"kind":"textbox","id":"sh/7y9o72ho","slide":11,"text":"Configurar","textPreview":"Configurar","textChars":10,"textLines":1,"bbox":[279,424,172,30]}
+{"kind":"textbox","id":"sh/kvypwnyd","slide":11,"text":"Locador e PIX","textPreview":"Locador e PIX","textChars":13,"textLines":1,"bbox":[269,462,192,42]}
+{"kind":"shape","id":"sh/lw765szy","slide":11,"bbox":[559,315,88,88]}
+{"kind":"textbox","id":"sh/ytg7udg7","slide":11,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[559,340,88,30]}
+{"kind":"textbox","id":"sh/jupo3ihs","slide":11,"text":"Cadastrar","textPreview":"Cadastrar","textChars":9,"textLines":1,"bbox":[517,424,172,30]}
+{"kind":"textbox","id":"sh/w7ypsny1","slide":11,"text":"Imóveis e pessoas","textPreview":"Imóveis e pessoas","textChars":17,"textLines":1,"bbox":[507,462,192,42]}
+{"kind":"shape","id":"sh/x8761szm","slide":11,"bbox":[797,315,88,88]}
+{"kind":"textbox","id":"sh/dcfe9kne","slide":11,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[797,340,88,30]}
+{"kind":"textbox","id":"sh/cb6dgf6t","slide":11,"text":"Organizar","textPreview":"Organizar","textChars":9,"textLines":1,"bbox":[755,424,172,30]}
+{"kind":"textbox","id":"sh/rqxw7a58","slide":11,"text":"Contratos e histórico","textPreview":"Contratos e histórico","textChars":21,"textLines":1,"bbox":[745,462,192,42]}
+{"kind":"shape","id":"sh/qpove5on","slide":11,"bbox":[1035,315,88,88]}
+{"kind":"textbox","id":"sh/pove50n2","slide":11,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1035,340,88,30]}
+{"kind":"textbox","id":"sh/4nmdcv6h","slide":11,"text":"Operar","textPreview":"Operar","textChars":6,"textLines":1,"bbox":[993,424,172,30]}
+{"kind":"textbox","id":"sh/3mdw3a5c","slide":11,"text":"Painel e rotina","textPreview":"Painel e rotina","textChars":15,"textLines":1,"bbox":[983,462,192,42]}
+{"kind":"shape","id":"sh/2l4va5or","slide":11,"bbox":[188,552,904,58]}
+{"kind":"textbox","id":"sh/9kzeh4nm","slide":11,"text":"Treinamento, migração, prazo e suporte são definidos na proposta comercial.","textPreview":"Treinamento, migração, prazo e suporte são definidos na proposta comercial.","textChars":75,"textLines":1,"bbox":[215,570,850,22]}
+{"kind":"notes","id":"nt/h17muv","slide":11,"text":""}
+{"kind":"slide","id":"sl/7fv6lb","slide":12,"title":"ADERÊNCIA","textShapes":15}
+{"kind":"textbox","id":"sh/725g3294","slide":12,"text":"ADERÊNCIA","textPreview":"ADERÊNCIA","textChars":9,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/83ehc7qp","slide":12,"text":"Feito para pequenos locadores que operam a própria carteira.","textPreview":"Feito para pequenos locadores que operam a própria carteira.","textChars":60,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/94ny5cra","slide":12,"text":"O melhor encaixe é uma rotina que precisa de centralização e controle, sem depender de integrações corporativas.","textPreview":"O melhor encaixe é uma rotina que precisa de centralização e controle, sem depender de integrações corporativas.","textChars":112,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/u5wzeh8f","slide":12,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/v65g7290","slide":12,"text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/w7ehg7ql","slide":12,"bbox":[64,235,550,350]}
+{"kind":"textbox","id":"sh/h8ny9c76","slide":12,"text":"É para você se...","textPreview":"É para você se...","textChars":17,"textLines":1,"bbox":[96,270,450,40]}
+{"kind":"textbox","id":"sh/a9sf2d8b","slide":12,"text":"✓  Administra uma carteira pequena","textPreview":"✓  Administra uma carteira pequena","textChars":34,"textLines":1,"bbox":[98,333,470,32]}
+{"kind":"textbox","id":"sh/balgvi9w","slide":12,"text":"✓  Quer histórico por imóvel e contrato","textPreview":"✓  Quer histórico por imóvel e contrato","textChars":39,"textLines":1,"bbox":[98,385,470,32]}
+{"kind":"textbox","id":"sh/fadg7u9k","slide":12,"text":"✓  Registra recebimentos e despesas manualmente","textPreview":"✓  Registra recebimentos e despesas manualmente","textChars":47,"textLines":1,"bbox":[98,437,470,32]}
+{"kind":"textbox","id":"sh/up4fep8z","slide":12,"text":"✓  Precisa organizar vagas e interessados","textPreview":"✓  Precisa organizar vagas e interessados","textChars":41,"textLines":1,"bbox":[98,489,470,32]}
+{"kind":"shape","id":"sh/hcfy94rq","slide":12,"bbox":[666,235,550,350]}
+{"kind":"textbox","id":"sh/gb6xgzq5","slide":12,"text":"Pode não ser o melhor encaixe se...","textPreview":"Pode não ser o melhor encaixe se...","textChars":35,"textLines":1,"bbox":[698,270,465,62]}
+{"kind":"textbox","id":"sh/7mdg3a9o","slide":12,"text":"—  Exige conciliação bancária automática","textPreview":"—  Exige conciliação bancária automática","textChars":40,"textLines":1,"bbox":[700,350,470,32]}
+{"kind":"textbox","id":"sh/6l4fap83","slide":12,"text":"—  Precisa de assinatura digital integrada","textPreview":"—  Precisa de assinatura digital integrada","textChars":42,"textLines":1,"bbox":[700,402,470,32]}
+{"kind":"textbox","id":"sh/tovy5kru","slide":12,"text":"—  Depende de integrações contábeis/ERP","textPreview":"—  Depende de integrações contábeis/ERP","textChars":39,"textLines":1,"bbox":[700,454,470,32]}
+{"kind":"textbox","id":"sh/snmxcfq9","slide":12,"text":"—  Quer edição totalmente offline","textPreview":"—  Quer edição totalmente offline","textChars":33,"textLines":1,"bbox":[700,506,470,32]}
+{"kind":"notes","id":"nt/7fv6lb","slide":12,"text":""}
+{"kind":"slide","id":"sl/kmcndf","slide":13,"title":"PLANOS","textShapes":22}
+{"kind":"textbox","id":"sh/fy9cze9w","slide":13,"text":"PLANOS","textPreview":"PLANOS","textChars":6,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/gzidsjqh","slide":13,"text":"Comece pequeno. Evolua conforme a carteira.","textPreview":"Comece pequeno. Evolua conforme a carteira.","textChars":43,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/h0ru1or2","slide":13,"text":"Os limites abaixo são os definidos no produto. Valores e condições dos planos pagos são apresentados pela equipe comercial.","textPreview":"Os limites abaixo são os definidos no produto. Valores e condições dos planos pagos são apresentados pela equipe comercial.","textChars":123,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/69gvm9sf","slide":13,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/7apcve90","slide":13,"text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/sbydoza5","slide":13,"bbox":[64,240,350,320]}
+{"kind":"textbox","id":"sh/tw7ux4rq","slide":13,"text":"Gratuito","textPreview":"Gratuito","textChars":8,"textLines":1,"bbox":[92,270,260,42]}
+{"kind":"textbox","id":"sh/q5kvyt8j","slide":13,"text":"1 imóvel","textPreview":"1 imóvel","textChars":8,"textLines":1,"bbox":[92,350,190,34]}
+{"kind":"textbox","id":"sh/r6tc7y94","slide":13,"text":"50 MB","textPreview":"50 MB","textChars":5,"textLines":1,"bbox":[92,392,190,24]}
+{"kind":"shape","id":"sh/ne9gvupo","slide":13,"bbox":[92,432,294,2]}
+{"kind":"textbox","id":"sh/2d0fmpo3","slide":13,"text":"Para experimentar o fluxo com um imóvel.","textPreview":"Para experimentar o fluxo com um imóvel.","textChars":40,"textLines":1,"bbox":[92,452,294,76]}
+{"kind":"textbox","id":"sh/pgryx47u","slide":13,"text":"Começar grátis","textPreview":"Começar grátis","textChars":14,"textLines":1,"bbox":[92,530,294,22]}
+{"kind":"shape","id":"sh/ofixoz69","slide":13,"bbox":[465,240,350,320]}
+{"kind":"textbox","id":"sh/b2tgzep0","slide":13,"text":"MAIS EQUILÍBRIO","textPreview":"MAIS EQUILÍBRIO","textChars":15,"textLines":1,"bbox":[493,262,190,20]}
+{"kind":"textbox","id":"sh/a10fq9of","slide":13,"text":"Básico","textPreview":"Básico","textChars":6,"textLines":1,"bbox":[493,292,260,42]}
+{"kind":"textbox","id":"sh/x4by1o7q","slide":13,"text":"3 imóvelis","textPreview":"3 imóvelis","textChars":10,"textLines":1,"bbox":[493,350,190,34]}
+{"kind":"textbox","id":"sh/c32xsj6l","slide":13,"text":"1 GB","textPreview":"1 GB","textChars":4,"textLines":1,"bbox":[493,392,190,24]}
+{"kind":"shape","id":"sh/z6tg3e5w","slide":13,"bbox":[493,432,294,2]}
+{"kind":"textbox","id":"sh/y5kfutob","slide":13,"text":"Para uma carteira pequena em operação cotidiana.","textPreview":"Para uma carteira pequena em operação cotidiana.","textChars":48,"textLines":1,"bbox":[493,452,294,76]}
+{"kind":"textbox","id":"sh/u1ojmd8j","slide":13,"text":"Condições sob consulta","textPreview":"Condições sob consulta","textChars":22,"textLines":1,"bbox":[493,530,294,22]}
+{"kind":"shape","id":"sh/v2x0vi94","slide":13,"bbox":[866,240,350,320]}
+{"kind":"textbox","id":"sh/w361onqp","slide":13,"text":"Premium","textPreview":"Premium","textChars":7,"textLines":1,"bbox":[894,270,260,42]}
+{"kind":"textbox","id":"sh/h4fixsra","slide":13,"text":"100 imóvelis","textPreview":"100 imóvelis","textChars":12,"textLines":1,"bbox":[894,350,190,34]}
+{"kind":"textbox","id":"sh/mx4jid8n","slide":13,"text":"10 GB","textPreview":"10 GB","textChars":5,"textLines":1,"bbox":[894,392,190,24]}
+{"kind":"shape","id":"sh/7yd0ri98","slide":13,"bbox":[894,432,294,2]}
+{"kind":"textbox","id":"sh/8zm1knqt","slide":13,"text":"Para ampliar a carteira e a capacidade de arquivos.","textPreview":"Para ampliar a carteira e a capacidade de arquivos.","textChars":51,"textLines":1,"bbox":[894,452,294,76]}
+{"kind":"textbox","id":"sh/90vitsry","slide":13,"text":"Condições sob consulta","textPreview":"Condições sob consulta","textChars":22,"textLines":1,"bbox":[894,530,294,22]}
+{"kind":"textbox","id":"sh/6t8jux8r","slide":13,"text":"Nenhum plano é descrito como ilimitado.","textPreview":"Nenhum plano é descrito como ilimitado.","textChars":39,"textLines":1,"bbox":[64,602,600,25]}
+{"kind":"notes","id":"nt/kmcndf","slide":13,"text":""}
+{"kind":"slide","id":"sl/eofp1x","slide":14,"title":"CONFIANÇA POR PROJETO","textShapes":14}
+{"kind":"textbox","id":"sh/jaxo36tk","slide":14,"text":"CONFIANÇA POR PROJETO","textPreview":"CONFIANÇA POR PROJETO","textChars":21,"textLines":1,"bbox":[64,54,520,22]}
+{"kind":"textbox","id":"sh/4v6pcbu5","slide":14,"text":"Dados separados, acesso por perfil e portabilidade.","textPreview":"Dados separados, acesso por perfil e portabilidade.","textChars":51,"textLines":1,"bbox":[64,88,1060,66]}
+{"kind":"textbox","id":"sh/5wf65gbq","slide":14,"text":"A comunicação permanece precisa: segurança é tratada por arquitetura e governança, sem promessas absolutas.","textPreview":"A comunicação permanece precisa: segurança é tratada por arquitetura e governança, sem promessas absolutas.","textChars":107,"textLines":1,"bbox":[64,154,1040,48]}
+{"kind":"textbox","id":"sh/6xo7elcv","slide":14,"text":"APRESENTAÇÃO COMERCIAL","textPreview":"APRESENTAÇÃO COMERCIAL","textChars":22,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/ryx87qtg","slide":14,"text":"14","textPreview":"14","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"shape","id":"sh/sz6pgvu1","slide":14,"bbox":[64,238,540,140]}
+{"kind":"textbox","id":"sh/t0fq9gbm","slide":14,"text":"Conta","textPreview":"Conta","textChars":5,"textLines":1,"bbox":[92,262,160,34]}
+{"kind":"textbox","id":"sh/e187ilc7","slide":14,"text":"Dados operacionais separados por proprietário e políticas de acesso.","textPreview":"Dados operacionais separados por proprietário e políticas de acesso.","textChars":68,"textLines":1,"bbox":[92,306,480,56]}
+{"kind":"shape","id":"sh/f2h8bqts","slide":14,"bbox":[638,238,540,140]}
+{"kind":"textbox","id":"sh/b2dwzml4","slide":14,"text":"Arquivos","textPreview":"Arquivos","textChars":8,"textLines":1,"bbox":[666,262,160,34]}
+{"kind":"textbox","id":"sh/q1kf614j","slide":14,"text":"Bucket privado e links temporários quando um documento é solicitado.","textPreview":"Bucket privado e links temporários quando um documento é solicitado.","textChars":68,"textLines":1,"bbox":[666,306,480,56]}
+{"kind":"shape","id":"sh/d4vy1w3u","slide":14,"bbox":[64,406,540,140]}
+{"kind":"textbox","id":"sh/c3mx8rm9","slide":14,"text":"Backup","textPreview":"Backup","textChars":6,"textLines":1,"bbox":[92,430,160,34]}
+{"kind":"textbox","id":"sh/3ytwvmls","slide":14,"text":"Exportação manual e snapshots diários conforme a configuração atual.","textPreview":"Exportação manual e snapshots diários conforme a configuração atual.","textChars":68,"textLines":1,"bbox":[92,474,480,56]}
+{"kind":"shape","id":"sh/2xkf2h47","slide":14,"bbox":[638,406,540,140]}
+{"kind":"textbox","id":"sh/p0bexw3y","slide":14,"text":"Offline","textPreview":"Offline","textChars":7,"textLines":1,"bbox":[666,430,160,34]}
+{"kind":"textbox","id":"sh/oz2x4rmd","slide":14,"text":"Consulta da última cópia disponível; alterações exigem internet.","textPreview":"Consulta da última cópia disponível; alterações exigem internet.","textChars":64,"textLines":1,"bbox":[666,474,480,56]}
+{"kind":"textbox","id":"sh/nuxg7qlw","slide":14,"text":"Sem alegação de certificação LGPD, criptografia ponta a ponta, disponibilidade ou ROI garantido.","textPreview":"Sem alegação de certificação LGPD, criptografia ponta a ponta, disponibilidade ou ROI garantido.","textChars":96,"textLines":1,"bbox":[64,594,1120,32]}
+{"kind":"notes","id":"nt/eofp1x","slide":14,"text":""}
+{"kind":"slide","id":"sl/gbz77k","slide":15,"title":"Aluguel","textShapes":13}
+{"kind":"textbox","id":"sh/1c7axs7i","slide":15,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[112,47,180,36]}
+{"kind":"textbox","id":"sh/0byt476d","slide":15,"text":"PRÓXIMO PASSO","textPreview":"PRÓXIMO PASSO","textChars":13,"textLines":1,"bbox":[70,150,260,22]}
+{"kind":"textbox","id":"sh/nepsz2po","slide":15,"text":"Veja sua rotina\ndentro do Aluguel.","textPreview":"Veja sua rotina | dentro do Aluguel.","textChars":34,"textLines":2,"bbox":[70,190,630,130]}
+{"kind":"textbox","id":"sh/2dgb6xo3","slide":15,"text":"Solicite uma demonstração guiada ou comece gratuitamente com 1 imóvel.","textPreview":"Solicite uma demonstração guiada ou comece gratuitamente com 1 imóvel.","textChars":70,"textLines":1,"bbox":[70,340,580,70]}
+{"kind":"shape","id":"sh/p0ra1c7u","slide":15,"bbox":[70,450,330,64]}
+{"kind":"textbox","id":"sh/ofyt8769","slide":15,"text":"Solicitar demonstração","textPreview":"Solicitar demonstração","textChars":22,"textLines":1,"bbox":[92,470,286,24]}
+{"kind":"shape","id":"sh/b29s3mp0","slide":15,"bbox":[420,450,230,64]}
+{"kind":"textbox","id":"sh/a10bahof","slide":15,"text":"Começar grátis","textPreview":"Começar grátis","textChars":14,"textLines":1,"bbox":[440,470,190,24]}
+{"kind":"textbox","id":"sh/8ba1gbip","slide":15,"text":"andertonaluguel@gmail.com","textPreview":"andertonaluguel@gmail.com","textChars":25,"textLines":1,"bbox":[70,548,430,30]}
+{"kind":"textbox","id":"sh/tcj29gju","slide":15,"text":"WhatsApp: inserir número oficial com DDD","textPreview":"WhatsApp: inserir número oficial com DDD","textChars":40,"textLines":1,"bbox":[70,584,430,26]}
+{"kind":"shape","id":"sh/69sje10j","slide":15,"bbox":[785,100,370,500]}
+{"kind":"textbox","id":"sh/gfulkvil","slide":15,"text":"ABRA O APLICATIVO","textPreview":"ABRA O APLICATIVO","textChars":17,"textLines":1,"bbox":[820,452,300,24]}
+{"kind":"textbox","id":"sh/hg32dgj6","slide":15,"text":"aluguel-casas-anderton.netlify.app","textPreview":"aluguel-casas-anderton.netlify.app","textChars":34,"textLines":1,"bbox":[812,486,316,48]}
+{"kind":"textbox","id":"sh/udcjil0f","slide":15,"text":"QR validado para o destino oficial","textPreview":"QR validado para o destino oficial","textChars":34,"textLines":1,"bbox":[815,546,310,22]}
+{"kind":"textbox","id":"sh/velkbq10","slide":15,"text":"APRESENTAÇÃO COMERCIAL • 22/07/2026","textPreview":"APRESENTAÇÃO COMERCIAL • 22/07/2026","textChars":35,"textLines":1,"bbox":[64,680,430,20]}
+{"kind":"textbox","id":"sh/43ulovih","slide":15,"text":"15","textPreview":"15","textChars":2,"textLines":1,"bbox":[1165,678,50,20]}
+{"kind":"image","id":"im/v29snihw","slide":15,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[70,48,32,32]}
+{"kind":"image","id":"im/svex8bih","slide":15,"name":"","geometry":"rect","alt":"QR Code para abrir o aplicativo Aluguel","bbox":[837,157,266,266]}
+{"kind":"notes","id":"nt/gbz77k","slide":15,"text":""}

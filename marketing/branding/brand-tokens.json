@@ -1,0 +1,137 @@
+{
+  "format": "aluguel-brand-tokens/1.0",
+  "meta": {
+    "brand": "Aluguel",
+    "version": "1.0.0",
+    "created": "2026-07-22",
+    "locale": "pt-BR",
+    "source": [
+      "app.js:65-72",
+      "style.css:1-27",
+      "index.html:8-13"
+    ],
+    "editable": true
+  },
+  "color": {
+    "cover": { "value": "#14322A", "role": "fundos escuros, CTA primário, estrutura" },
+    "coverLight": { "value": "#1F4339", "role": "hover e superfície escura secundária" },
+    "paper": { "value": "#F7F6F2", "role": "fundo editorial principal" },
+    "surface": { "value": "#FFFFFF", "role": "cards e áreas de leitura" },
+    "ink": { "value": "#1C2620", "role": "texto principal" },
+    "inkSoft": { "value": "#5C6B63", "role": "texto secundário" },
+    "inkFaint": { "value": "#93A099", "role": "texto auxiliar e estado inativo" },
+    "brass": { "value": "#B8863C", "role": "assinatura de marca e destaque decorativo" },
+    "brassDeep": { "value": "#8C631F", "role": "texto de destaque acessível em fundo claro" },
+    "brassSoft": { "value": "#F1E4C8", "role": "superfície de destaque" },
+    "accentOnCover": { "value": "#E2BE78", "role": "destaque sobre verde-escuro" },
+    "coverMuted": { "value": "#B9CCC3", "role": "texto secundário sobre verde-escuro" },
+    "line": { "value": "#E3DFD3", "role": "bordas e divisores" },
+    "danger": { "value": "#A23B2E", "role": "atraso, erro e ação destrutiva" },
+    "dangerSoft": { "value": "#F4DCD7", "role": "fundo de erro" },
+    "overdueSurface": { "value": "#FBEAE7", "role": "card em atraso" },
+    "overdueLine": { "value": "#E6B9B2", "role": "borda de atraso" },
+    "warning": { "value": "#D99A0E", "role": "pendência e atenção" },
+    "warningDeep": { "value": "#8A6300", "role": "texto de atenção em fundo claro" },
+    "warningSoft": { "value": "#FBEFC2", "role": "fundo de atenção" },
+    "neutralSoft": { "value": "#E7E9E4", "role": "estado neutro" },
+    "maintenance": { "value": "#3E6B8A", "role": "manutenção e informação operacional" },
+    "maintenanceSoft": { "value": "#DCE7ED", "role": "fundo de manutenção" }
+  },
+  "typography": {
+    "display": {
+      "family": "Space Grotesk",
+      "fallback": "Arial, sans-serif",
+      "weights": [500, 600, 700],
+      "use": "marca, títulos, headlines e nomes de seção"
+    },
+    "body": {
+      "family": "IBM Plex Sans",
+      "fallback": "Arial, sans-serif",
+      "weights": [400, 500, 600],
+      "use": "texto corrido, formulários, botões e legendas"
+    },
+    "data": {
+      "family": "IBM Plex Mono",
+      "fallback": "Courier New, monospace",
+      "weights": [400, 500, 600],
+      "use": "valores, datas, status, eyebrows e indicadores"
+    },
+    "scaleRem": {
+      "2xs": 0.6875,
+      "xs": 0.75,
+      "sm": 0.875,
+      "md": 1,
+      "lg": 1.25,
+      "xl": 1.625,
+      "2xl": 2.125
+    },
+    "lineHeight": {
+      "tight": 1.12,
+      "title": 1.22,
+      "body": 1.55
+    }
+  },
+  "spacingRem": {
+    "1": 0.25,
+    "2": 0.5,
+    "3": 0.75,
+    "4": 1,
+    "5": 1.5,
+    "6": 2,
+    "7": 3,
+    "8": 4,
+    "9": 6
+  },
+  "radiusRem": {
+    "sm": 0.5,
+    "md": 0.75,
+    "lg": 1.125,
+    "pill": 999
+  },
+  "shadow": {
+    "sm": "0 1px 2px rgba(20,40,30,0.04), 0 4px 16px rgba(20,40,30,0.06)",
+    "lg": "0 2px 6px rgba(20,40,30,0.06), 0 14px 34px rgba(20,40,30,0.12)"
+  },
+  "motion": {
+    "ease": "cubic-bezier(0.2,0.7,0.2,1)",
+    "fastMs": 150,
+    "standardMs": 220
+  },
+  "layout": {
+    "contentMaxRem": 72,
+    "copyMaxRem": 42,
+    "gridColumnsDesktop": 12,
+    "gridColumnsMobile": 4
+  },
+  "logo": {
+    "sourceViewBox": "0 0 32 32",
+    "minimumSymbolPx": 24,
+    "minimumLockupPx": 140,
+    "clearSpaceRule": "Manter ao redor pelo menos a largura de uma janela do símbolo.",
+    "lightBackground": {
+      "symbol": "#B8863C",
+      "window": "#14322A",
+      "wordmark": "#14322A"
+    },
+    "darkBackground": {
+      "symbol": "#E2BE78",
+      "window": "#14322A",
+      "wordmark": "#F7F6F2"
+    }
+  },
+  "accessibility": {
+    "minimumBodyContrast": 4.5,
+    "verifiedPairs": [
+      { "foreground": "#14322A", "background": "#F7F6F2", "ratio": 12.78 },
+      { "foreground": "#1C2620", "background": "#F7F6F2", "ratio": 14.41 },
+      { "foreground": "#5C6B63", "background": "#F7F6F2", "ratio": 5.19 },
+      { "foreground": "#8C631F", "background": "#F7F6F2", "ratio": 4.95 },
+      { "foreground": "#E2BE78", "background": "#14322A", "ratio": 7.81 },
+      { "foreground": "#A23B2E", "background": "#F7F6F2", "ratio": 6.07 }
+    ],
+    "decorativeOnly": [
+      "Não usar #B8863C para texto pequeno sobre #F7F6F2; contraste aproximado 2.98:1.",
+      "Status nunca deve depender somente da cor; combinar rótulo e, quando útil, ícone."
+    ]
+  }
+}

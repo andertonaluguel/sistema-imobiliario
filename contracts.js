@@ -132,7 +132,9 @@ function renderContractsTab(h){
           '<div><span>Vencimento</span><strong>'+esc(contractModeLabel(c))+'</strong></div>'+
           '<div><span>Ajuste inicial</span><strong>'+(prorata?fmtMoney(prorata)+' · '+(c.proporcionalPago?'pago':'pendente'):'não necessário')+'</strong></div></div>'+
         '<div class="contract-card-actions">'+(prorata?'<button class="btn btn-ghost btn-sm" onclick="openProrataPaymentModal(\''+h.id+'\',\''+c.id+'\')">'+(c.proporcionalPago?'Ver ajuste pago':'Registrar ajuste')+'</button>':'')+
-          '<button class="btn btn-ghost btn-sm" onclick="openEditContractModal(\''+h.id+'\',\''+c.id+'\')">Editar contrato</button></div></article>';
+          '<button class="btn btn-ghost btn-sm" onclick="openEditContractModal(\''+h.id+'\',\''+c.id+'\')">Editar contrato</button>'+
+          (c.ativo?'<button class="btn btn-ghost btn-sm" onclick="openFinishContractModal(\''+h.id+'\',\''+c.id+'\')">Ele saiu da casa</button>':'')+
+          '<button class="btn btn-danger btn-sm" onclick="openContractMistakePreview(\''+h.id+'\',\''+c.id+'\')">Cadastro errado</button></div></article>';
     }).join('')+'</div>';
 }
 
@@ -169,8 +171,166 @@ async function saveContractEdit(houseId,contractId){
       h.aluguelValor=c.valor;h.diaVencimento=contractBillingDay(c);await db.updateHouse(h);
     }else if(wasActive){
       await db.finishContract(h.id,c.id,c.fim||todayISO(),'vaga');
-      h.tenantId='';h.status='vaga';h.contratoInicio='';h.contratoFim='';
+      applyContractClosureState(h,c,c.fim||todayISO());
     }
     closeModal();render();showToast('Contrato atualizado.','success');
   }catch(e){console.error(e);showToast('Não foi possível atualizar o contrato.','error');}
+}
+
+/* ---------- encerramento real x exclusão de cadastro errado ---------- */
+function appendVacancyStatusState(h,eventDate){
+  if(!h.statusHistorico) h.statusHistorico=[];
+  const exists=h.statusHistorico.some(function(item){
+    return item.data===eventDate&&item.status==='vaga'&&!(item.tenantId||'');
+  });
+  if(!exists) h.statusHistorico.push({data:eventDate,status:'vaga',tenantId:''});
+  h.statusHistorico.sort(function(a,b){return String(a.data).localeCompare(String(b.data));});
+}
+
+function applyContractClosureState(h,c,endDate){
+  c.ativo=false;
+  c.fim=endDate;
+  const otherActive=(h.contracts||[]).some(function(item){return item.id!==c.id&&item.ativo;});
+  if(!otherActive&&(h.tenantId||'')===(c.tenantId||'')){
+    h.tenantId='';
+    h.status='vaga';
+    h.contratoInicio='';
+    h.contratoFim='';
+    appendVacancyStatusState(h,endDate);
+  }
+}
+
+function openFinishContractModal(houseId,contractId){
+  const h=state.houses.find(function(x){return x.id===houseId;});
+  const c=h&&(h.contracts||[]).find(function(x){return x.id===contractId;});
+  if(!h||!c) return;
+  const t=contractTenant(c);
+  if(!c.ativo){
+    showToast('Este contrato já está encerrado.','error');
+    return;
+  }
+  openModal(
+    '<h3 class="modal-title">Ele saiu da casa</h3>'+
+    '<p class="modal-text">Encerre o contrato de <strong>'+esc(t?t.nome:'Inquilino')+'</strong> em <strong>'+esc(h.nome)+'</strong>. A casa ficará vaga, mas contratos, pagamentos, energia, recibos e histórico continuarão guardados.</p>'+
+    '<div class="notice-box"><strong>Nada será apagado.</strong> Use esta opção quando a locação realmente aconteceu e o inquilino saiu.</div>'+
+    '<label class="field"><span>Data de saída</span><input id="f_contract_exit_date" type="date" min="'+esc(c.inicio||'')+'" max="'+todayISO()+'" value="'+todayISO()+'"></label>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="finishContractAndVacate(\''+houseId+'\',\''+contractId+'\')">Encerrar e liberar casa</button>'+
+    '</div></div>'
+  );
+}
+
+async function finishContractAndVacate(houseId,contractId){
+  const h=state.houses.find(function(x){return x.id===houseId;});
+  const c=h&&(h.contracts||[]).find(function(x){return x.id===contractId;});
+  const input=document.getElementById('f_contract_exit_date');
+  const endDate=(input&&input.value)||todayISO();
+  if(!h||!c) return;
+  if(endDate<(c.inicio||endDate)){
+    showToast('A saída não pode ser anterior ao início do contrato.','error');
+    return;
+  }
+  if(endDate>todayISO()){
+    showToast('Para liberar a casa agora, informe hoje ou uma data anterior.','error');
+    return;
+  }
+  try{
+    await db.finishContract(houseId,contractId,endDate,'vaga');
+    applyContractClosureState(h,c,endDate);
+    closeModal();
+    render();
+    showToast('Contrato encerrado. O histórico foi preservado e a casa está vaga.','success');
+  }catch(e){
+    console.error(e);
+    showToast((e&&e.message)||'Não foi possível encerrar o contrato.','error');
+  }
+}
+
+function contractPreviewNumber(preview,key){
+  if(!preview) return 0;
+  const aliases={
+    paymentsCount:'payments_count',
+    energyCount:'energy_count',
+    pendingSuggestionsCount:'pending_suggestions_count',
+    linkedRecordsCount:'linked_records_count',
+    willVacateHouse:'will_vacate_house'
+  };
+  const value=preview[key]!==undefined?preview[key]:preview[aliases[key]];
+  return key==='willVacateHouse'?!!value:(Number(value)||0);
+}
+
+async function openContractMistakePreview(houseId,contractId){
+  const h=state.houses.find(function(x){return x.id===houseId;});
+  const c=h&&(h.contracts||[]).find(function(x){return x.id===contractId;});
+  if(!h||!c) return;
+  openModal('<h3 class="modal-title">Verificando o cadastro…</h3><p class="modal-text">Contando somente os registros ligados diretamente a este contrato.</p>');
+  try{
+    const preview=await db.previewContractRemoval(contractId);
+    const payments=contractPreviewNumber(preview,'paymentsCount');
+    const energy=contractPreviewNumber(preview,'energyCount');
+    const suggestions=contractPreviewNumber(preview,'pendingSuggestionsCount');
+    const willVacate=contractPreviewNumber(preview,'willVacateHouse');
+    const t=contractTenant(c);
+    openModal(
+      '<h3 class="modal-title">Foi um cadastro errado</h3>'+
+      '<p class="modal-text">Esta opção é somente para um contrato criado por engano. Confira o que será removido antes de continuar.</p>'+
+      '<div class="contract-card-grid">'+
+        '<div><span>Contrato</span><strong>1</strong></div>'+
+        '<div><span>Pagamentos ligados</span><strong>'+payments+'</strong></div>'+
+        '<div><span>Registros de energia ligados</span><strong>'+energy+'</strong></div>'+
+        '<div><span>Sugestões pendentes ligadas</span><strong>'+suggestions+'</strong></div>'+
+        '<div><span>Inquilino</span><strong>'+esc(t?t.nome:'Cadastro preservado')+'</strong></div>'+
+      '</div>'+
+      '<div class="notice-box"><strong>Será preservado:</strong> o cadastro do inquilino, outros contratos, documentos, registros sem vínculo direto e o histórico dos demais moradores.'+
+        (willVacate?' Como este é o contrato atual, <strong>'+esc(h.nome)+'</strong> ficará vaga.':' A situação atual da casa não será alterada.')+
+      '</div>'+
+      '<label class="field"><span>Digite EXCLUIR para confirmar</span><input id="f_contract_delete_confirmation" autocomplete="off" oninput="toggleContractMistakeButton()"></label>'+
+      '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+        '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+        '<button class="btn btn-danger" id="confirmContractMistakeButton" disabled onclick="deleteContractMistake(\''+houseId+'\',\''+contractId+'\')">Excluir somente este cadastro</button>'+
+      '</div></div>'
+    );
+  }catch(e){
+    console.error(e);
+    closeModal();
+    showToast((e&&e.message)||'Não foi possível conferir o contrato.','error');
+  }
+}
+
+function toggleContractMistakeButton(){
+  const input=document.getElementById('f_contract_delete_confirmation');
+  const button=document.getElementById('confirmContractMistakeButton');
+  if(button) button.disabled=!input||input.value.trim().toUpperCase()!=='EXCLUIR';
+}
+
+async function deleteContractMistake(houseId,contractId){
+  const input=document.getElementById('f_contract_delete_confirmation');
+  if(!input||input.value.trim().toUpperCase()!=='EXCLUIR'){
+    showToast('Digite EXCLUIR para confirmar.','error');
+    return;
+  }
+  const h=state.houses.find(function(x){return x.id===houseId;});
+  const c=h&&(h.contracts||[]).find(function(x){return x.id===contractId;});
+  if(!h||!c) return;
+  try{
+    await db.deleteContractMistake(contractId,input.value.trim());
+    h.pagamentos=(h.pagamentos||[]).filter(function(item){return item.contractId!==contractId;});
+    h.energias=(h.energias||[]).filter(function(item){return item.contractId!==contractId;});
+    h.contracts=(h.contracts||[]).filter(function(item){return item.id!==contractId;});
+    const otherActive=(h.contracts||[]).find(function(item){return item.ativo;});
+    if(c.ativo&&!otherActive&&(h.tenantId||'')===(c.tenantId||'')){
+      h.tenantId='';
+      h.status='vaga';
+      h.contratoInicio='';
+      h.contratoFim='';
+      appendVacancyStatusState(h,todayISO());
+    }
+    closeModal();
+    render();
+    showToast('Contrato cadastrado por engano excluído com segurança.','success');
+  }catch(e){
+    console.error(e);
+    showToast((e&&e.message)||'Não foi possível excluir o contrato.','error');
+  }
 }

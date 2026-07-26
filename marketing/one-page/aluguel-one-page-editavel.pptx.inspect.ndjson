@@ -1,0 +1,46 @@
+{"kind":"deck","id":"pr/mgs7vi","name":"Deck"}
+{"kind":"layout","layoutId":"dacddc55-c62f-4dac-96d5-df342867c53d","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"cfe07c25-ab06-4198-ba34-2f2c7da993fb","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/m6pzv1","slide":1,"title":"Aluguel","textShapes":22}
+{"kind":"shape","id":"sh/6dwralwr","slide":1,"bbox":[0,0,794,196]}
+{"kind":"textbox","id":"sh/8fy9cvex","slide":1,"text":"Aluguel","textPreview":"Aluguel","textChars":7,"textLines":1,"bbox":[94,37,180,36]}
+{"kind":"textbox","id":"sh/ja58zqxg","slide":1,"text":"GESTÃO DE ALUGUÉIS","textPreview":"GESTÃO DE ALUGUÉIS","textChars":18,"textLines":1,"bbox":[52,95,270,20]}
+{"kind":"textbox","id":"sh/y9wr6lwv","slide":1,"text":"Seus aluguéis sob controle.","textPreview":"Seus aluguéis sob controle.","textChars":27,"textLines":1,"bbox":[52,122,610,52]}
+{"kind":"textbox","id":"sh/lcnq1gf6","slide":1,"text":"Sem planilhas espalhadas.","textPreview":"Sem planilhas espalhadas.","textChars":25,"textLines":1,"bbox":[52,169,610,44]}
+{"kind":"shape","id":"sh/kbe98ve1","slide":1,"bbox":[52,238,690,365]}
+{"kind":"shape","id":"sh/bml8v6x4","slide":1,"bbox":[52,238,690,30]}
+{"kind":"shape","id":"sh/alc721wj","slide":1,"bbox":[68,249,7,7]}
+{"kind":"shape","id":"sh/4jmp0nat","slide":1,"bbox":[82,249,7,7]}
+{"kind":"shape","id":"sh/5kv6tsre","slide":1,"bbox":[96,249,7,7]}
+{"kind":"textbox","id":"sh/ih47ydsn","slide":1,"text":"aluguel.app","textPreview":"aluguel.app","textChars":11,"textLines":1,"bbox":[120,245,180,16]}
+{"kind":"shape","id":"sh/wv25w3ah","slide":1,"bbox":[52,626,214,130]}
+{"kind":"shape","id":"sh/hgv6p8r2","slide":1,"bbox":[290,626,214,130]}
+{"kind":"shape","id":"sh/utknutsb","slide":1,"bbox":[528,626,214,130]}
+{"kind":"textbox","id":"sh/vutony9w","slide":1,"text":"Veja o mês","textPreview":"Veja o mês","textChars":10,"textLines":1,"bbox":[70,648,178,28]}
+{"kind":"textbox","id":"sh/gb6p87q1","slide":1,"text":"Previsto, recebido, pendências e ocupação.","textPreview":"Previsto, recebido, pendências e ocupação.","textChars":42,"textLines":1,"bbox":[70,686,178,54]}
+{"kind":"textbox","id":"sh/1cf61cr6","slide":1,"text":"Centralize","textPreview":"Centralize","textChars":10,"textLines":1,"bbox":[308,648,178,28]}
+{"kind":"textbox","id":"sh/p8b6lsjq","slide":1,"text":"Imóvel, contrato, pagamentos e documentos.","textPreview":"Imóvel, contrato, pagamentos e documentos.","textChars":42,"textLines":1,"bbox":[308,686,178,54]}
+{"kind":"textbox","id":"sh/o72psni5","slide":1,"text":"Compartilhe","textPreview":"Compartilhe","textChars":11,"textLines":1,"bbox":[546,648,178,28]}
+{"kind":"textbox","id":"sh/n6toj21k","slide":1,"text":"Cobrança assistida e portal do inquilino.","textPreview":"Cobrança assistida e portal do inquilino.","textChars":41,"textLines":1,"bbox":[546,686,178,54]}
+{"kind":"textbox","id":"sh/25knqx0z","slide":1,"text":"O que está incluído","textPreview":"O que está incluído","textChars":19,"textLines":1,"bbox":[52,790,320,32]}
+{"kind":"shape","id":"sh/14b6hsje","slide":1,"bbox":[52,836,332,36]}
+{"kind":"textbox","id":"sh/0325onit","slide":1,"text":"✓  Imóveis e inquilinos","textPreview":"✓  Imóveis e inquilinos","textChars":23,"textLines":1,"bbox":[68,846,300,18]}
+{"kind":"shape","id":"sh/f2tofi18","slide":1,"bbox":[407,836,332,36]}
+{"kind":"textbox","id":"sh/e10nmd0n","slide":1,"text":"✓  Contratos e recebimentos","textPreview":"✓  Contratos e recebimentos","textChars":27,"textLines":1,"bbox":[423,846,300,18]}
+{"kind":"shape","id":"sh/d0r6d8ji","slide":1,"bbox":[52,882,332,36]}
+{"kind":"textbox","id":"sh/sfi5k3ix","slide":1,"text":"✓  Energia e despesas","textPreview":"✓  Energia e despesas","textChars":21,"textLines":1,"bbox":[68,892,300,18]}
+{"kind":"shape","id":"sh/ilg3e9gf","slide":1,"bbox":[407,882,332,36]}
+{"kind":"textbox","id":"sh/36p4neh0","slide":1,"text":"✓  Interessados e catálogo","textPreview":"✓  Interessados e catálogo","textChars":26,"textLines":1,"bbox":[423,892,300,18]}
+{"kind":"shape","id":"sh/47ylgjyl","slide":1,"bbox":[52,928,332,36]}
+{"kind":"textbox","id":"sh/587mpoz6","slide":1,"text":"✓  Relatórios e recibos","textPreview":"✓  Relatórios e recibos","textChars":23,"textLines":1,"bbox":[68,938,300,18]}
+{"kind":"shape","id":"sh/uhw3a9gj","slide":1,"bbox":[407,928,332,36]}
+{"kind":"textbox","id":"sh/vi5kjeh4","slide":1,"text":"✓  Portal e documentos","textPreview":"✓  Portal e documentos","textChars":22,"textLines":1,"bbox":[423,938,300,18]}
+{"kind":"shape","id":"sh/gjylcjyp","slide":1,"bbox":[52,989,690,92]}
+{"kind":"textbox","id":"sh/hk7ml4za","slide":1,"text":"Grátis: 1 imóvel • Básico: 3 • Premium: 100","textPreview":"Grátis: 1 imóvel • Básico: 3 • Premium: 100","textChars":43,"textLines":1,"bbox":[72,1007,445,25]}
+{"kind":"textbox","id":"sh/6dw36p0n","slide":1,"text":"Valores dos planos pagos sob consulta.","textPreview":"Valores dos planos pagos sob consulta.","textChars":38,"textLines":1,"bbox":[72,1041,400,20]}
+{"kind":"textbox","id":"sh/z6p0ralo","slide":1,"text":"andertonaluguel@gmail.com","textPreview":"andertonaluguel@gmail.com","textChars":25,"textLines":1,"bbox":[52,1092,360,18]}
+{"kind":"textbox","id":"sh/y5gzi5k3","slide":1,"text":"22/07/2026 • produto real, dados demonstrativos","textPreview":"22/07/2026 • produto real, dados demonstrativos","textChars":47,"textLines":1,"bbox":[420,1092,322,18]}
+{"kind":"image","id":"im/c76pcjq1","slide":1,"name":"","geometry":"rect","alt":"Símbolo do Aluguel","bbox":[52,38,32,32]}
+{"kind":"image","id":"im/cjutg3uh","slide":1,"name":"","geometry":"rect","alt":"Painel do Aluguel","bbox":[54,269,686,332]}
+{"kind":"image","id":"im/0zmhkzy9","slide":1,"name":"","geometry":"rect","alt":"QR Code do aplicativo","bbox":[646,998,77,77]}
+{"kind":"notes","id":"nt/m6pzv1","slide":1,"text":""}

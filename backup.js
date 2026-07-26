@@ -12,6 +12,9 @@ async function doExportBackup(){
     a.href = url; a.download = 'aluguel-backup-'+todayISO()+'.json';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    const stamp=await db.markExternalBackup();
+    if(state.config) state.config.ultimoBackupExterno=stamp;
+    render();
     showToast('Backup exportado.', 'success');
   }catch(e){
     console.error(e);
@@ -22,7 +25,7 @@ async function doExportBackup(){
 function triggerImport(){ document.getElementById('importInput').click(); }
 
 function handleImportFile(file){
-  if(file.size > 40*1024*1024){
+  if(file.size > 200*1024*1024){
     showToast('O backup é grande demais para importar com segurança.', 'error');
     return;
   }
@@ -43,6 +46,11 @@ function confirmImport(data){
   window.__pendingImport = data;
   const nCasas = data.houses.length;
   const nInq = (data.tenants||[]).length;
+  const limit=Number((state.commercialAccess||{}).limiteCasas)||1;
+  if(state.houses.length+nCasas>limit){
+    openModal('<h3 class="modal-title">Backup acima do seu plano</h3><p class="modal-text">A importação deixaria sua conta com '+(state.houses.length+nCasas)+' casas, mas seu plano permite '+limit+'. Exclua casas do arquivo/conta ou solicite outro plano.</p><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button>'+supportContactButton('Solicitar mudança de plano')+'</div>');
+    return;
+  }
   openModal(
     '<h3 class="modal-title">Importar backup?</h3>'+
     '<p class="modal-text">O arquivo tem <strong>'+nCasas+' casa(s)</strong> e <strong>'+nInq+' inquilino(s)</strong>. '+
@@ -104,7 +112,7 @@ async function openBackupsModal(){
   }).join('') : '<div class="empty-state">Ainda não há backups. Eles são criados automaticamente, uma vez por dia, quando você abre o app.</div>';
   openModal(
     '<h3 class="modal-title">Backups automáticos</h3>'+
-    '<p class="modal-text">Guardamos os últimos 7 dias. Restaurar substitui seus dados atuais pelos do backup escolhido. As fotos não entram no backup automático (use “Exportar backup” para um arquivo completo com fotos).</p>'+
+    '<p class="modal-text">Guardamos os últimos 30 dias. Restaurar substitui os dados atuais pelos do backup escolhido. Fotos e documentos não entram no backup automático; use “Exportar backup” para baixar uma cópia completa.</p>'+ 
     '<div class="ledger">'+rows+'</div>'+
     '<div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button></div></div>'
   );
@@ -114,7 +122,7 @@ function confirmRestore(id, quando){
   window.__restoreId = id;
   openModal(
     '<h3 class="modal-title">Restaurar backup de '+quando+'?</h3>'+
-    '<p class="modal-text">Isso <strong>apaga seus dados atuais</strong> e coloca no lugar os dados desse backup. As fotos atuais serão removidas (o backup automático não inclui fotos). Não dá para desfazer.</p>'+
+    '<p class="modal-text">Isso <strong>substitui seus dados atuais</strong> pelos dados desse backup. Fotos e documentos atuais serão removidos porque o backup automático não contém arquivos. Não dá para desfazer.</p>'+ 
     '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
       '<button class="btn btn-ghost" onclick="openBackupsModal()">Voltar</button>'+
       '<button class="btn btn-danger" onclick="doRestore()">Restaurar</button>'+

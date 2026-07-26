@@ -1,15 +1,18 @@
 -- ============================================================
--- Energia completa, características dos imóveis e clientes quentes
+-- Energia completa, características dos imóveis e interessados
 -- Idempotente: pode ser executada novamente com segurança.
 -- ============================================================
 
 alter table public.configuracoes add column if not exists energia_ativa boolean not null default true;
+alter table public.configuracoes add column if not exists tema text not null default 'original';
 
 alter table public.imoveis add column if not exists quartos int not null default 0;
 alter table public.imoveis add column if not exists banheiros int not null default 0;
+alter table public.imoveis add column if not exists cozinha boolean not null default false;
+alter table public.imoveis add column if not exists sala boolean not null default false;
 alter table public.imoveis add column if not exists garagem boolean not null default false;
 alter table public.imoveis add column if not exists quintal boolean not null default false;
-alter table public.imoveis add column if not exists poco_agua boolean not null default false;
+alter table public.imoveis add column if not exists area_servico boolean not null default false;
 alter table public.imoveis add column if not exists energia_ativa boolean not null default true;
 alter table public.imoveis add column if not exists energia_dia_vencimento int not null default 5;
 
@@ -72,7 +75,9 @@ create table if not exists public.interessados (
   banheiros_min int not null default 0 check(banheiros_min>=0),
   precisa_garagem boolean not null default false,
   precisa_quintal boolean not null default false,
-  interessa_poco boolean not null default false,
+  precisa_cozinha boolean not null default false,
+  precisa_sala boolean not null default false,
+  precisa_area_servico boolean not null default false,
   observacoes text not null default '',
   status text not null default 'novo' check(status in ('novo','conversando','visita','quente','fechado','desistiu')),
   inquilino_id uuid references public.inquilinos(id) on delete set null,
@@ -88,7 +93,7 @@ create policy own_rows on public.interessados for all to authenticated
 grant select,insert,update,delete on public.interessados to authenticated;
 
 -- Restauração atômica v5: inclui configurações de energia, imóveis completos
--- e clientes quentes. Fotos de energia permanecem no armazenamento privado.
+-- e interessados. Fotos de energia permanecem no armazenamento privado.
 create or replace function public.importar_backup_atomico_v5(p_payload jsonb,p_substituir boolean default false)
 returns void language plpgsql security invoker set search_path=public
 as $$
@@ -127,16 +132,17 @@ begin
   );
 
   insert into public.imoveis(id,user_id,nome,endereco,status,aluguel_valor,dia_vencimento,
-    ultima_vistoria,tenant_id,contrato_inicio,contrato_fim,quartos,banheiros,garagem,quintal,
-    poco_agua,energia_ativa,energia_dia_vencimento)
+    ultima_vistoria,tenant_id,contrato_inicio,contrato_fim,quartos,banheiros,cozinha,sala,
+    garagem,quintal,area_servico,energia_ativa,energia_dia_vencimento)
   select x.id,v_uid,x.nome,coalesce(x.endereco,''),x.status,x.aluguel_valor,x.dia_vencimento,
     x.ultima_vistoria,x.tenant_id,x.contrato_inicio,x.contrato_fim,coalesce(x.quartos,0),
-    coalesce(x.banheiros,0),coalesce(x.garagem,false),coalesce(x.quintal,false),
-    coalesce(x.poco_agua,false),coalesce(x.energia_ativa,true),coalesce(x.energia_dia_vencimento,5)
+    coalesce(x.banheiros,0),coalesce(x.cozinha,false),coalesce(x.sala,false),
+    coalesce(x.garagem,false),coalesce(x.quintal,false),coalesce(x.area_servico,false),
+    coalesce(x.energia_ativa,true),coalesce(x.energia_dia_vencimento,5)
   from jsonb_to_recordset(coalesce(p_payload->'houses','[]'::jsonb)) as x(
     id uuid,nome text,endereco text,status text,aluguel_valor numeric,dia_vencimento int,
     ultima_vistoria date,tenant_id uuid,contrato_inicio date,contrato_fim date,
-    quartos int,banheiros int,garagem boolean,quintal boolean,poco_agua boolean,
+    quartos int,banheiros int,cozinha boolean,sala boolean,garagem boolean,quintal boolean,area_servico boolean,
     energia_ativa boolean,energia_dia_vencimento int
   );
 
@@ -193,23 +199,29 @@ begin
   from jsonb_to_recordset(coalesce(p_payload->'events','[]'::jsonb)) as x(data date,texto text);
 
   insert into public.interessados(id,user_id,nome,telefone,valor_maximo,quartos_min,banheiros_min,
-    precisa_garagem,precisa_quintal,interessa_poco,observacoes,status,inquilino_id)
+    precisa_garagem,precisa_quintal,precisa_cozinha,precisa_sala,precisa_area_servico,
+    observacoes,status,inquilino_id)
   select x.id,v_uid,x.nome,coalesce(x.telefone,''),coalesce(x.valor_maximo,0),coalesce(x.quartos_min,0),
     coalesce(x.banheiros_min,0),coalesce(x.precisa_garagem,false),coalesce(x.precisa_quintal,false),
-    coalesce(x.interessa_poco,false),coalesce(x.observacoes,''),coalesce(x.status,'novo'),x.inquilino_id
+    coalesce(x.precisa_cozinha,false),coalesce(x.precisa_sala,false),coalesce(x.precisa_area_servico,false),
+    coalesce(x.observacoes,''),coalesce(x.status,'novo'),x.inquilino_id
   from jsonb_to_recordset(coalesce(p_payload->'interests','[]'::jsonb)) as x(
     id uuid,nome text,telefone text,valor_maximo numeric,quartos_min int,banheiros_min int,
-    precisa_garagem boolean,precisa_quintal boolean,interessa_poco boolean,observacoes text,
+    precisa_garagem boolean,precisa_quintal boolean,precisa_cozinha boolean,precisa_sala boolean,
+    precisa_area_servico boolean,observacoes text,
     status text,inquilino_id uuid
   );
 
   if jsonb_typeof(p_payload->'config')='object' then
-    insert into public.configuracoes(user_id,locador_nome,locador_documento,energia_ativa,updated_at)
+    insert into public.configuracoes(user_id,locador_nome,locador_documento,energia_ativa,tema,updated_at)
     values(v_uid,coalesce(p_payload#>>'{config,locador_nome}',''),
       coalesce(p_payload#>>'{config,locador_documento}',''),
-      coalesce((p_payload#>>'{config,energia_ativa}')::boolean,true),now())
+      coalesce((p_payload#>>'{config,energia_ativa}')::boolean,true),
+      case when p_payload#>>'{config,tema}' in ('original','aurora','oceano','citrico')
+        then p_payload#>>'{config,tema}' else 'original' end,now())
     on conflict(user_id) do update set locador_nome=excluded.locador_nome,
-      locador_documento=excluded.locador_documento,energia_ativa=excluded.energia_ativa,updated_at=now();
+      locador_documento=excluded.locador_documento,energia_ativa=excluded.energia_ativa,
+      tema=excluded.tema,updated_at=now();
   end if;
 end;
 $$;

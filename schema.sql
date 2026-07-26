@@ -39,9 +39,11 @@ create table if not exists public.imoveis (
   contrato_fim    date,
   quartos         int not null default 0 check (quartos >= 0),
   banheiros       int not null default 0 check (banheiros >= 0),
+  cozinha         boolean not null default false,
+  sala            boolean not null default false,
   garagem         boolean not null default false,
   quintal         boolean not null default false,
-  poco_agua       boolean not null default false,
+  area_servico    boolean not null default false,
   energia_ativa   boolean not null default true,
   energia_dia_vencimento int not null default 5 check (energia_dia_vencimento between 1 and 31),
   created_at      timestamptz default now(),
@@ -196,6 +198,7 @@ create table if not exists public.configuracoes (
   locador_nome       text default '',
   locador_documento  text default '',
   energia_ativa      boolean not null default true,
+  tema                text not null default 'original' check (tema in ('original','aurora','oceano','citrico')),
   updated_at         timestamptz default now()
 );
 
@@ -209,7 +212,9 @@ create table if not exists public.interessados (
   banheiros_min int not null default 0 check(banheiros_min>=0),
   precisa_garagem boolean not null default false,
   precisa_quintal boolean not null default false,
-  interessa_poco boolean not null default false,
+  precisa_cozinha boolean not null default false,
+  precisa_sala boolean not null default false,
+  precisa_area_servico boolean not null default false,
   observacoes text not null default '',
   status text not null default 'novo' check(status in ('novo','conversando','visita','quente','fechado','desistiu')),
   inquilino_id uuid references public.inquilinos(id) on delete set null,

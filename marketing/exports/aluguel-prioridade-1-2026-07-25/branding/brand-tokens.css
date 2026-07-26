@@ -1,0 +1,167 @@
+/*
+ * Aluguel — tokens oficiais de marca
+ * Fonte: identidade original do aplicativo (style.css e app.js)
+ * Criado em: 2026-07-22
+ * Formato: CSS editável; sem dependência externa obrigatória.
+ */
+
+:root {
+  /* Marca principal — livro-caixa / talão */
+  --brand-color-cover: #14322A;
+  --brand-color-cover-light: #1F4339;
+  --brand-color-paper: #F7F6F2;
+  --brand-color-surface: #FFFFFF;
+  --brand-color-ink: #1C2620;
+  --brand-color-ink-soft: #5C6B63;
+  --brand-color-ink-faint: #93A099;
+  --brand-color-brass: #B8863C;
+  --brand-color-brass-deep: #8C631F;
+  --brand-color-brass-soft: #F1E4C8;
+  --brand-color-accent-on-cover: #E2BE78;
+  --brand-color-cover-muted: #B9CCC3;
+  --brand-color-line: #E3DFD3;
+
+  /* Estados do produto */
+  --brand-color-success: #8C631F;
+  --brand-color-success-soft: #F1E4C8;
+  --brand-color-danger: #A23B2E;
+  --brand-color-danger-soft: #F4DCD7;
+  --brand-color-overdue-surface: #FBEAE7;
+  --brand-color-overdue-line: #E6B9B2;
+  --brand-color-warning: #D99A0E;
+  --brand-color-warning-deep: #8A6300;
+  --brand-color-warning-soft: #FBEFC2;
+  --brand-color-neutral-soft: #E7E9E4;
+  --brand-color-maintenance: #3E6B8A;
+  --brand-color-maintenance-soft: #DCE7ED;
+
+  /* Tipografia */
+  --brand-font-display: "Space Grotesk", Arial, sans-serif;
+  --brand-font-body: "IBM Plex Sans", Arial, sans-serif;
+  --brand-font-data: "IBM Plex Mono", "Courier New", monospace;
+  --brand-font-weight-regular: 400;
+  --brand-font-weight-medium: 500;
+  --brand-font-weight-semibold: 600;
+  --brand-font-weight-bold: 700;
+  --brand-line-height-tight: 1.12;
+  --brand-line-height-title: 1.22;
+  --brand-line-height-body: 1.55;
+  --brand-letter-spacing-eyebrow: 0.12em;
+
+  /* Escala modular — materiais comerciais e web */
+  --brand-type-2xs: 0.6875rem;
+  --brand-type-xs: 0.75rem;
+  --brand-type-sm: 0.875rem;
+  --brand-type-md: 1rem;
+  --brand-type-lg: 1.25rem;
+  --brand-type-xl: 1.625rem;
+  --brand-type-2xl: 2.125rem;
+  --brand-type-3xl: clamp(2.5rem, 5vw, 4.5rem);
+
+  /* Espaçamento em base 4 */
+  --brand-space-1: 0.25rem;
+  --brand-space-2: 0.5rem;
+  --brand-space-3: 0.75rem;
+  --brand-space-4: 1rem;
+  --brand-space-5: 1.5rem;
+  --brand-space-6: 2rem;
+  --brand-space-7: 3rem;
+  --brand-space-8: 4rem;
+  --brand-space-9: 6rem;
+
+  /* Forma e elevação */
+  --brand-radius-sm: 0.5rem;
+  --brand-radius-md: 0.75rem;
+  --brand-radius-lg: 1.125rem;
+  --brand-radius-pill: 999px;
+  --brand-shadow-sm: 0 1px 2px rgba(20, 40, 30, 0.04), 0 4px 16px rgba(20, 40, 30, 0.06);
+  --brand-shadow-lg: 0 2px 6px rgba(20, 40, 30, 0.06), 0 14px 34px rgba(20, 40, 30, 0.12);
+  --brand-motion-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --brand-motion-fast: 150ms;
+  --brand-motion-standard: 220ms;
+
+  /* Layout editorial */
+  --brand-content-max: 72rem;
+  --brand-copy-max: 42rem;
+  --brand-grid-gap: clamp(1rem, 2vw, 1.5rem);
+  --brand-section-space: clamp(4rem, 8vw, 7rem);
+
+  /* Logo */
+  --brand-logo-min-symbol: 24px;
+  --brand-logo-min-lockup: 140px;
+  --brand-logo-clear-space: 0.22em;
+}
+
+/* Aliases opcionais para integrar materiais ao vocabulário do app. */
+.brand-theme {
+  --cover: var(--brand-color-cover);
+  --cover-light: var(--brand-color-cover-light);
+  --paper: var(--brand-color-paper);
+  --card: var(--brand-color-surface);
+  --ink: var(--brand-color-ink);
+  --ink-soft: var(--brand-color-ink-soft);
+  --ink-faint: var(--brand-color-ink-faint);
+  --brass: var(--brand-color-brass);
+  --brass-deep: var(--brand-color-brass-deep);
+  --brass-soft: var(--brand-color-brass-soft);
+  --rust: var(--brand-color-danger);
+  --rust-soft: var(--brand-color-danger-soft);
+  --line: var(--brand-color-line);
+  --font-display: var(--brand-font-display);
+  --font-body: var(--brand-font-body);
+  --font-mono: var(--brand-font-data);
+}
+
+/* Utilitários mínimos para protótipos e materiais HTML. */
+.brand-eyebrow {
+  color: var(--brand-color-ink-soft);
+  font: var(--brand-font-weight-semibold) var(--brand-type-2xs)/1 var(--brand-font-data);
+  letter-spacing: var(--brand-letter-spacing-eyebrow);
+  text-transform: uppercase;
+}
+
+.brand-title {
+  color: var(--brand-color-ink);
+  font-family: var(--brand-font-display);
+  font-weight: var(--brand-font-weight-bold);
+  line-height: var(--brand-line-height-tight);
+}
+
+.brand-body {
+  color: var(--brand-color-ink-soft);
+  font-family: var(--brand-font-body);
+  line-height: var(--brand-line-height-body);
+}
+
+.brand-button-primary {
+  align-items: center;
+  background: var(--brand-color-cover);
+  border: 0;
+  border-radius: var(--brand-radius-sm);
+  color: var(--brand-color-surface);
+  display: inline-flex;
+  font: var(--brand-font-weight-semibold) var(--brand-type-sm)/1 var(--brand-font-body);
+  gap: var(--brand-space-2);
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1.125rem;
+  text-decoration: none;
+}
+
+.brand-button-primary:hover {
+  background: var(--brand-color-cover-light);
+}
+
+.brand-button-primary:focus-visible {
+  outline: 3px solid var(--brand-color-accent-on-cover);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-theme *,
+  .brand-theme *::before,
+  .brand-theme *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

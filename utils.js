@@ -5,6 +5,27 @@
 
 const monthNamesPt = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
+/* ---------- temas de cor ---------- */
+const APP_THEME_OPTIONS = [
+  {id:'original',nome:'Original',descricao:'Verde floresta e latão',cores:['#14322A','#B8863C','#F7F6F2']},
+  {id:'aurora',nome:'Aurora',descricao:'Violeta vibrante e lavanda',cores:['#2B1E4B','#7C4DCC','#F8F6FC']},
+  {id:'oceano',nome:'Oceano',descricao:'Azul profundo e turquesa',cores:['#083B4C','#007F83','#F2F9FA']},
+  {id:'citrico',nome:'Cítrico',descricao:'Verde intenso e lima',cores:['#213B20','#527A12','#F7FAF0']}
+];
+function normalizeAppTheme(theme){
+  return APP_THEME_OPTIONS.some(function(option){return option.id===theme;}) ? theme : 'original';
+}
+function applyAppTheme(theme){
+  const selected=normalizeAppTheme(theme);
+  if(typeof document!=='undefined'&&document.documentElement){
+    document.documentElement.setAttribute('data-theme',selected);
+    const option=APP_THEME_OPTIONS.find(function(item){return item.id===selected;});
+    const meta=document.querySelector('meta[name="theme-color"]');
+    if(meta&&option) meta.setAttribute('content',option.cores[0]);
+  }
+  return selected;
+}
+
 /* ---------- datas ---------- */
 function todayISO(){
   const d = new Date();

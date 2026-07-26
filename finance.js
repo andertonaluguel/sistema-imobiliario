@@ -251,7 +251,7 @@ function renderFinanceiroView(){
       statCard('Saldo em '+state.relatorioAno, fmtMoney(tot.saldo), energyModuleEnabled()?'aluguel + energia − despesas':'aluguel − despesas', tot.saldo<0?'rust':'brass')+
     '</div>'+
     '<div class="panel panel-collapsible">'+
-      '<button class="panel-toggle" onclick="toggleReportList()">'+
+      '<button class="panel-toggle" aria-expanded="'+(state.reportListExpanded?'true':'false')+'" onclick="toggleReportList()">'+
         '<span class="panel-title-inline">Detalhe por casa'+(state.houses.length?'<span class="alert-badge badge-neutral">'+state.houses.length+'</span>':'')+'</span>'+
         '<span class="panel-chevron">'+(state.reportListExpanded?'▾':'▸')+'</span>'+
       '</button>'+

@@ -125,7 +125,10 @@ Depois publique no Netlify como você já faz.
    | acima de R$ 2.000 | R$ 200 |
 
    Para mudar essa tabela: `config.js` → `VITRINE_TAXAS`.
-5. **Divulgar** — aba Divulgação: copie o link, ou o texto pronto de cada imóvel para
+5. **Fotos** — ao salvar, o anúncio reabre com a galeria. Até 10 fotos, comprimidas no
+   navegador antes de subir. **A primeira foto é a capa** — é ela que aparece no card;
+   use o ★ para promover outra. Anúncio sem foto quase não recebe contato.
+6. **Divulgar** — aba Divulgação: copie o link, ou o texto pronto de cada imóvel para
    colar no WhatsApp.
 
 Quando a taxa vence, **o anúncio sai do ar sozinho**. Renovar não exige recadastrar nada.
@@ -172,8 +175,6 @@ Falta o endereço público em Configurações do app, ou a conta não tem o mód
 
 ## O que ainda falta (fase 3 do estudo)
 
-- **Upload de fotos pela Vitrine** — a tabela `vitrine_fotos` e a permissão de leitura
-  pública já existem; falta a tela de envio, que pode reaproveitar o `photos.js`.
 - **Prévia rica no WhatsApp** — a Edge Function do Netlify com as meta tags, para o
   link chegar no grupo com a foto da casa e o preço.
 - **Pontos de interesse automáticos** — o campo `pontos_interesse` já é lido e exibido;

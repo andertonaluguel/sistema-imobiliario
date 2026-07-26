@@ -30,6 +30,11 @@ Este guia considera uma instalação nova, usando o e-mail `andertonaluguel@gmai
 10. Execute `migracao-minha-casa.sql` para criar a gestão financeira familiar exclusiva das contas Mestre.
 11. Execute `migracao-exclusao-contratos.sql` para ativar o encerramento com histórico e a exclusão segura de cadastros errados.
 12. Execute `migracao-separacao-inquilinos-clientes.sql` para impedir que a mesma conta seja classificada em mais de um papel e garantir que inquilinos nunca recebam planos de casas.
+13. Execute `migracao-modulos.sql` para criar as licenças de módulo. Nada muda para ninguém nesta etapa: ela só prepara o terreno.
+14. Execute `migracao-minha-casa-multifamilia.sql` para o Minha Casa deixar de ser exclusivo das contas Mestre e virar um módulo vendável, com uma família por conta.
+15. Execute `migracao-vitrine.sql` para criar o catálogo público de imóveis de terceiros.
+
+As três últimas são reexecutáveis e imprimem uma conferência no final. **O passo a passo detalhado, com o que esperar em cada uma, está em `PASSO-A-PASSO-MODULOS-E-VITRINE.md`.**
 
 O `schema.sql` contém a base e a restauração transacional. As migrações acrescentam o acesso separado dos inquilinos, os arquivos privados e o histórico completo dos contratos.
 

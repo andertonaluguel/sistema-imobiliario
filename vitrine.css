@@ -345,3 +345,51 @@
   .vitrine-tab{flex:0 0 auto;}
   .vitrine-detalhe,.vitrine-pub-main{padding-left:14px;padding-right:14px;}
 }
+
+/* ---------- fotos do anúncio (área interna) ---------- */
+.vitrine-fotos{margin-bottom:14px;}
+.vitrine-fotos-topo{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;margin-bottom:11px;font-size:12px;color:var(--rent-muted);
+}
+.vitrine-fotos-carregando{
+  padding:26px;text-align:center;color:var(--rent-muted);font-size:12.5px;
+  background:#F6F9F7;border:1px dashed var(--rent-line);border-radius:13px;
+}
+.vitrine-fotos-vazio{
+  display:flex;flex-direction:column;align-items:center;gap:9px;padding:26px 20px;
+  text-align:center;color:var(--rent-muted);font-size:12.5px;
+  background:#F6F9F7;border:1px dashed var(--rent-line);border-radius:13px;
+}
+.vitrine-fotos-vazio svg{width:34px;height:34px;color:var(--rent-gold-deep);}
+.vitrine-fotos-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:9px;
+}
+.vitrine-foto{
+  position:relative;aspect-ratio:4/3;border-radius:11px;overflow:hidden;
+  border:1px solid var(--rent-line);background:#EDF2EF;
+}
+.vitrine-foto img{width:100%;height:100%;object-fit:cover;display:block;}
+.vitrine-foto.capa{border-color:var(--rent-gold);box-shadow:0 0 0 2px rgba(240,199,110,.35);}
+.vitrine-foto-capa{
+  position:absolute;left:6px;bottom:6px;padding:3px 8px;border-radius:999px;
+  background:var(--rent-gold);color:#2A1E00;font-family:var(--font-mono);
+  font-size:8.5px;font-weight:700;letter-spacing:.5px;
+}
+.vitrine-foto-acao,.vitrine-foto-remover{
+  position:absolute;top:6px;display:grid;place-items:center;
+  width:24px;height:24px;border:none;border-radius:50%;
+  background:rgba(10,25,20,.68);color:#fff;font-size:13px;line-height:1;
+  opacity:0;transition:opacity .15s,background .15s;
+}
+.vitrine-foto-acao{left:6px;}
+.vitrine-foto-remover{right:6px;font-size:16px;}
+.vitrine-foto:hover .vitrine-foto-acao,
+.vitrine-foto:hover .vitrine-foto-remover{opacity:1;}
+.vitrine-foto-acao:hover{background:var(--rent-gold);color:#2A1E00;}
+.vitrine-foto-remover:hover{background:var(--rent-danger);}
+.vitrine-fotos-dica{margin:9px 0 0;font-size:11px;color:var(--rent-muted);}
+/* No celular não existe :hover — os botões ficam sempre visíveis. */
+@media(hover:none){
+  .vitrine-foto-acao,.vitrine-foto-remover{opacity:1;}
+}

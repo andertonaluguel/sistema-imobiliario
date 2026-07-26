@@ -355,12 +355,23 @@ function openVitrineImovelModal(id){
       '<button class="btn btn-primary" onclick="closeModal();openVitrineAnuncianteModal()">Cadastrar anunciante</button></div>');
     return;
   }
+  /* As fotos só aparecem depois que o anúncio existe: elas precisam do
+     id para serem gravadas. Em anúncio novo, mostramos o aviso. */
+  const blocoFotos=item
+    ? '<div class="form-section-title">Fotos do anúncio</div>'+
+      '<div id="vitrineFotos" class="vitrine-fotos">'+
+      '<div class="vitrine-fotos-carregando">Carregando fotos…</div></div>'
+    : '<div class="form-section-title">Fotos do anúncio</div>'+
+      '<p class="modal-hint">Salve o anúncio primeiro e ele abre de novo para você adicionar as fotos.</p>';
+
   openModal('<h3 class="modal-title">'+(item?'Editar anúncio':'Novo anúncio')+'</h3>'+
     '<p class="modal-text">Este imóvel é de terceiro. Ele não entra no Financeiro nem no limite de casas do seu plano.</p>'+
-    vitrineImovelFormHtml(item)+
+    vitrineImovelFormHtml(item)+blocoFotos+
     '<div class="modal-actions">'+(item?'<button class="btn btn-danger" onclick="confirmarExcluirVitrineImovel(\''+id+'\')">Excluir</button>':'<span></span>')+
     '<div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn btn-primary" onclick="salvarVitrineImovel('+(item?'\''+id+'\'':'null')+')">Salvar</button></div></div>');
+
+  if(item) ensureVitrineFotos(id);
 }
 
 async function salvarVitrineImovel(id){
@@ -369,10 +380,18 @@ async function salvarVitrineImovel(id){
   if(!dados.codigo){showToast('Informe o código do anúncio.','error');return;}
   try{
     const salvo=await db.saveVitrineImovel(Object.assign({},dados,id?{id:id}:{}));
-    if(id){ Object.assign(vitrineImovelPorId(id)||{},salvo); }
-    else { state.vitrine.imoveis.unshift(salvo); }
-    closeModal();render();
-    showToast(id?'Anúncio atualizado.':'Anúncio criado. Publique para colocar no ar.','success');
+    if(id){
+      Object.assign(vitrineImovelPorId(id)||{},salvo);
+      closeModal();render();
+      showToast('Anúncio atualizado.','success');
+    }else{
+      state.vitrine.imoveis.unshift(salvo);
+      render();
+      /* Reabre já no anúncio salvo, para as fotos poderem ser enviadas
+         sem o usuário precisar procurar o anúncio de novo na lista. */
+      openVitrineImovelModal(salvo.id);
+      showToast('Anúncio criado. Agora adicione as fotos.','success');
+    }
   }catch(e){
     console.error(e);
     const msg=/duplicate|unique/i.test(String(e&&e.message))
@@ -917,4 +936,115 @@ function desenharMapaVitrine(id){
     .bindPopup('<b>'+esc(i.titulo)+'</b><br>'+esc([i.logradouro,i.numero].filter(Boolean).join(', ')))
     .openPopup();
   setTimeout(function(){mapa.invalidateSize();},120);
+}
+
+/* ============================================================
+   FOTOS DO ANÚNCIO
+   Reaproveita compressImage() e safePhotoSrc() do photos.js.
+   Máximo de 10 fotos: a vitrine vende pela imagem, então cabe
+   mais do que as 6 do cadastro interno de casas.
+   ============================================================ */
+const VITRINE_MAX_FOTOS=10;
+
+async function ensureVitrineFotos(imovelId){
+  if(state.vitrineFotos[imovelId]!==undefined) return;
+  state.vitrineFotos[imovelId]=[];
+  try{
+    state.vitrineFotos[imovelId]=await db.getVitrineFotos(imovelId);
+  }catch(e){
+    console.error('Erro ao carregar fotos do anúncio',e);
+  }
+  const painel=document.getElementById('vitrineFotos');
+  if(painel) painel.innerHTML=renderVitrineFotosPainel(imovelId);
+}
+
+function triggerVitrineFotoUpload(imovelId){
+  const input=document.getElementById('vitrineFotoInput');
+  if(!input)return;
+  input.dataset.imovelId=imovelId;
+  input.click();
+}
+
+async function handleVitrineFotoFiles(imovelId,fileList){
+  const atuais=state.vitrineFotos[imovelId]||[];
+  if(atuais.length>=VITRINE_MAX_FOTOS){
+    showToast('Máximo de '+VITRINE_MAX_FOTOS+' fotos por anúncio.','error');return;
+  }
+  const painel=document.getElementById('vitrineFotos');
+  if(painel) painel.innerHTML='<div class="vitrine-fotos-carregando">Enviando fotos…</div>';
+  try{
+    const comprimidas=[];
+    for(const f of Array.from(fileList)){
+      if(atuais.length+comprimidas.length>=VITRINE_MAX_FOTOS) break;
+      if(!/^image\/(jpeg|png|webp)$/i.test(f.type||'')||f.size>15*1024*1024){
+        throw new Error('Formato ou tamanho de foto não permitido.');
+      }
+      /* Um pouco maior que as fotos internas: aqui a foto é a vitrine. */
+      const blob=await compressImage(f,1920,0.82);
+      comprimidas.push({blob:blob,nome:(f.name||'foto').replace(/\.[^.]+$/,'')+'.jpg',mime:'image/jpeg'});
+    }
+    const novas=await db.addVitrineFotos(imovelId,comprimidas,atuais.length);
+    state.vitrineFotos[imovelId]=atuais.concat(novas);
+    showToast(novas.length===1?'Foto adicionada.':novas.length+' fotos adicionadas.','success');
+  }catch(e){
+    console.error(e);
+    showToast((e&&e.message)||'Erro ao enviar as fotos.','error');
+  }
+  const alvo=document.getElementById('vitrineFotos');
+  if(alvo) alvo.innerHTML=renderVitrineFotosPainel(imovelId);
+}
+
+async function excluirVitrineFoto(imovelId,fotoId){
+  try{
+    await db.deleteVitrineFoto(fotoId);
+    state.vitrineFotos[imovelId]=(state.vitrineFotos[imovelId]||[])
+      .filter(function(f){return f.id!==fotoId;});
+    const painel=document.getElementById('vitrineFotos');
+    if(painel) painel.innerHTML=renderVitrineFotosPainel(imovelId);
+    showToast('Foto removida.','success');
+  }catch(e){console.error(e);showToast('Não foi possível remover a foto.','error');}
+}
+
+/* A primeira foto é a capa: é ela que aparece no card e é ela que vai
+   na prévia do link no WhatsApp. Por isso "usar como capa" existe. */
+async function definirCapaVitrine(imovelId,fotoId){
+  const fotos=state.vitrineFotos[imovelId]||[];
+  const escolhida=fotos.find(function(f){return f.id===fotoId;});
+  if(!escolhida)return;
+  const resto=fotos.filter(function(f){return f.id!==fotoId;});
+  const nova=[escolhida].concat(resto);
+  try{
+    await db.reorderVitrineFotos(nova.map(function(f,i){return {id:f.id,ordem:i};}));
+    nova.forEach(function(f,i){f.ordem=i;});
+    state.vitrineFotos[imovelId]=nova;
+    const painel=document.getElementById('vitrineFotos');
+    if(painel) painel.innerHTML=renderVitrineFotosPainel(imovelId);
+    showToast('Capa definida.','success');
+  }catch(e){console.error(e);showToast('Não foi possível reordenar.','error');}
+}
+
+function renderVitrineFotosPainel(imovelId){
+  const fotos=state.vitrineFotos[imovelId];
+  if(fotos===undefined) return '<div class="vitrine-fotos-carregando">Carregando fotos…</div>';
+  const validas=fotos.filter(function(f){return !!safePhotoSrc(f.url);});
+  return '<div class="vitrine-fotos-topo">'+
+      '<span>'+validas.length+' de '+VITRINE_MAX_FOTOS+' fotos</span>'+
+      '<button type="button" class="btn btn-primary btn-sm"'+
+        (validas.length>=VITRINE_MAX_FOTOS?' disabled':'')+
+        ' onclick="triggerVitrineFotoUpload(\''+imovelId+'\')">+ Adicionar fotos</button>'+
+    '</div>'+
+    (validas.length
+      ? '<div class="vitrine-fotos-grid">'+validas.map(function(f,i){
+          return '<div class="vitrine-foto'+(i===0?' capa':'')+'">'+
+            '<img src="'+esc(safePhotoSrc(f.url))+'" alt="Foto do anúncio">'+
+            (i===0?'<span class="vitrine-foto-capa">CAPA</span>'
+                  :'<button type="button" class="vitrine-foto-acao" title="Usar como capa" '+
+                   'onclick="definirCapaVitrine(\''+imovelId+'\',\''+f.id+'\')">★</button>')+
+            '<button type="button" class="vitrine-foto-remover" aria-label="Remover foto" '+
+              'onclick="excluirVitrineFoto(\''+imovelId+'\',\''+f.id+'\')">×</button>'+
+          '</div>';
+        }).join('')+'</div>'+
+        '<p class="vitrine-fotos-dica">A primeira foto é a capa: é ela que aparece no card e na prévia do link.</p>'
+      : '<div class="vitrine-fotos-vazio">'+photoIconSvg()+
+        '<span>Nenhuma foto ainda. Anúncio sem foto quase não recebe contato.</span></div>');
 }

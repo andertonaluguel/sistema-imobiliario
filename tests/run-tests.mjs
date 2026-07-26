@@ -771,6 +771,35 @@ assert.match(vitrineSource,/applyAppTheme\('original'\)/);
 assert.match(vitrineCssSource,/\.rent-product-switch\.vitrine/);
 assert.match(rentalUiCssSource,/--rent-gold:#F0C76E/);
 
+/* --- Fotos do anúncio --- */
+assert.match(vitrineSource,/async function handleVitrineFotoFiles/);
+assert.match(vitrineSource,/const VITRINE_MAX_FOTOS=10/);
+/* Reaproveita a compressão e a validação de origem já existentes. */
+assert.match(vitrineSource,/compressImage\(f,1920,0\.82\)/);
+assert.match(vitrineSource,/safePhotoSrc\(f\.url\)/);
+/* A primeira foto é a capa: é ela que vai no card e na prévia do link. */
+assert.match(vitrineSource,/async function definirCapaVitrine/);
+assert.match(vitrineSource,/CAPA/);
+/* Fotos ficam em pasta própria dentro do bucket, ligadas a vitrine_fotos. */
+assert.match(supabaseSource,/async addVitrineFotos\(imovelId,files,startOrder\)/);
+assert.match(supabaseSource,/'\/vitrine\/'\+imovelId/);
+assert.match(supabaseSource,/async deleteVitrineFoto\(fotoId\)/);
+/* Ao apagar, o arquivo sai do storage antes da linha do banco. */
+const deleteFotoTrecho=supabaseSource.slice(
+  supabaseSource.indexOf('async deleteVitrineFoto'),
+  supabaseSource.indexOf('async reorderVitrineFotos')
+);
+assert.ok(
+  deleteFotoTrecho.indexOf('storage.from(FILE_BUCKET).remove') <
+    deleteFotoTrecho.indexOf(".delete().eq('id',fotoId)"),
+  'O arquivo deve sair do storage antes da linha do banco, para não virar lixo órfão.'
+);
+/* A vitrine pública devolve as fotos na ordem, a capa primeiro. */
+assert.match(vitrineMigrationSource,/order by f\.ordem, f\.created_at/);
+assert.match(indexSource,/vitrineFotoInput/);
+assert.match(indexSource,/handleVitrineFotoFiles/);
+assert.match(vitrineCssSource,/\.vitrine-foto\.capa/);
+
 /* --- Ligações --- */
 assert.match(indexSource,/vitrine\.js/);
 assert.match(indexSource,/vitrine\.css/);

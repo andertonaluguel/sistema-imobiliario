@@ -36,6 +36,7 @@
   <div id="toastRoot" class="toast-root" aria-live="polite"></div>
   <input type="file" id="importInput" accept="application/json,.json" hidden>
   <input type="file" id="photoInput" accept="image/*" multiple hidden>
+  <input type="file" id="vitrineFotoInput" accept="image/*" multiple hidden>
 
   <!-- Biblioteca do Supabase (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
@@ -81,6 +82,11 @@
     document.getElementById('photoInput').addEventListener('change', function(){
       const houseId = this.dataset.houseId;
       if(houseId && this.files.length) handlePhotoFiles(houseId, this.files);
+      this.value = '';
+    });
+    document.getElementById('vitrineFotoInput').addEventListener('change', function(){
+      const imovelId = this.dataset.imovelId;
+      if(imovelId && this.files.length) handleVitrineFotoFiles(imovelId, this.files);
       this.value = '';
     });
 

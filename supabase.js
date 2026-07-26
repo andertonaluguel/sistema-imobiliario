@@ -820,6 +820,55 @@ const db = {
     return rowToVitrineTaxa(data);
   },
 
+  /* Fotos do anúncio. Mesmo bucket e mesmo padrão das fotos das casas,
+     mas em pasta separada (vitrine/) e ligadas a vitrine_fotos. A leitura
+     pública só libera o arquivo enquanto o anúncio estiver no ar — quem
+     garante isso é a policy arquivo_vitrine_publico no banco. */
+  async getVitrineFotos(imovelId){
+    const {data,error}=await sb.from('vitrine_fotos').select('*')
+      .eq('imovel_id',imovelId).order('ordem').order('created_at');
+    if(error) throw error;
+    const fotos=(data||[]).map(function(f){return {id:f.id,storagePath:f.storage_path,
+      ordem:Number(f.ordem)||0,legenda:f.legenda||'',url:''};});
+    await Promise.all(fotos.map(async function(f){
+      if(f.storagePath) f.url=await signedStorageUrl(f.storagePath).catch(function(){return '';});
+    }));
+    return fotos;
+  },
+  async addVitrineFotos(imovelId,files,startOrder){
+    const uid=await _userId();
+    const added=[];
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      const path=uid+'/vitrine/'+imovelId+'/'+_uuid()+'-'+safeStorageName(file.nome||'foto.jpg');
+      const up=await sb.storage.from(FILE_BUCKET).upload(path,file.blob,
+        {contentType:file.mime||'image/jpeg',upsert:false});
+      if(up.error) throw up.error;
+      const ins=await sb.from('vitrine_fotos').insert({imovel_id:imovelId,storage_path:path,
+        ordem:(startOrder||0)+i,legenda:'',bytes:file.blob.size||0}).select().single();
+      if(ins.error){ await sb.storage.from(FILE_BUCKET).remove([path]); throw ins.error; }
+      added.push({id:ins.data.id,storagePath:path,ordem:ins.data.ordem,legenda:'',
+        url:await signedStorageUrl(path)});
+    }
+    return added;
+  },
+  async deleteVitrineFoto(fotoId){
+    const found=await sb.from('vitrine_fotos').select('storage_path').eq('id',fotoId).maybeSingle();
+    if(found.error) throw found.error;
+    if(found.data&&found.data.storage_path){
+      const rem=await sb.storage.from(FILE_BUCKET).remove([found.data.storage_path]);
+      if(rem.error) throw rem.error;
+    }
+    const {error}=await sb.from('vitrine_fotos').delete().eq('id',fotoId);
+    if(error) throw error;
+  },
+  async reorderVitrineFotos(ordens){
+    for(const item of ordens){
+      const {error}=await sb.from('vitrine_fotos').update({ordem:item.ordem}).eq('id',item.id);
+      if(error) throw error;
+    }
+  },
+
   async setVitrineLeadStatus(id,status){
     const {error}=await sb.from('vitrine_leads').update({status:status}).eq('id',id);
     if(error) throw error;

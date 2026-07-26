@@ -39,6 +39,7 @@ const state = {
   vitrineDetalheId: null,
   vitrineFiltros: {busca:'',tipo:'',quartos:0,faixa:'',bairro:'',ordem:'destaque',extras:[]},
   vitrine: {anunciantes:[],imoveis:[],leads:[],taxas:[],carregado:false},
+  vitrineFotos: {},
   vitrineTab: 'painel',
   offlineMode: false,
   offlineSavedAt: '',

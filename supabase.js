@@ -9,6 +9,69 @@
 
 const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 const FILE_BUCKET = 'imoveis-arquivos';
+let _actingOwnerId = null;
+
+/* ---- Vitrine: banco (snake_case) <-> memória (camelCase) ---- */
+function rowToVitrineAnunciante(r){
+  return {id:r.id,nome:r.nome||'',telefone:r.telefone||'',email:r.email||'',
+    documento:r.documento||'',observacoes:r.observacoes||'',createdAt:r.created_at||''};
+}
+function rowToVitrineImovel(r){
+  return {
+    id:r.id,anuncianteId:r.anunciante_id||'',codigo:r.codigo||'',titulo:r.titulo||'',
+    tipo:r.tipo||'casa',
+    aluguel:Number(r.aluguel)||0,condominio:Number(r.condominio)||0,iptu:Number(r.iptu)||0,
+    quartos:Number(r.quartos)||0,banheiros:Number(r.banheiros)||0,vagas:Number(r.vagas)||0,
+    areaM2:Number(r.area_m2)||0,
+    mobiliado:!!r.mobiliado,aceitaPet:!!r.aceita_pet,quintal:!!r.quintal,areaServico:!!r.area_servico,
+    exigeFiador:!!r.exige_fiador,caucao:r.caucao||'',
+    contratoMinimoMeses:Number(r.contrato_minimo_meses)||12,descricao:r.descricao||'',
+    cep:r.cep||'',logradouro:r.logradouro||'',numero:r.numero||'',bairro:r.bairro||'',
+    cidade:r.cidade||'',uf:r.uf||'',
+    latitude:r.latitude==null?null:Number(r.latitude),
+    longitude:r.longitude==null?null:Number(r.longitude),
+    enderecoExatoPublico:r.endereco_exato_publico!==false,
+    autorizacaoEnderecoEm:r.autorizacao_endereco_em||'',
+    pontosInteresse:Array.isArray(r.pontos_interesse)?r.pontos_interesse:[],
+    status:r.status||'rascunho',destaque:!!r.destaque,
+    publicadoEm:r.publicado_em||'',expiraEm:r.expira_em||'',
+    visualizacoes:Number(r.visualizacoes)||0,
+    contatosWhatsapp:Number(r.contatos_whatsapp)||0,
+    contatosFormulario:Number(r.contatos_formulario)||0,
+    createdAt:r.created_at||''
+  };
+}
+function vitrineImovelToRow(i){
+  return {
+    anunciante_id:i.anuncianteId||null,codigo:i.codigo,titulo:i.titulo,tipo:i.tipo||'casa',
+    aluguel:Number(i.aluguel)||0,condominio:Number(i.condominio)||0,iptu:Number(i.iptu)||0,
+    quartos:Number(i.quartos)||0,banheiros:Number(i.banheiros)||0,vagas:Number(i.vagas)||0,
+    area_m2:Number(i.areaM2)||0,
+    mobiliado:!!i.mobiliado,aceita_pet:!!i.aceitaPet,quintal:!!i.quintal,area_servico:!!i.areaServico,
+    exige_fiador:!!i.exigeFiador,caucao:i.caucao||'',
+    contrato_minimo_meses:Number(i.contratoMinimoMeses)||12,descricao:i.descricao||'',
+    cep:i.cep||'',logradouro:i.logradouro||'',numero:i.numero||'',bairro:i.bairro||'',
+    cidade:i.cidade||'',uf:i.uf||'',
+    latitude:i.latitude==null||i.latitude===''?null:Number(i.latitude),
+    longitude:i.longitude==null||i.longitude===''?null:Number(i.longitude),
+    endereco_exato_publico:i.enderecoExatoPublico!==false,
+    autorizacao_endereco_em:i.autorizacaoEnderecoEm||null,
+    pontos_interesse:Array.isArray(i.pontosInteresse)?i.pontosInteresse:[],
+    destaque:!!i.destaque,
+    updated_at:new Date().toISOString()
+  };
+}
+function rowToVitrineLead(r){
+  return {id:r.id,imovelId:r.imovel_id||'',nome:r.nome||'',telefone:r.telefone||'',
+    mensagem:r.mensagem||'',origem:r.origem||'formulario',status:r.status||'novo',
+    createdAt:r.created_at||''};
+}
+function rowToVitrineTaxa(r){
+  return {id:r.id,imovelId:r.imovel_id||'',anuncianteId:r.anunciante_id||'',
+    valor:Number(r.valor)||0,formaPagamento:r.forma_pagamento||'',
+    periodoInicio:r.periodo_inicio||'',periodoFim:r.periodo_fim||'',
+    pago:!!r.pago,dataPagamento:r.data_pagamento||'',observacao:r.observacao||''};
+}
 
 /* ---- mapeamentos banco (snake_case) <-> memória (camelCase) ---- */
 function rowToHouse(r){
@@ -25,9 +88,13 @@ function rowToHouse(r){
     contratoFim: r.contrato_fim || '',
     quartos: Number(r.quartos)||0,
     banheiros: Number(r.banheiros)||0,
+    cozinha: !!r.cozinha,
+    sala: !!r.sala,
     garagem: !!r.garagem,
     quintal: !!r.quintal,
-    pocoAgua: !!r.poco_agua,
+    areaServico: !!r.area_servico,
+    publicado: !!r.publicado,
+    descricaoPublica: r.descricao_publica || '',
     energiaAtiva: r.energia_ativa!==false,
     energiaDiaVencimento: r.energia_dia_vencimento||5,
     statusHistorico: [],
@@ -51,13 +118,23 @@ function houseToRow(h){
     contrato_fim: h.contratoFim || null,
     quartos: Math.max(0,parseInt(h.quartos,10)||0),
     banheiros: Math.max(0,parseInt(h.banheiros,10)||0),
+    cozinha: !!h.cozinha,
+    sala: !!h.sala,
     garagem: !!h.garagem,
     quintal: !!h.quintal,
-    poco_agua: !!h.pocoAgua,
+    area_servico: !!h.areaServico,
+    publicado: !!h.publicado,
+    descricao_publica: String(h.descricaoPublica||'').slice(0,3000),
     energia_ativa: h.energiaAtiva!==false,
     energia_dia_vencimento: Math.min(31,Math.max(1,parseInt(h.energiaDiaVencimento,10)||5)),
     updated_at: new Date().toISOString()
   };
+}
+function rowToConfig(r){
+  r=r||{};
+  return {locadorNome:r.locador_nome||'',locadorDocumento:r.locador_documento||'',energiaAtiva:r.energia_ativa!==false,
+    tema:normalizeAppTheme(r.tema),onboardingConcluido:!!r.onboarding_concluido,ultimoBackupExterno:r.ultimo_backup_externo||'',
+    pixChave:r.pix_chave||'',pixNome:r.pix_nome||'',pixCidade:r.pix_cidade||''};
 }
 function rowToTenant(r){
   return {
@@ -72,7 +149,8 @@ function rowToInterest(r){
     id:r.id,nome:r.nome||'',telefone:r.telefone||'',valorMaximo:Number(r.valor_maximo)||0,
     quartosMin:Number(r.quartos_min)||0,banheirosMin:Number(r.banheiros_min)||0,
     precisaGaragem:!!r.precisa_garagem,precisaQuintal:!!r.precisa_quintal,
-    interessaPoco:!!r.interessa_poco,observacoes:r.observacoes||'',status:r.status||'novo',
+    precisaCozinha:!!r.precisa_cozinha,precisaSala:!!r.precisa_sala,
+    precisaAreaServico:!!r.precisa_area_servico,observacoes:r.observacoes||'',status:r.status||'novo',
     tenantId:r.inquilino_id||'',createdAt:r.created_at||''
   };
 }
@@ -129,6 +207,40 @@ function blobToDataUrl(blob){
     const reader=new FileReader(); reader.onload=function(){resolve(reader.result);};
     reader.onerror=reject; reader.readAsDataURL(blob);
   });
+}
+
+async function removeStoragePaths(paths){
+  const unique=Array.from(new Set((paths||[]).filter(Boolean)));
+  for(let i=0;i<unique.length;i+=100){
+    const result=await sb.storage.from(FILE_BUCKET).remove(unique.slice(i,i+100));
+    if(result.error) throw result.error;
+  }
+}
+
+async function fetchAllRows(table,orderColumn,ascending){
+  const all=[];let from=0;const pageSize=1000;
+  while(true){
+    let query=sb.from(table).select('*').range(from,from+pageSize-1);
+    query=query.order(orderColumn||'id',{ascending:ascending!==false});
+    const result=await query;
+    if(result.error)return {data:null,error:result.error};
+    const page=result.data||[];all.push.apply(all,page);
+    if(page.length<pageSize)break;
+    from+=pageSize;
+  }
+  return {data:all,error:null};
+}
+
+async function fetchAllRpc(name){
+  const all=[];let from=0;const pageSize=1000;
+  while(true){
+    const result=await sb.rpc(name).range(from,from+pageSize-1);
+    if(result.error)return result;
+    const page=result.data||[];all.push.apply(all,page);
+    if(page.length<pageSize)break;
+    from+=pageSize;
+  }
+  return {data:all,error:null};
 }
 
 /* ---------- validação e normalização de backups ---------- */
@@ -206,7 +318,7 @@ function normalizeBackupForImport(data){
   });
 
   const houseIdMap = {};
-  const houseRows=[], contractRows=[], pagRows=[], despRows=[], histRows=[], fotoRows=[], reajRows=[], enerRows=[],interestRows=[];
+  const houseRows=[], contractRows=[], pagRows=[], despRows=[], histRows=[], fotoRows=[], documentoRows=[], reajRows=[], enerRows=[],interestRows=[];
   const contractIdMap={},contractsByHouse={};
   const allowedHouseStatus = ['alugada','vaga','manutencao'];
   const allowedExpenseStatus = CONFIG.DESPESA_STATUS;
@@ -229,9 +341,11 @@ function normalizeBackupForImport(data){
       ultima_vistoria:_backupDate(h.ultimaVistoria,'Última vistoria'), tenant_id:tenantId||null,
       contrato_inicio:contratoInicio, contrato_fim:contratoFim,
       quartos:Math.max(0,parseInt(h.quartos,10)||0),banheiros:Math.max(0,parseInt(h.banheiros,10)||0),
-      garagem:!!h.garagem,quintal:!!h.quintal,poco_agua:!!h.pocoAgua,
+      cozinha:!!h.cozinha,sala:!!h.sala,garagem:!!h.garagem,quintal:!!h.quintal,
+      area_servico:!!h.areaServico,
       energia_ativa:h.energiaAtiva!==false,
-      energia_dia_vencimento:Math.min(31,Math.max(1,parseInt(h.energiaDiaVencimento,10)||5)) });
+      energia_dia_vencimento:Math.min(31,Math.max(1,parseInt(h.energiaDiaVencimento,10)||5)),
+      publicado:!!h.publicado,descricao_publica:_backupText(h.descricaoPublica,3000) });
 
     let sourceContracts=Array.isArray(h.contracts)?h.contracts.slice():[];
     if(!sourceContracts.length&&tenantId&&contratoInicio){
@@ -328,7 +442,27 @@ function normalizeBackupForImport(data){
       if(safe.length>2500000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(safe)){
         throw new Error('O backup contém uma foto inválida ou grande demais.');
       }
-      fotoRows.push({ imovel_id:houseId, dados:safe, ordem:i });
+      const encoded=safe.split(',')[1]||'';
+      fotoRows.push({ imovel_id:houseId, dados:safe, ordem:i,nome:'foto-'+(i+1)+'.jpg',
+        mime:(safe.match(/^data:([^;]+)/i)||[])[1]||'image/jpeg',tamanho:Math.floor(encoded.length*3/4) });
+    });
+  });
+
+  const documents = data.documents && typeof data.documents==='object' ? data.documents : {};
+  Object.keys(documents).forEach(function(oldHouseId){
+    const houseId=houseIdMap[String(oldHouseId)]; if(!houseId)return;
+    const list=Array.isArray(documents[oldHouseId])?documents[oldHouseId].slice(0,100):[];
+    list.forEach(function(doc){
+      const content=String(doc&&doc.dados||'');
+      if(content.length>22000000 || !/^data:(application\/pdf|image\/(jpeg|png|webp));base64,[A-Za-z0-9+/=]+$/i.test(content)){
+        throw new Error('O backup contém um documento inválido ou grande demais.');
+      }
+      const encoded=content.split(',')[1]||'',actualSize=Math.floor(encoded.length*3/4);
+      const oldTenant=doc.tenantId?_backupId(doc.tenantId,'Inquilino do documento'):'';
+      documentoRows.push({imovel_id:houseId,inquilino_id:oldTenant?(tenantIdMap[oldTenant]||null):null,
+        tipo:_backupText(doc.tipo,40,'outro')||'outro',nome:_backupText(doc.nome,240,'Arquivo')||'Arquivo',
+        mime:_backupText(doc.mime,100),tamanho:actualSize,
+        visivel_inquilino:!!doc.visivelInquilino,dados:content});
     });
   });
 
@@ -337,37 +471,197 @@ function normalizeBackupForImport(data){
   });
   const allowedInterestStatus=['novo','conversando','visita','quente','fechado','desistiu'];
   interestsIn.forEach(function(item){
-    if(!item||!item.nome) throw new Error('Há um cliente quente sem nome no backup.');
+    if(!item||!item.nome) throw new Error('Há um interessado sem nome no backup.');
     const oldTenant=item.tenantId?_backupId(item.tenantId,'Inquilino convertido'):'';
     interestRows.push({id:_newImportId(),nome:_backupText(item.nome,160),telefone:_backupText(item.telefone,40),
       valor_maximo:_backupNumber(item.valorMaximo,'Valor máximo'),quartos_min:Math.max(0,parseInt(item.quartosMin,10)||0),
       banheiros_min:Math.max(0,parseInt(item.banheirosMin,10)||0),precisa_garagem:!!item.precisaGaragem,
-      precisa_quintal:!!item.precisaQuintal,interessa_poco:!!item.interessaPoco,
+      precisa_quintal:!!item.precisaQuintal,precisa_cozinha:!!item.precisaCozinha,
+      precisa_sala:!!item.precisaSala,precisa_area_servico:!!item.precisaAreaServico,
       observacoes:_backupText(item.observacoes,2000),status:allowedInterestStatus.includes(item.status)?item.status:'novo',
       inquilino_id:oldTenant?(tenantIdMap[oldTenant]||null):null});
   });
   const cfg = data.config && typeof data.config==='object' ? {
     locador_nome:_backupText(data.config.locadorNome,180),
     locador_documento:_backupText(data.config.locadorDocumento,80),
-    energia_ativa:data.config.energiaAtiva!==false
+    energia_ativa:data.config.energiaAtiva!==false,
+    tema:normalizeAppTheme(data.config.tema),
+    onboarding_concluido:!!data.config.onboardingConcluido,
+    ultimo_backup_externo:data.config.ultimoBackupExterno||null,
+    pix_chave:_backupText(data.config.pixChave,180),pix_nome:_backupText(data.config.pixNome,25),
+    pix_cidade:_backupText(data.config.pixCidade,15)
   } : null;
 
   return { tenants:tenantRows, houses:houseRows, contracts:contractRows, payments:pagRows, expenses:despRows,
-    history:histRows, photos:fotoRows, adjustments:reajRows, energy:enerRows,
+    history:histRows, photos:fotoRows, documents:documentoRows, adjustments:reajRows, energy:enerRows,
     interests:interestRows,events:eventRows, config:cfg };
 }
 
 const db = {
   /* Descobre o perfil antes de carregar qualquer dado da interface. */
   async loadRole(){
-    const { data:access, error:accessErr } = await sb.from('acessos_inquilino')
-      .select('*').eq('user_id', await _userId()).eq('ativo', true).maybeSingle();
-    if(accessErr) throw accessErr;
-    if(access) return { role:'tenant', access:access };
-    const { data:owner, error:ownerErr } = await sb.from('proprietarios')
-      .select('user_id,nome').eq('user_id', await _userId()).maybeSingle();
-    if(ownerErr) throw ownerErr;
-    return owner ? { role:'owner', owner:owner } : { role:'pending' };
+    const uid=await _authUserId();
+    _actingOwnerId=null;
+    // As identidades Mestre são reconhecidas diretamente pelo banco e não
+    // dependem de um cadastro de funcionário que possa ser desativado.
+    const commercialResult=await sb.rpc('acesso_comercial_atual');
+    if(commercialResult.error) throw commercialResult.error;
+    const commercial=commercialResult.data||{};
+    if(commercial.administradorPlataforma){
+      const workingOwnerId=commercial.proprietarioId||uid;
+      const ownerResult=await sb.from('proprietarios')
+        .select('user_id,nome,email,slug_publico,nome_publico,contato_publico')
+        .eq('user_id',workingOwnerId).maybeSingle();
+      if(ownerResult.error) throw ownerResult.error;
+      _actingOwnerId=workingOwnerId;
+      return {
+        role:'owner',
+        owner:ownerResult.data||{},
+        staff:workingOwnerId!==uid
+          ? {user_id:uid,proprietario_id:workingOwnerId,nome:'Mestre de segurança',ativo:true}
+          : null,
+        commercial:commercial
+      };
+    }
+    // Resolve todos os papéis em conjunto. Qualquer perfil duplo falha fechado:
+    // nunca escolhemos silenciosamente proprietário e nunca mostramos plano
+    // para uma conta que também esteja ligada a um inquilino.
+    const roleResults=await Promise.all([
+      sb.from('acessos_inquilino').select('*').eq('user_id',uid).maybeSingle(),
+      sb.from('acessos_colaborador').select('*').eq('user_id',uid).maybeSingle(),
+      sb.from('proprietarios')
+        .select('user_id,nome,email,slug_publico,nome_publico,contato_publico').eq('user_id',uid).maybeSingle()
+    ]);
+    const accessResult=roleResults[0],staffResult=roleResults[1],ownerResultSelf=roleResults[2];
+    const roleError=accessResult.error||staffResult.error||ownerResultSelf.error;
+    if(roleError) throw roleError;
+    const access=accessResult.data,staff=staffResult.data,owner=ownerResultSelf.data;
+    const assignedRoles=(access?1:0)+(staff?1:0)+(owner?1:0);
+    if(assignedRoles>1){
+      const conflict=new Error('Esta conta possui perfis conflitantes. O acesso foi bloqueado para proteger os dados.');
+      conflict.code='ROLE_CONFLICT';
+      throw conflict;
+    }
+    if(access) return access.ativo ? { role:'tenant', access:access } : { role:'pending', access:access };
+    if(staff){
+      if(!staff.ativo) return {role:'pending',staff:staff,commercial:commercial};
+      _actingOwnerId=staff.proprietario_id;
+      const ownerResult=await sb.from('proprietarios')
+        .select('user_id,nome,email,slug_publico,nome_publico,contato_publico').eq('user_id',staff.proprietario_id).maybeSingle();
+      if(ownerResult.error) throw ownerResult.error;
+      return {role:'owner',owner:ownerResult.data||{},staff:staff,commercial:commercial};
+    }
+    if(owner){
+      _actingOwnerId=uid;
+      return { role:'owner', owner:owner, commercial:commercial };
+    }
+    return { role:'pending' };
+  },
+
+  /* Licenças de módulo. A tabela pode ainda não existir (migracao-modulos.sql
+     não rodou), e nesse caso devolvemos lista vazia em vez de derrubar a
+     área Comercial inteira. */
+  async listModuleLicenses(){
+    const {data,error}=await sb.rpc('listar_licencas_modulo');
+    if(error){ console.warn('Licenças de módulo indisponíveis:',error.message); return []; }
+    return (data||[]).map(function(l){return {
+      userId:l.userId||'',modulo:l.modulo||'',status:l.status||'',
+      expiraEm:l.expiraEm||'',valorPago:Number(l.valorPago)||0,
+      origem:l.origem||'',ativadaEm:l.ativadaEm||''
+    };});
+  },
+
+  async setModuleLicense(userId,modulo,status,expiraEm,valor,origem){
+    const {data,error}=await sb.rpc('definir_licenca_modulo',{
+      p_user_id:userId,p_modulo:modulo,p_status:status||'ativa',
+      p_expira_em:expiraEm||null,p_valor:Number(valor)||0,p_origem:origem||'venda'
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  async loadCommercialDashboard(){
+    const results=await Promise.all([
+      fetchAllRpc('listar_clientes_comerciais'),
+      fetchAllRpc('listar_vendas_comerciais'),
+      fetchAllRpc('listar_administradores_plataforma'),
+      fetchAllRpc('listar_auditoria_comercial')
+    ]);
+    const accountsResult=results[0],invitesResult=results[1],adminsResult=results[2],auditResult=results[3];
+    if(accountsResult.error) throw accountsResult.error;
+    if(invitesResult.error) throw invitesResult.error;
+    if(adminsResult.error) throw adminsResult.error;
+    if(auditResult.error) throw auditResult.error;
+    const admins=adminsResult.data||[];
+    const adminIds=new Set(admins.map(function(a){return a.user_id;}));
+    return {
+      accounts:(accountsResult.data||[]).map(function(a){return {
+        userId:a.user_id,nome:a.nome||'',email:a.email||'',telefone:a.telefone||'',documento:a.documento||'',
+        empresa:a.empresa||'',plano:a.plano||'gratuito',status:a.status||'suspensa',
+        valorPago:Number(a.valor_pago)||0,formaPagamento:a.forma_pagamento||'',
+        referenciaPagamento:a.referencia_pagamento||'',observacoes:a.observacoes||'',
+        quantidadeImoveis:Number(a.quantidade_imoveis)||0,limiteImoveis:Number(a.limite_imoveis)||1,
+        armazenamentoUsado:Number(a.armazenamento_usado)||0,limiteArmazenamento:Number(a.limite_armazenamento)||0,
+        criadoEm:a.criado_em||'',isPlatformAdmin:adminIds.has(a.user_id)
+      };}),
+      invites:(invitesResult.data||[]).map(function(i){return {
+        id:i.id,nome:i.nome||'',email:i.email||'',telefone:i.telefone||'',documento:i.documento||'',
+        empresa:i.empresa||'',plano:i.plano||'gratuito',status:i.status||'aguardando_pagamento',
+        pagamentoStatus:i.pagamento_status||'pendente',valorPago:Number(i.valor_pago)||0,
+        formaPagamento:i.forma_pagamento||'',referenciaPagamento:i.referencia_pagamento||'',
+        observacoes:i.observacoes||'',expiraEm:i.expira_em||'',aceitoEm:i.aceito_em||'',createdAt:i.created_at||''
+      };}),
+      admins:admins.map(function(a){return {userId:a.user_id,email:a.email||'',createdAt:a.created_at||''};}),
+      audit:(auditResult.data||[]).map(function(a){return {acao:a.acao||'',detalhes:a.detalhes||{},
+        administradorEmail:a.administrador_email||'',clienteEmail:a.cliente_email||'',createdAt:a.created_at||''};}),
+      licenses:await this.listModuleLicenses()
+    };
+  },
+
+  async createCommercialSale(sale){
+    const {data,error}=await sb.rpc('criar_venda_cliente',{
+      p_nome:sale.nome,p_email:sale.email,p_telefone:sale.telefone||'',p_documento:sale.documento||'',
+      p_empresa:sale.empresa||'',p_plano:sale.plano,p_valor_pago:Number(sale.valorPago)||0,
+      p_forma_pagamento:sale.formaPagamento||'',p_referencia_pagamento:sale.referenciaPagamento||'',
+      p_observacoes:sale.observacoes||''
+    });
+    if(error) throw error;
+    return data;
+  },
+
+  async confirmCommercialPayment(inviteId){
+    const {error}=await sb.rpc('confirmar_pagamento_venda',{p_convite_id:inviteId});
+    if(error) throw error;
+  },
+
+  async updateCommercialAccount(userId,account){
+    const {error}=await sb.rpc('atualizar_cliente_comercial',{
+      p_user_id:userId,p_plano:account.plano,p_status:account.status,p_telefone:account.telefone||'',
+      p_documento:account.documento||'',p_empresa:account.empresa||'',p_valor_pago:Number(account.valorPago)||0,
+      p_forma_pagamento:account.formaPagamento||'',p_referencia_pagamento:account.referenciaPagamento||'',
+      p_observacoes:account.observacoes||''
+    });
+    if(error) throw error;
+  },
+
+  async cancelCommercialInvite(inviteId){
+    const {error}=await sb.rpc('cancelar_convite_proprietario',{p_convite_id:inviteId});
+    if(error) throw error;
+  },
+
+  async addPlatformAdmin(email){
+    const {error}=await sb.rpc('adicionar_administrador_plataforma',{p_email:email});
+    if(error) throw error;
+  },
+
+  async removePlatformAdmin(userId){
+    const {error}=await sb.rpc('remover_administrador_plataforma',{p_user_id:userId});
+    if(error) throw error;
+  },
+
+  async acceptTerms(){
+    const {error}=await sb.rpc('aceitar_termos_atuais');
+    if(error) throw error;
   },
 
   async loadTenantPortal(access){
@@ -396,7 +690,7 @@ const db = {
     return {
       houses:houses,
       tenants:(inquilinos.data||[]).map(rowToTenant),
-      config:cfg.data?{locadorNome:cfg.data.locador_nome||'',locadorDocumento:cfg.data.locador_documento||'',energiaAtiva:cfg.data.energia_ativa!==false}:{locadorNome:'',locadorDocumento:'',energiaAtiva:true},
+      config:rowToConfig(cfg.data),
       documents:docs
     };
   },
@@ -415,22 +709,304 @@ const db = {
     return data||{};
   },
 
+  async listTeam(){
+    const {data,error}=await sb.rpc('listar_colaboradores');
+    if(error) throw error;
+    return (data||[]).map(function(item){return {conviteId:item.convite_id||'',userId:item.user_id||'',
+      nome:item.nome||'',email:item.email||'',ativo:!!item.ativo,aceito:!!item.aceito,status:item.status||'pendente',
+      createdAt:item.created_at||''};});
+  },
+
+  async inviteTeamMember(nome,email){
+    const {data,error}=await sb.rpc('criar_convite_colaborador',{p_nome:nome,p_email:email});
+    if(error) throw error;
+    return data||{};
+  },
+
+  async updateTeamMember(userId,active){
+    const {error}=await sb.rpc('atualizar_colaborador',{p_user_id:userId,p_ativo:!!active});
+    if(error) throw error;
+  },
+
+  async cancelTeamInvite(inviteId){
+    const {error}=await sb.rpc('cancelar_convite_colaborador',{p_convite_id:inviteId});
+    if(error) throw error;
+  },
+
+  async savePublicProfile(profile){
+    const {error}=await sb.rpc('salvar_perfil_publico',{p_slug:profile.slug||'',p_nome:profile.nome||'',p_contato:profile.contato||''});
+    if(error) throw error;
+  },
+
+  async loadPublicListings(slug){
+    const {data,error}=await sb.rpc('listar_imoveis_publicos',{p_slug:slug});
+    if(error) throw error;
+    const result=data||{perfil:null,imoveis:[]};
+    await Promise.all((result.imoveis||[]).map(async function(h){if(h.fotoPath)h.fotoUrl=await signedStorageUrl(h.fotoPath);}));
+    return result;
+  },
+
+  /* ---------- Vitrine ----------
+     Tabelas próprias, separadas de public.imoveis de propósito: um imóvel
+     de terceiro nunca pode entrar no Financeiro nem no limite do plano. */
+  async loadVitrine(){
+    const [anunciantes,imoveis,leads,taxas]=await Promise.all([
+      sb.from('vitrine_anunciantes').select('*').order('nome'),
+      sb.from('vitrine_imoveis').select('*').order('created_at',{ascending:false}),
+      sb.from('vitrine_leads').select('*').order('created_at',{ascending:false}).limit(300),
+      sb.from('vitrine_taxas').select('*').order('periodo_fim',{ascending:false})
+    ]);
+    if(anunciantes.error) throw anunciantes.error;
+    if(imoveis.error) throw imoveis.error;
+    if(leads.error) throw leads.error;
+    if(taxas.error) throw taxas.error;
+    return {
+      anunciantes:(anunciantes.data||[]).map(rowToVitrineAnunciante),
+      imoveis:(imoveis.data||[]).map(rowToVitrineImovel),
+      leads:(leads.data||[]).map(rowToVitrineLead),
+      taxas:(taxas.data||[]).map(rowToVitrineTaxa)
+    };
+  },
+
+  async saveVitrineAnunciante(item){
+    const payload={nome:item.nome,telefone:item.telefone||'',email:item.email||'',
+      documento:item.documento||'',observacoes:item.observacoes||'',updated_at:new Date().toISOString()};
+    const query=item.id
+      ? sb.from('vitrine_anunciantes').update(payload).eq('id',item.id).select().single()
+      : sb.from('vitrine_anunciantes').insert(payload).select().single();
+    const {data,error}=await query;
+    if(error) throw error;
+    return rowToVitrineAnunciante(data);
+  },
+  async deleteVitrineAnunciante(id){
+    const {error}=await sb.from('vitrine_anunciantes').delete().eq('id',id);
+    if(error) throw error;
+  },
+
+  async saveVitrineImovel(item){
+    const payload=vitrineImovelToRow(item);
+    const query=item.id
+      ? sb.from('vitrine_imoveis').update(payload).eq('id',item.id).select().single()
+      : sb.from('vitrine_imoveis').insert(payload).select().single();
+    const {data,error}=await query;
+    if(error) throw error;
+    return rowToVitrineImovel(data);
+  },
+  async deleteVitrineImovel(id){
+    const {error}=await sb.from('vitrine_imoveis').delete().eq('id',id);
+    if(error) throw error;
+  },
+  async setVitrineStatus(id,status,expiraEm){
+    const payload={status:status,updated_at:new Date().toISOString()};
+    if(status==='ativo'){
+      payload.publicado_em=new Date().toISOString();
+      if(expiraEm) payload.expira_em=expiraEm;
+    }
+    const {data,error}=await sb.from('vitrine_imoveis').update(payload).eq('id',id).select().single();
+    if(error) throw error;
+    return rowToVitrineImovel(data);
+  },
+
+  async saveVitrineTaxa(item){
+    const payload={imovel_id:item.imovelId||null,anunciante_id:item.anuncianteId||null,
+      valor:Number(item.valor)||0,forma_pagamento:item.formaPagamento||'',
+      periodo_inicio:item.periodoInicio||null,periodo_fim:item.periodoFim||null,
+      pago:!!item.pago,data_pagamento:item.dataPagamento||null,observacao:item.observacao||''};
+    const query=item.id
+      ? sb.from('vitrine_taxas').update(payload).eq('id',item.id).select().single()
+      : sb.from('vitrine_taxas').insert(payload).select().single();
+    const {data,error}=await query;
+    if(error) throw error;
+    return rowToVitrineTaxa(data);
+  },
+
+  async setVitrineLeadStatus(id,status){
+    const {error}=await sb.from('vitrine_leads').update({status:status}).eq('id',id);
+    if(error) throw error;
+  },
+  async deleteVitrineLead(id){
+    const {error}=await sb.from('vitrine_leads').delete().eq('id',id);
+    if(error) throw error;
+  },
+
+  async expireVitrine(){
+    const {data,error}=await sb.rpc('vitrine_expirar_vencidos');
+    if(error) throw error;
+    return Number(data)||0;
+  },
+
+  /* Página pública: sem login. Só devolve anúncio no ar. */
+  async loadVitrinePublica(slug){
+    const {data,error}=await sb.rpc('listar_vitrine_publica',{p_slug:slug});
+    if(error) throw error;
+    const result=data||{perfil:null,imoveis:[]};
+    await Promise.all((result.imoveis||[]).map(async function(i){
+      const paths=Array.isArray(i.fotos)?i.fotos:[];
+      i.fotoUrls=(await Promise.all(paths.map(function(p){
+        return signedStorageUrl(p).catch(function(){return '';});
+      }))).filter(Boolean);
+    }));
+    return result;
+  },
+  async registrarVitrineVisita(imovelId,tipo){
+    try{ await sb.rpc('vitrine_registrar_visita',{p_imovel_id:imovelId,p_tipo:tipo||'visualizacao'}); }
+    catch(e){ console.warn('Contador não registrado:',e&&e.message); }
+  },
+  async registrarVitrineLead(lead){
+    const {data,error}=await sb.rpc('vitrine_registrar_lead',{
+      p_imovel_id:lead.imovelId,p_nome:lead.nome,p_telefone:lead.telefone,
+      p_mensagem:lead.mensagem||'',p_consentimento:!!lead.consentimento
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  /* Minha Casa: financeiro familiar compartilhado somente pelas contas Mestre. */
+  async loadMyHome(){
+    const baseResult=await sb.rpc('minha_casa_carregar',{
+      p_mes:currentMonthStr(),p_status_sugestoes:'pendente'
+    });
+    if(baseResult.error) throw baseResult.error;
+    const home=baseResult.data||{};
+    const transactions=[];
+    let offset=0,total=0;
+    do{
+      const pageResult=await sb.rpc('minha_casa_listar_lancamentos',{
+        p_data_inicio:null,p_data_fim:null,p_tipo:null,p_membro_id:null,p_categoria_id:null,
+        p_busca:null,p_limite:500,p_offset:offset
+      });
+      if(pageResult.error) throw pageResult.error;
+      const page=pageResult.data||{},items=page.items||[];
+      transactions.push.apply(transactions,items);
+      total=Number(page.total)||0;
+      offset+=items.length;
+      if(!items.length) break;
+    }while(offset<total);
+    home.transactions=transactions;
+    home.suggestions=(home.suggestions||[]).map(function(item){
+      const source=item.sourceData||item.source_data||{};
+      return Object.assign({},item,{
+        houseName:item.houseName||source.casa||'',
+        referenceMonth:item.referenceMonth||item.month||source.competencia||'',
+        sourceId:item.sourceId||item.sourceKey||''
+      });
+    });
+    return home;
+  },
+
+  async activateMyHome(){
+    const {data,error}=await sb.rpc('minha_casa_inicializar',{p_ativar:true});
+    if(error) throw error;
+    return data||{};
+  },
+
+  async createMyHomeTransaction(item){
+    const {data,error}=await sb.rpc('minha_casa_salvar_lancamento',{
+      p_tipo:item.type,p_valor:Number(item.amount)||0,p_categoria_id:item.categoryId,
+      p_membro_id:item.memberId,p_data:item.date||todayISO(),p_descricao:item.description||'',p_id:null
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  async updateMyHomeTransaction(id,item){
+    const {data,error}=await sb.rpc('minha_casa_salvar_lancamento',{
+      p_tipo:item.type,p_valor:Number(item.amount)||0,p_categoria_id:item.categoryId,
+      p_membro_id:item.memberId,p_data:item.date||todayISO(),p_descricao:item.description||'',p_id:id
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  async deleteMyHomeTransaction(id){
+    const {data,error}=await sb.rpc('minha_casa_excluir_lancamento',{p_id:id});
+    if(error) throw error;
+    return data||{};
+  },
+
+  async saveMyHomeMember(item){
+    const {data,error}=await sb.rpc('minha_casa_salvar_membro',{
+      p_nome:item.name,p_emoji:item.emoji||'👤',p_cor:item.color||'#64748B',
+      p_ativo:item.active!==false,p_id:item.id||null
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  async deleteMyHomeMember(id){
+    const {data,error}=await sb.rpc('minha_casa_excluir_membro',{p_id:id});
+    if(error) throw error;
+    return data||{};
+  },
+
+  async saveMyHomeCategory(item){
+    const {data,error}=await sb.rpc('minha_casa_salvar_categoria',{
+      p_nome:item.name,p_tipo:item.type,p_emoji:item.emoji||'📌',p_cor:item.color||'#64748B',
+      p_ativo:item.active!==false,p_id:item.id||null
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  async deleteMyHomeCategory(id){
+    const {data,error}=await sb.rpc('minha_casa_excluir_categoria',{p_id:id});
+    if(error) throw error;
+    return data||{};
+  },
+
+  async saveMyHomeRecurring(item){
+    const {data,error}=await sb.rpc('minha_casa_salvar_conta_fixa',{
+      p_nome:item.name,p_valor:Number(item.amount)||0,p_categoria_id:item.categoryId,
+      p_membro_id:item.memberId,p_dia_mes:Number(item.dayOfMonth)||1,
+      p_inicio:item.startDate||null,p_fim:item.endDate||null,p_descricao:item.description||'',
+      p_ativa:item.active!==false,p_id:item.id||null
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  async deleteMyHomeRecurring(id){
+    const {data,error}=await sb.rpc('minha_casa_excluir_conta_fixa',{p_id:id});
+    if(error) throw error;
+    return data||{};
+  },
+
+  async acceptMyHomeSuggestion(id,overrides){
+    const args={p_sugestao_id:id};
+    if(overrides){
+      args.p_valor=Number(overrides.amount)||0;
+      args.p_data=overrides.date||null;
+      args.p_categoria_id=overrides.categoryId||null;
+      args.p_membro_id=overrides.memberId||null;
+      args.p_descricao=overrides.description==null?null:overrides.description;
+    }
+    const {data,error}=await sb.rpc('minha_casa_aceitar_sugestao',args);
+    if(error) throw error;
+    return data||{};
+  },
+
+  async ignoreMyHomeSuggestion(id){
+    const {data,error}=await sb.rpc('minha_casa_ignorar_sugestao',{p_sugestao_id:id});
+    if(error) throw error;
+    return data||{};
+  },
+
   /* Carrega tudo do usuário logado e monta o estado em memória. */
   async loadAll(){
     const [imoveis, inquilinos, contratos, pagamentos, despesas, historico, cfg, eventos, reajustes, energia, interesses] = await Promise.all([
-      sb.from('imoveis').select('*').order('created_at', {ascending:true}),
-      sb.from('inquilinos').select('*').order('created_at', {ascending:true}),
-      sb.from('contratos').select('*').order('inicio',{ascending:true}),
-      sb.from('pagamentos').select('*'),
-      sb.from('despesas').select('*'),
-      sb.from('historico_status').select('*').order('data', {ascending:true}),
+      fetchAllRows('imoveis','created_at',true),
+      fetchAllRows('inquilinos','created_at',true),
+      fetchAllRows('contratos','inicio',true),
+      fetchAllRows('pagamentos'),
+      fetchAllRows('despesas'),
+      fetchAllRows('historico_status','data',true),
       sb.from('configuracoes').select('*').maybeSingle(),
-      sb.from('eventos').select('*').order('data', {ascending:true}),
-      sb.from('aluguel_historico').select('*').order('data_inicio', {ascending:true}),
-      sb.from('energia').select('*'),
-      sb.from('interessados').select('*').order('created_at',{ascending:false})
+      fetchAllRows('eventos','data',true),
+      fetchAllRows('aluguel_historico','data_inicio',true),
+      fetchAllRows('energia'),
+      fetchAllRows('interessados','created_at',false)
     ]);
-    const firstErr = imoveis.error||inquilinos.error||contratos.error||pagamentos.error||despesas.error||historico.error||eventos.error||reajustes.error||energia.error||interesses.error;
+    const firstErr = imoveis.error||inquilinos.error||contratos.error||pagamentos.error||despesas.error||historico.error||cfg.error||eventos.error||reajustes.error||energia.error||interesses.error;
     if(firstErr) throw firstErr;
 
     const houses = (imoveis.data||[]).map(rowToHouse);
@@ -470,9 +1046,7 @@ const db = {
     });
 
     const tenants = (inquilinos.data||[]).map(rowToTenant);
-    const config = cfg.data
-      ? { locadorNome:cfg.data.locador_nome||'', locadorDocumento:cfg.data.locador_documento||'', energiaAtiva:cfg.data.energia_ativa!==false }
-      : { locadorNome:'', locadorDocumento:'', energiaAtiva:true };
+    const config = rowToConfig(cfg.data);
     const evs = (eventos.data||[]).map(function(e){ return { id:e.id, data:e.data, texto:e.texto||'' }; });
 
     return { houses, tenants, interests:(interesses.data||[]).map(rowToInterest), config, eventos: evs };
@@ -508,17 +1082,29 @@ const db = {
       locador_nome: cfg.locadorNome || '',
       locador_documento: cfg.locadorDocumento || '',
       energia_ativa: cfg.energiaAtiva!==false,
+      tema: normalizeAppTheme(cfg.tema),
+      onboarding_concluido: !!cfg.onboardingConcluido,
+      ultimo_backup_externo: cfg.ultimoBackupExterno||null,
+      pix_chave: String(cfg.pixChave||'').slice(0,180),
+      pix_nome: String(cfg.pixNome||'').slice(0,25),
+      pix_cidade: String(cfg.pixCidade||'').slice(0,15),
       updated_at: new Date().toISOString()
     });
     if(error) throw error;
   },
 
-  /* Exporta tudo (inclui fotos) para o backup JSON. */
+  /* Exporta tudo, incluindo fotos e documentos privados. */
   async exportAll(){
     const base = await this.loadAll();
-    const { data: fotos } = await sb.from('fotos').select('*').order('ordem',{ascending:true});
+    const results=await Promise.all([
+      fetchAllRows('fotos','ordem',true),
+      fetchAllRows('documentos','created_at',true)
+    ]);
+    if(results[0].error) throw results[0].error;
+    if(results[1].error) throw results[1].error;
+    const fotos=results[0].data||[],documentos=results[1].data||[];
     const photos = {};
-    for(const f of (fotos||[])){
+    for(const f of fotos){
       let content=f.dados||'';
       if(!content && f.storage_path){
         const downloaded=await sb.storage.from(FILE_BUCKET).download(f.storage_path);
@@ -527,20 +1113,49 @@ const db = {
       }
       if(content) (photos[f.imovel_id] = photos[f.imovel_id] || []).push(content);
     }
-    return { version:5, exportedAt:new Date().toISOString(),
+    const documents={};
+    for(const d of documentos){
+      let content=d.dados||'';
+      if(!content&&d.storage_path){
+        const downloaded=await sb.storage.from(FILE_BUCKET).download(d.storage_path);
+        if(downloaded.error) throw downloaded.error;
+        content=await blobToDataUrl(downloaded.data);
+      }
+      if(content)(documents[d.imovel_id]=documents[d.imovel_id]||[]).push({tenantId:d.inquilino_id||'',
+        tipo:d.tipo||'outro',nome:d.nome||'Arquivo',mime:d.mime||'',tamanho:Number(d.tamanho)||0,
+        visivelInquilino:!!d.visivel_inquilino,dados:content});
+    }
+    return { version:6, exportedAt:new Date().toISOString(),
              houses:base.houses, tenants:base.tenants, interests:base.interests||[], photos:photos,
-             config:base.config, eventos:base.eventos||[] };
+             documents:documents,config:base.config, eventos:base.eventos||[] };
   },
 
   /* Importa tudo em uma única transação no PostgreSQL. Se qualquer etapa
      falhar, nenhuma linha é gravada e uma restauração não apaga o estado atual. */
   async importBackup(data, options){
     const payload = normalizeBackupForImport(data);
-    const { error } = await sb.rpc('importar_backup_atomico_v5', {
+    let oldPaths=[];
+    if(options&&options.replace){
+      const current=await Promise.all([
+        sb.from('fotos').select('storage_path'),sb.from('documentos').select('storage_path'),sb.from('energia').select('foto_path')
+      ]);
+      const currentError=current.find(function(r){return r.error;});if(currentError)throw currentError.error;
+      oldPaths=[].concat(current[0].data||[],current[1].data||[]).map(function(r){return r.storage_path;})
+        .concat((current[2].data||[]).map(function(r){return r.foto_path;}));
+    }
+    const { error } = await sb.rpc('importar_backup_atomico_v6', {
       p_payload: payload,
       p_substituir: !!(options && options.replace)
     });
     if(error) throw error;
+    if(oldPaths.length) await removeStoragePaths(oldPaths);
+  },
+
+  async markExternalBackup(){
+    const uid=await _userId(),stamp=new Date().toISOString();
+    const {error}=await sb.from('configuracoes').upsert({user_id:uid,ultimo_backup_externo:stamp,updated_at:stamp});
+    if(error) throw error;
+    return stamp;
   },
 
   /* ---------------- ESCRITAS ---------------- */
@@ -563,6 +1178,14 @@ const db = {
     if(error) throw error;
   },
   async deleteHouse(id){
+    const files=await Promise.all([
+      sb.from('fotos').select('storage_path').eq('imovel_id',id),
+      sb.from('documentos').select('storage_path').eq('imovel_id',id),
+      sb.from('energia').select('foto_path').eq('imovel_id',id)
+    ]);
+    const fileError=files.find(function(r){return r.error;}); if(fileError)throw fileError.error;
+    await removeStoragePaths([].concat(files[0].data||[],files[1].data||[]).map(function(r){return r.storage_path;})
+      .concat((files[2].data||[]).map(function(r){return r.foto_path;})));
     const { error } = await sb.from('imoveis').delete().eq('id', id); // cascata apaga filhos
     if(error) throw error;
   },
@@ -598,6 +1221,21 @@ const db = {
       p_novo_status:nextStatus||'vaga'
     });
     if(error) throw error;
+  },
+  async previewContractRemoval(contractId){
+    const {data,error}=await sb.rpc('prever_exclusao_contrato',{p_contrato_id:contractId});
+    if(error) throw error;
+    return data||{};
+  },
+  async deleteContractMistake(contractId,confirmation){
+    const {data,error}=await sb.rpc('excluir_contrato_por_engano',{
+      p_contrato_id:contractId,p_confirmacao:confirmation
+    });
+    if(error) throw error;
+    const result=data||{};
+    try{await removeStoragePaths(result.energyPhotoPaths||result.energy_photo_paths||[]);}
+    catch(storageError){console.warn('Contrato excluído; uma foto antiga não pôde ser removida do armazenamento.',storageError);}
+    return result;
   },
   async insertContract(imovelId,tenantId,c){
     const uid=await _userId();
@@ -687,13 +1325,14 @@ const db = {
   },
   async energyPhotoUrl(path){ return path?signedStorageUrl(path):''; },
 
-  /* Clientes quentes / interessados. */
+  /* Interessados em alugar. */
   async insertInterest(item){
     const uid=await _userId();
     const row={user_id:uid,nome:item.nome,telefone:item.telefone||'',valor_maximo:Number(item.valorMaximo)||0,
       quartos_min:Number(item.quartosMin)||0,banheiros_min:Number(item.banheirosMin)||0,
       precisa_garagem:!!item.precisaGaragem,precisa_quintal:!!item.precisaQuintal,
-      interessa_poco:!!item.interessaPoco,observacoes:item.observacoes||'',status:item.status||'novo',
+      precisa_cozinha:!!item.precisaCozinha,precisa_sala:!!item.precisaSala,
+      precisa_area_servico:!!item.precisaAreaServico,observacoes:item.observacoes||'',status:item.status||'novo',
       inquilino_id:item.tenantId||null,updated_at:new Date().toISOString()};
     const {data,error}=await sb.from('interessados').insert(row).select().single();
     if(error) throw error; return rowToInterest(data);
@@ -702,7 +1341,8 @@ const db = {
     const row={nome:item.nome,telefone:item.telefone||'',valor_maximo:Number(item.valorMaximo)||0,
       quartos_min:Number(item.quartosMin)||0,banheiros_min:Number(item.banheirosMin)||0,
       precisa_garagem:!!item.precisaGaragem,precisa_quintal:!!item.precisaQuintal,
-      interessa_poco:!!item.interessaPoco,observacoes:item.observacoes||'',status:item.status||'novo',
+      precisa_cozinha:!!item.precisaCozinha,precisa_sala:!!item.precisaSala,
+      precisa_area_servico:!!item.precisaAreaServico,observacoes:item.observacoes||'',status:item.status||'novo',
       inquilino_id:item.tenantId||null,updated_at:new Date().toISOString()};
     const {error}=await sb.from('interessados').update(row).eq('id',item.id); if(error) throw error;
   },
@@ -747,6 +1387,23 @@ const db = {
   async deleteTenant(id){
     const { error } = await sb.from('inquilinos').delete().eq('id', id);
     if(error) throw error;
+  },
+  async previewTenantRemoval(tenantId){
+    const {data,error}=await sb.rpc('prever_exclusao_inquilino',{p_inquilino_id:tenantId});
+    if(error) throw error;
+    return data||{};
+  },
+  async deleteTenantMistake(tenantId,confirmation){
+    const {data,error}=await sb.rpc('excluir_inquilino_por_engano',{
+      p_inquilino_id:tenantId,p_confirmacao:confirmation
+    });
+    if(error) throw error;
+    const result=data||{};
+    const paths=[].concat(result.documentStoragePaths||result.document_storage_paths||[])
+      .concat(result.energyPhotoPaths||result.energy_photo_paths||[]);
+    try{await removeStoragePaths(paths);}
+    catch(storageError){console.warn('Inquilino excluído; um arquivo antigo não pôde ser removido do armazenamento.',storageError);}
+    return result;
   },
 
   /* Fotos em bucket privado. */
@@ -841,16 +1498,16 @@ const db = {
   async makeSnapshot(){
     const uid = await _userId();
     const base = await this.loadAll();
-    const payload = { version:5, exportedAt:new Date().toISOString(),
+    const payload = { version:6, exportedAt:new Date().toISOString(),
       houses:base.houses, tenants:base.tenants, interests:base.interests||[], config:base.config,
-      eventos:base.eventos, photos:{} };
+      eventos:base.eventos, photos:{},documents:{} };
     const ins = await sb.from('backups').upsert({ user_id:uid, dados:payload, dia:todayISO(), criado_em:new Date().toISOString() },
       { onConflict:'user_id,dia' });
     if(ins.error) throw ins.error;
-    // mantém apenas os 7 mais recentes
+    // mantém o histórico do último mês; arquivos ficam no backup baixado.
     const { data } = await sb.from('backups').select('id,criado_em').order('criado_em', {ascending:false});
-    if(data && data.length > 7){
-      const excedentes = data.slice(7).map(function(b){ return b.id; });
+    if(data && data.length > 30){
+      const excedentes = data.slice(30).map(function(b){ return b.id; });
       await sb.from('backups').delete().in('id', excedentes);
     }
   },
@@ -872,6 +1529,14 @@ const db = {
   /* Apaga TODOS os dados do usuário (mantém a conta e o config). */
   async wipeAll(){
     const uid = await _userId();
+    const files=await Promise.all([
+      sb.from('fotos').select('storage_path').eq('user_id',uid),
+      sb.from('documentos').select('storage_path').eq('user_id',uid),
+      sb.from('energia').select('foto_path').eq('user_id',uid)
+    ]);
+    const fileError=files.find(function(r){return r.error;}); if(fileError)throw fileError.error;
+    await removeStoragePaths([].concat(files[0].data||[],files[1].data||[]).map(function(r){return r.storage_path;})
+      .concat((files[2].data||[]).map(function(r){return r.foto_path;})));
     // filtro explícito por user_id, além do RLS (segurança dupla)
     // ordem respeita as FKs (filhos antes dos pais)
     for(const t of ['fotos','pagamentos','energia','despesas','historico_status','documentos','contratos','eventos','interessados','imoveis','inquilinos']){
@@ -881,10 +1546,13 @@ const db = {
   }
 };
 
-/* id do usuário logado (getSession é local, não vai à rede) */
-async function _userId(){
+/* Login real e conta proprietária em que o usuário está trabalhando. */
+async function _authUserId(){
   const { data:{ session } } = await sb.auth.getSession();
   return session ? session.user.id : null;
+}
+async function _userId(){
+  return _actingOwnerId || await _authUserId();
 }
 
 /* fallback de UUID caso crypto.randomUUID não exista */

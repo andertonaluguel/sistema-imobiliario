@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo — Aba Vitrine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+/* ============================================================
+   Tokens copiados do app real (style.css + aluguel-ui.css)
+   ============================================================ */
+:root{
+  --rent-night:#102E27; --rent-night-2:#1A473B; --rent-night-3:#276153;
+  --rent-canvas:#EEF3F0; --rent-card:#FFFFFF;
+  --rent-ink:#19251F; --rent-muted:#63736B; --rent-line:#D9E3DD;
+  --rent-lime:#E7F77B; --rent-gold:#F0C76E; --rent-gold-deep:#9C6C15;
+  --rent-violet:#6D5BD0; --rent-danger:#B83D4F; --rent-danger-soft:#FCE2E7;
+  --rent-shadow:0 12px 36px rgba(16,46,39,.09);
+  --rent-shadow-small:0 4px 15px rgba(16,46,39,.07);
+  --brass:#B8863C; --brass-soft:#F1E4C8; --warn-soft:#FBEFC2; --warn-deep:#8A6300;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'IBM Plex Sans',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);color:var(--rent-ink);
+  background:radial-gradient(circle at 92% 0,rgba(231,247,123,.13),transparent 22%),
+             linear-gradient(180deg,#F7FAF8 0%,var(--rent-canvas) 100%);
+  min-height:100vh;-webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;}
+a{color:inherit;text-decoration:none;}
+:focus-visible{outline:2px solid var(--rent-gold);outline-offset:2px;}
+
+/* ---------- faixa do protótipo ---------- */
+.proto-bar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 24px;background:#0A1F1A;color:#B9CCC3;font-size:11px;
+}
+.proto-bar strong{color:var(--rent-gold);font-family:var(--font-mono);letter-spacing:.5px;}
+.proto-switch{display:flex;gap:6px;margin-left:auto;}
+.proto-switch button{
+  padding:7px 14px;border:1px solid rgba(255,255,255,.16);border-radius:999px;
+  background:rgba(255,255,255,.05);color:#C6D5CE;font-size:11px;font-weight:700;
+}
+.proto-switch button.on{background:var(--rent-gold);color:#2A1E00;border-color:var(--rent-gold);}
+
+/* ---------- topbar do app ---------- */
+.topbar{
+  display:flex;align-items:center;gap:14px;min-height:76px;
+  padding:12px max(24px,calc((100vw - 1440px)/2));color:#fff;
+  background:radial-gradient(circle at 76% -90%,rgba(231,247,123,.17),transparent 31%),
+             linear-gradient(110deg,#0D2923,var(--rent-night-2));
+  box-shadow:0 1px 0 rgba(255,255,255,.08),0 10px 30px rgba(8,31,25,.14);
+}
+.topbar-brand{display:flex;align-items:center;gap:8px;min-height:44px;padding:7px 14px 7px 0;
+  background:none;border:none;border-right:1px solid rgba(255,255,255,.13);color:#fff;}
+.brand-mark{width:29px;height:29px;color:var(--rent-gold);}
+.brand-name{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:-.35px;}
+.switcher{display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap;}
+.pswitch{
+  display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:8px 13px;
+  border:1px solid rgba(255,255,255,.14);border-radius:12px;
+  color:#C6D5CE;background:rgba(255,255,255,.055);
+  font-size:11px;font-weight:700;white-space:nowrap;
+  transition:transform .15s ease,background .15s ease,border-color .15s ease;
+}
+.pswitch>span{display:grid;place-items:center;min-width:18px;font-size:17px;color:var(--rent-gold);}
+.pswitch:hover{transform:translateY(-1px);color:#fff;background:rgba(255,255,255,.11);}
+.pswitch.active{color:var(--rent-night);border-color:var(--rent-lime);background:var(--rent-lime);
+  box-shadow:0 6px 18px rgba(0,0,0,.16);}
+.pswitch.active>span{color:var(--rent-night);}
+.pswitch.home{border-color:#F0FF96;background:rgba(231,247,123,.12);color:var(--rent-lime);}
+.pswitch.commercial.active{color:#fff;border-color:#A59BE8;background:#4B3E8A;}
+/* >>> A NOVA ABA — dourado, o tom livre da paleta <<< */
+.pswitch.vitrine{border-color:rgba(240,199,110,.45);background:rgba(240,199,110,.12);color:var(--rent-gold);}
+.pswitch.vitrine.active{color:#2A1E00;border-color:var(--rent-gold);background:var(--rent-gold);
+  box-shadow:0 6px 20px rgba(240,199,110,.28);}
+.pswitch.vitrine.active>span{color:#2A1E00;}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.pill{padding:8px 12px;border:1px solid rgba(255,255,255,.18);border-radius:999px;
+  color:#E8F0EC;background:rgba(255,255,255,.06);font-size:10px;}
+.iconbtn{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font-size:15px;}
+
+/* ---------- shell ---------- */
+.main{max-width:1440px;margin:0 auto;padding:26px max(20px,calc((100vw - 1440px)/2)) 70px;}
+.page{display:none;}
+.page.on{display:block;}
+
+/* ---------- abas internas ---------- */
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;padding:6px;margin-bottom:22px;
+  background:#fff;border:1px solid var(--rent-line);border-radius:16px;box-shadow:var(--rent-shadow-small);}
+.subtab{display:inline-flex;align-items:center;gap:7px;padding:10px 15px;border:none;border-radius:11px;
+  background:transparent;color:var(--rent-muted);font-size:12px;font-weight:700;}
+.subtab:hover{background:#EDF3EF;color:var(--rent-ink);}
+.subtab.active{background:var(--rent-night-2);color:#fff;box-shadow:0 5px 14px rgba(16,46,39,.2);}
+.subtab.active span{color:var(--rent-gold);}
+
+/* ---------- cabeçalho de página ---------- */
+.page-header{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  padding:26px 28px;margin-bottom:22px;border-radius:22px;color:#fff;
+  background:radial-gradient(circle at 88% -40%,rgba(240,199,110,.22),transparent 40%),
+             linear-gradient(115deg,#0D2923,var(--rent-night-3));
+  box-shadow:var(--rent-shadow);}
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--rent-gold);}
+.page-header h1{margin:6px 0 4px;font-family:var(--font-display);font-size:clamp(26px,3.4vw,38px);font-weight:700;letter-spacing:-.5px;}
+.page-header p{margin:0;font-size:13px;color:#B9CCC3;max-width:58ch;line-height:1.55;}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ---------- botões ---------- */
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:10px;padding:10px 16px;
+  font-size:13px;font-weight:600;transition:transform .14s,background .18s,box-shadow .18s;}
+.btn:hover{transform:translateY(-1px);}
+.btn-primary{background:var(--rent-night);color:#fff;}
+.btn-primary:hover{background:var(--rent-night-2);box-shadow:0 7px 18px rgba(20,50,42,.22);}
+.btn-gold{background:var(--rent-gold);color:#2A1E00;}
+.btn-gold:hover{box-shadow:0 8px 20px rgba(240,199,110,.35);}
+.btn-wa{background:#25D366;color:#08331A;font-weight:700;}
+.btn-wa:hover{box-shadow:0 8px 20px rgba(37,211,102,.35);}
+.btn-ghost{background:transparent;color:var(--rent-muted);border:1px solid var(--rent-line);}
+.btn-ghost:hover{background:#E7EFEA;color:var(--rent-ink);}
+.btn-ghost-light{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.22);}
+.btn-sm{padding:7px 12px;font-size:11.5px;}
+.btn-block{width:100%;justify-content:center;}
+
+/* ---------- estatísticas ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-bottom:22px;}
+.stat{padding:16px 18px;background:#fff;border:1px solid var(--rent-line);border-radius:16px;box-shadow:var(--rent-shadow-small);}
+.stat strong{display:block;font-family:var(--font-display);font-size:29px;font-weight:700;letter-spacing:-1px;}
+.stat span{font-size:11px;color:var(--rent-muted);}
+.stat.gold{border-color:rgba(240,199,110,.55);background:linear-gradient(160deg,#FFFDF5,#fff);}
+.stat.gold strong{color:var(--rent-gold-deep);}
+.stat.warn strong{color:var(--warn-deep);}
+.stat.danger strong{color:var(--rent-danger);}
+
+/* ---------- painéis ---------- */
+.panel{background:#fff;border:1px solid var(--rent-line);border-radius:18px;box-shadow:var(--rent-shadow-small);
+  margin-bottom:20px;overflow:hidden;}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:18px 22px;border-bottom:1px solid var(--rent-line);}
+.panel-head h2{margin:0;font-family:var(--font-display);font-size:17px;font-weight:700;}
+.panel-head p{margin:3px 0 0;font-size:12px;color:var(--rent-muted);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px;}
+th{padding:11px 22px;text-align:left;font-family:var(--font-mono);font-size:9.5px;letter-spacing:1px;
+  color:var(--rent-muted);text-transform:uppercase;background:#F6F9F7;border-bottom:1px solid var(--rent-line);}
+td{padding:13px 22px;border-bottom:1px solid #EDF2EF;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#FAFCFB;}
+.cell-strong{font-weight:600;}
+.cell-sub{display:block;font-size:11px;color:var(--rent-muted);margin-top:2px;}
+.code{font-family:var(--font-mono);font-size:11px;color:var(--rent-gold-deep);background:#FFF8E8;
+  padding:3px 7px;border-radius:6px;border:1px solid rgba(240,199,110,.4);}
+
+/* ---------- tags ---------- */
+.tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+  font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.5px;white-space:nowrap;}
+.tag-ok{background:#DFF3E4;color:#1B6B37;}
+.tag-warn{background:var(--warn-soft);color:var(--warn-deep);}
+.tag-danger{background:var(--rent-danger-soft);color:var(--rent-danger);}
+.tag-neutral{background:#EAEFEC;color:var(--rent-muted);}
+.tag-gold{background:#FFF3D8;color:var(--rent-gold-deep);}
+
+/* ============================================================
+   PÁGINA PÚBLICA
+   ============================================================ */
+.public-wrap{background:#F7FAF8;min-height:100vh;}
+.pub-top{
+  padding:26px max(20px,calc((100vw - 1180px)/2));color:#fff;
+  background:radial-gradient(circle at 82% -50%,rgba(240,199,110,.2),transparent 38%),
+             linear-gradient(110deg,#0D2923,var(--rent-night-2));
+}
+.pub-top-in{display:flex;align-items:center;gap:16px;max-width:1180px;margin:0 auto;flex-wrap:wrap;}
+.pub-top .brand-mark{width:44px;height:44px;}
+.pub-top h1{margin:3px 0 0;font-family:var(--font-display);font-size:clamp(22px,4vw,34px);font-weight:700;letter-spacing:-.6px;}
+.pub-top .eyebrow{display:block;}
+.pub-count{margin-left:auto;padding:9px 15px;border:1px solid rgba(240,199,110,.5);border-radius:999px;
+  background:rgba(240,199,110,.13);color:var(--rent-gold);font-family:var(--font-mono);font-size:11px;}
+
+/* barra de filtros */
+.filters{position:sticky;top:0;z-index:40;background:rgba(247,250,248,.94);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rent-line);padding:14px max(20px,calc((100vw - 1180px)/2));}
+.filters-in{max-width:1180px;margin:0 auto;display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
+.search-box{flex:1 1 230px;display:flex;align-items:center;gap:8px;padding:0 12px;min-height:42px;
+  background:#fff;border:1px solid var(--rent-line);border-radius:11px;}
+.search-box input{flex:1;border:none;outline:none;font-family:var(--font-body);font-size:13.5px;color:var(--rent-ink);background:none;}
+.sel{min-height:42px;padding:0 32px 0 12px;border:1px solid var(--rent-line);border-radius:11px;background:#fff;
+  font-family:var(--font-body);font-size:12.5px;color:var(--rent-ink);cursor:pointer;
+  appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2363736B' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 11px center;background-size:12px;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;max-width:1180px;margin:11px auto 0;}
+.chip{padding:7px 13px;border:1px solid var(--rent-line);border-radius:999px;background:#fff;
+  font-size:11.5px;font-weight:600;color:var(--rent-muted);transition:.15s;}
+.chip:hover{border-color:var(--rent-gold);color:var(--rent-ink);}
+.chip.on{background:var(--rent-night-2);border-color:var(--rent-night-2);color:#fff;}
+.chip.on::before{content:'✓ ';color:var(--rent-gold);}
+
+.pub-main{max-width:1180px;margin:0 auto;padding:26px 20px 80px;}
+.result-line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.result-line b{font-family:var(--font-display);font-size:18px;}
+.result-line small{color:var(--rent-muted);font-size:12px;}
+
+/* grid de cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:20px;}
+.card{background:#fff;border:1px solid var(--rent-line);border-radius:18px;overflow:hidden;
+  box-shadow:0 10px 26px rgba(20,32,28,.07);cursor:pointer;
+  transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .18s;}
+.card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(20,32,28,.15);}
+.card-photo{position:relative;height:196px;display:grid;place-items:center;color:rgba(255,255,255,.6);font-size:11px;}
+.card-photo .ph-label{font-family:var(--font-mono);letter-spacing:1px;}
+.badge{position:absolute;top:11px;left:11px;padding:5px 10px;border-radius:999px;
+  font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.6px;}
+.badge-gold{background:var(--rent-gold);color:#2A1E00;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.badge-new{background:var(--rent-lime);color:var(--rent-night);}
+.photo-count{position:absolute;bottom:11px;right:11px;padding:5px 10px;border-radius:999px;
+  background:rgba(10,25,20,.72);color:#fff;font-size:10px;font-family:var(--font-mono);}
+.card-body{padding:17px 18px 19px;}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;}
+.card h3{margin:0 0 5px;font-family:var(--font-display);font-size:17.5px;font-weight:700;letter-spacing:-.3px;line-height:1.25;}
+.card-addr{margin:0 0 11px;font-size:12px;color:var(--rent-muted);}
+.price{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--rent-night);letter-spacing:-.6px;}
+.price small{font-size:11px;font-weight:500;color:var(--rent-muted);letter-spacing:0;}
+.total-hint{display:block;margin-top:3px;font-size:10.5px;color:var(--rent-muted);}
+.specs{display:flex;gap:14px;flex-wrap:wrap;padding-top:12px;margin-top:12px;border-top:1px solid #EDF2EF;
+  font-size:12px;color:var(--rent-muted);}
+.specs b{color:var(--rent-ink);font-weight:600;}
+
+/* ---------- detalhe ---------- */
+.detail{display:none;max-width:1180px;margin:0 auto;padding:22px 20px 80px;}
+.detail.on{display:block;}
+.back{display:inline-flex;align-items:center;gap:7px;margin-bottom:16px;padding:9px 14px;border-radius:10px;
+  border:1px solid var(--rent-line);background:#fff;font-size:12.5px;font-weight:600;color:var(--rent-muted);}
+.back:hover{color:var(--rent-ink);border-color:var(--rent-gold);}
+.gallery{display:grid;grid-template-columns:2.1fr 1fr;gap:9px;margin-bottom:22px;border-radius:20px;overflow:hidden;}
+.gallery .g-main{height:404px;display:grid;place-items:center;color:rgba(255,255,255,.65);font-family:var(--font-mono);font-size:12px;letter-spacing:1px;}
+.g-side{display:grid;grid-template-rows:1fr 1fr;gap:9px;}
+.g-side div{display:grid;place-items:center;color:rgba(255,255,255,.6);font-family:var(--font-mono);font-size:11px;position:relative;}
+.g-more{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,25,20,.55);color:#fff;font-size:13px;font-weight:700;}
+.detail-cols{display:grid;grid-template-columns:1fr 366px;gap:24px;align-items:start;}
+.block{background:#fff;border:1px solid var(--rent-line);border-radius:18px;padding:22px;margin-bottom:18px;
+  box-shadow:var(--rent-shadow-small);}
+.block h2{margin:0 0 4px;font-family:var(--font-display);font-size:18px;font-weight:700;}
+.block .sub{margin:0 0 16px;font-size:12px;color:var(--rent-muted);}
+.block p.text{margin:0;font-size:13.5px;line-height:1.7;color:#3B4A43;}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:11px;}
+.feat{display:flex;align-items:center;gap:10px;padding:12px 13px;background:#F6F9F7;border:1px solid var(--rent-line);border-radius:12px;}
+.feat i{font-style:normal;font-size:19px;}
+.feat b{display:block;font-family:var(--font-display);font-size:15px;}
+.feat span{font-size:10.5px;color:var(--rent-muted);}
+.cost-line{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #EDF2EF;font-size:13.5px;}
+.cost-line:last-of-type{border-bottom:none;}
+.cost-total{display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding:14px 16px;
+  background:var(--rent-night);color:#fff;border-radius:13px;}
+.cost-total b{font-family:var(--font-display);font-size:21px;color:var(--rent-gold);}
+
+/* mapa */
+#map{height:330px;border-radius:14px;border:1px solid var(--rent-line);z-index:1;background:#E6EDE9;}
+.map-note{display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:12px 14px;
+  background:#FFF8E8;border:1px solid rgba(240,199,110,.45);border-radius:12px;font-size:11.5px;color:#6A5320;line-height:1.55;}
+.poi-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(226px,1fr));gap:9px;margin-top:16px;}
+.poi{display:flex;align-items:center;gap:11px;padding:11px 13px;background:#F6F9F7;border:1px solid var(--rent-line);border-radius:12px;}
+.poi i{font-style:normal;font-size:17px;width:30px;height:30px;display:grid;place-items:center;
+  background:#fff;border-radius:9px;border:1px solid var(--rent-line);}
+.poi b{display:block;font-size:12.5px;font-weight:600;}
+.poi span{font-size:10.5px;color:var(--rent-muted);font-family:var(--font-mono);}
+
+/* coluna de contato */
+.sticky{position:sticky;top:18px;}
+.contact-card{background:#fff;border:1px solid var(--rent-line);border-radius:18px;overflow:hidden;box-shadow:var(--rent-shadow);}
+.contact-top{padding:20px 22px;color:#fff;background:linear-gradient(120deg,#0D2923,var(--rent-night-3));}
+.contact-top .price{color:#fff;font-size:29px;}
+.contact-top .price small{color:#B9CCC3;}
+.contact-body{padding:20px 22px 22px;}
+.wa-preview{margin:12px 0 16px;padding:12px 14px;background:#EAF8EF;border:1px solid #BFE6CD;border-radius:12px;
+  border-top-left-radius:3px;font-size:12px;line-height:1.6;color:#1B4B30;}
+.wa-preview b{color:#0E3A22;}
+.divider{display:flex;align-items:center;gap:11px;margin:18px 0;color:var(--rent-muted);font-size:10.5px;font-family:var(--font-mono);}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--rent-line);}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.field span{font-size:11.5px;color:var(--rent-muted);}
+.field input,.field textarea{border:1px solid var(--rent-line);border-radius:10px;padding:11px 12px;
+  font-family:var(--font-body);font-size:13.5px;background:#fff;color:var(--rent-ink);width:100%;}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--rent-gold);box-shadow:0 0 0 3px rgba(240,199,110,.25);}
+.consent{display:flex;gap:9px;align-items:flex-start;margin:12px 0 14px;font-size:11px;color:var(--rent-muted);line-height:1.5;}
+.consent input{margin-top:2px;width:15px;height:15px;accent-color:var(--rent-gold-deep);flex-shrink:0;}
+.rule{display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid #EDF2EF;font-size:12.5px;}
+.rule:last-child{border-bottom:none;}
+.rule i{font-style:normal;}
+
+/* ---------- comparação de fluxos ---------- */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:16px;}
+.flow-card{padding:20px;background:#fff;border:1px solid var(--rent-line);border-radius:16px;box-shadow:var(--rent-shadow-small);}
+.flow-card h3{margin:0 0 4px;font-family:var(--font-display);font-size:15px;}
+.flow-card>p{margin:0 0 14px;font-size:11.5px;color:var(--rent-muted);}
+.flow-step{display:flex;gap:11px;padding:9px 0;font-size:12.5px;line-height:1.5;}
+.flow-step b{flex-shrink:0;width:22px;height:22px;display:grid;place-items:center;border-radius:7px;
+  background:var(--rent-night-2);color:var(--rent-gold);font-family:var(--font-mono);font-size:10px;}
+
+.note{display:flex;gap:11px;align-items:flex-start;padding:15px 17px;margin-bottom:20px;
+  background:#FFF8E8;border:1px solid rgba(240,199,110,.5);border-radius:14px;font-size:12.5px;line-height:1.6;color:#5E4A18;}
+.note b{color:#43350F;}
+.note>i{font-style:normal;font-size:17px;}
+
+@media(max-width:980px){
+  .detail-cols{grid-template-columns:1fr;}
+  .sticky{position:static;}
+  .gallery{grid-template-columns:1fr;}
+  .gallery .g-main{height:262px;}
+  .g-side{grid-template-rows:none;grid-template-columns:1fr 1fr;}
+  .g-side div{height:118px;}
+}
+@media(max-width:640px){
+  .topbar{gap:8px;padding:10px 12px;}
+  .pswitch{padding:7px 9px;font-size:9px;border-radius:10px;}
+  .brand-name{font-size:16px;}
+  .top-right .pill{display:none;}
+  .main{padding:16px 12px 60px;}
+  .grid{grid-template-columns:1fr;}
+  .page-header{padding:20px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== faixa de controle do protótipo ===== -->
+<div class="proto-bar">
+  <strong>PROTÓTIPO</strong>
+  <span>Aba Vitrine · dados de demonstração · nada aqui está ligado ao app real</span>
+  <div class="proto-switch">
+    <button id="btnAdmin" class="on" onclick="setMode('admin')">Visão administrador</button>
+    <button id="btnPub" onclick="setMode('pub')">Visão pública (o link)</button>
+  </div>
+</div>
+
+<!-- ===== VISÃO ADMINISTRADOR ===== -->
+<div id="viewAdmin">
+  <header class="topbar">
+    <button class="topbar-brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="16,5 27,15 5,15" fill="currentColor"/>
+        <rect x="8" y="14" width="16" height="13" rx="1" fill="currentColor"/>
+        <rect x="21.5" y="8" width="3.5" height="7" fill="currentColor"/>
+        <rect x="11.5" y="18.5" width="3.5" height="3.5" fill="#14322A"/>
+        <rect x="17" y="18.5" width="3.5" height="3.5" fill="#14322A"/>
+      </svg>
+      <span class="brand-name">Aluguel</span>
+    </button>
+    <div class="switcher">
+      <button class="pswitch"><span>&#9638;</span><b>Aluguéis</b></button>
+      <button class="pswitch home"><span>⌂</span><b>Minha Casa</b></button>
+      <button class="pswitch commercial"><span>&#9670;</span><b>Comercial</b></button>
+      <button class="pswitch vitrine active"><span>&#9788;</span><b>Vitrine</b></button>
+    </div>
+    <div class="top-right">
+      <span class="pill">Plano Premium · 8/100</span>
+      <button class="iconbtn">⌕</button>
+      <button class="iconbtn">⋯</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="note">
+      <i>💡</i>
+      <div><b>A quarta aba usa o dourado</b> — o único tom de destaque da paleta ainda livre.
+      Aluguéis usa o lima, Comercial usa o violeta, Minha Casa usa o lima contornado.
+      Nenhuma cor nova foi inventada: <code>--rent-gold: #F0C76E</code> já existe no <code>aluguel-ui.css</code>.</div>
+    </div>
+
+    <!-- MÓDULOS -->
+    <div class="panel" style="border-color:rgba(240,199,110,.5)">
+      <div class="panel-head" style="background:linear-gradient(110deg,#FFFDF5,#fff)">
+        <div><h2>☀ O topo agora depende do que a conta comprou</h2>
+        <p>Cada pessoa vê só os módulos dela. Você, como Mestre, vê tudo — inclusive o Comercial, que nunca é vendido.</p></div>
+      </div>
+      <div style="padding:20px 22px">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Cliente</th><th>Aluguéis</th><th>Minha Casa</th><th>Vitrine</th><th>Comercial</th><th>Plano</th><th>O que ele vê ao entrar</th></tr></thead>
+            <tbody>
+              <tr><td class="cell-strong">Você<span class="cell-sub">conta Mestre</span></td>
+                  <td><span class="tag tag-ok">Sim</span></td><td><span class="tag tag-ok">Sim</span></td>
+                  <td><span class="tag tag-ok">Sim</span></td><td><span class="tag tag-gold">Sim</span></td>
+                  <td>Premium</td><td>Painel de aluguéis</td></tr>
+              <tr><td class="cell-strong">Imobiliária Aurora<span class="cell-sub">seu cliente ideal</span></td>
+                  <td><span class="tag tag-ok">Sim</span></td><td><span class="tag tag-neutral">Não</span></td>
+                  <td><span class="tag tag-ok">Sim</span></td><td><span class="tag tag-neutral">Não</span></td>
+                  <td>Premium</td><td>Painel de aluguéis</td></tr>
+              <tr><td class="cell-strong">Sr. Aparecido<span class="cell-sub">3 casas de família</span></td>
+                  <td><span class="tag tag-ok">Sim</span></td><td><span class="tag tag-neutral">Não</span></td>
+                  <td><span class="tag tag-neutral">Não</span></td><td><span class="tag tag-neutral">Não</span></td>
+                  <td>Básico</td><td>Painel de aluguéis</td></tr>
+              <tr><td class="cell-strong">Dona Neusa<span class="cell-sub">não tem imóvel nenhum</span></td>
+                  <td><span class="tag tag-neutral">Não</span></td><td><span class="tag tag-ok">Sim</span></td>
+                  <td><span class="tag tag-neutral">Não</span></td><td><span class="tag tag-neutral">Não</span></td>
+                  <td>—</td><td><b>Minha Casa</b> — nem sabe que existe gestão de aluguéis</td></tr>
+              <tr><td class="cell-strong">Corretor autônomo<span class="cell-sub">só divulga, não gerencia</span></td>
+                  <td><span class="tag tag-neutral">Não</span></td><td><span class="tag tag-neutral">Não</span></td>
+                  <td><span class="tag tag-ok">Sim</span></td><td><span class="tag tag-neutral">Não</span></td>
+                  <td>Gratuito</td><td><b>Vitrine</b> — um cliente que hoje não existiria</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note" style="margin:18px 0 0">
+          <i>⚠️</i>
+          <div><b>O obstáculo que precisa cair primeiro.</b> O Minha Casa está travado por dois endereços
+          de e-mail escritos dentro do banco de dados (<code>e_mestre()</code>, em
+          <code>migracao-minha-casa.sql</code> linha 39). Enquanto esse trecho existir,
+          <b>nenhum cliente consegue comprar o Minha Casa</b> — porque o teste de acesso é o seu e-mail.
+          Trocar essa pergunta por "esta conta tem o módulo?" é a fase A do plano, e ela destrava
+          uma receita que já está pronta e parada.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-header">
+      <div>
+        <span class="eyebrow">CATÁLOGO PÚBLICO DE TERCEIROS</span>
+        <h1>Vitrine</h1>
+        <p>Imóveis de outros proprietários que pagam para serem divulgados.
+           Não entram no Financeiro, não contam no limite do plano e não aparecem em nenhum relatório dos aluguéis.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost-light">⧉ Copiar link</button>
+        <button class="btn btn-ghost-light">▦ QR Code</button>
+        <button class="btn btn-gold">+ Novo anúncio</button>
+      </div>
+    </div>
+
+    <div class="subtabs">
+      <button class="subtab active"><span>▤</span>Painel</button>
+      <button class="subtab"><span>⌂</span>Anúncios</button>
+      <button class="subtab"><span>☺</span>Anunciantes</button>
+      <button class="subtab"><span>♡</span>Leads</button>
+      <button class="subtab"><span>R$</span>Taxas</button>
+      <button class="subtab"><span>◈</span>Divulgação</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat gold"><strong>6</strong><span>Anúncios no ar</span></div>
+      <div class="stat warn"><strong>2</strong><span>Taxa a vencer (7 dias)</span></div>
+      <div class="stat danger"><strong>1</strong><span>Fora do ar por vencimento</span></div>
+      <div class="stat"><strong>1.284</strong><span>Visualizações no mês</span></div>
+      <div class="stat"><strong>37</strong><span>Contatos no mês</span></div>
+      <div class="stat gold"><strong>R$ 900</strong><span>Taxas recebidas no mês</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Anúncios</h2><p>O anúncio sai do ar sozinho quando a taxa vence. Renovar é um clique — nada precisa ser recadastrado.</p></div>
+        <button class="btn btn-ghost btn-sm">Exportar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Código / Imóvel</th><th>Anunciante</th><th>Aluguel</th><th>Taxa</th><th>Situação</th><th>Desempenho</th><th></th></tr></thead>
+          <tbody id="adminRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Leads da semana</h2><p>Cada contato guarda de qual imóvel veio e por onde chegou.</p></div>
+        <button class="btn btn-ghost btn-sm">Ver todos</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pessoa</th><th>Imóvel</th><th>Origem</th><th>Quando</th><th>Situação</th><th></th></tr></thead>
+          <tbody>
+            <tr><td class="cell-strong">Marina Lopes<span class="cell-sub">(34) 9 9812-4477</span></td>
+                <td><span class="code">#A-104</span><span class="cell-sub">Casa no Jardim América</span></td>
+                <td><span class="tag tag-ok">WhatsApp</span></td><td>hoje, 14:22</td>
+                <td><span class="tag tag-warn">Novo</span></td><td><button class="btn btn-ghost btn-sm">Atender</button></td></tr>
+            <tr><td class="cell-strong">Rodrigo Sena<span class="cell-sub">(34) 9 9740-1188</span></td>
+                <td><span class="code">#A-107</span><span class="cell-sub">Apartamento no Centro</span></td>
+                <td><span class="tag tag-gold">Formulário</span></td><td>hoje, 09:05</td>
+                <td><span class="tag tag-ok">Visita marcada</span></td><td><button class="btn btn-ghost btn-sm">Abrir</button></td></tr>
+            <tr><td class="cell-strong">Camila Prado<span class="cell-sub">(34) 9 9655-3021</span></td>
+                <td><span class="code">#A-102</span><span class="cell-sub">Kitnet Vila Nova</span></td>
+                <td><span class="tag tag-ok">WhatsApp</span></td><td>ontem, 20:41</td>
+                <td><span class="tag tag-neutral">Contatado</span></td><td><button class="btn btn-ghost btn-sm">Abrir</button></td></tr>
+            <tr><td class="cell-strong">Jonas Ribeiro<span class="cell-sub">(34) 9 9533-7712</span></td>
+                <td><span class="code">#A-109</span><span class="cell-sub">Sobrado no Alto da Boa Vista</span></td>
+                <td><span class="tag tag-gold">Formulário</span></td><td>ontem, 18:12</td>
+                <td><span class="tag tag-neutral">Contatado</span></td><td><button class="btn btn-ghost btn-sm">Abrir</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div><h2>Como cada um usa</h2><p>Três pessoas diferentes tocam a Vitrine — e só uma delas precisa de login.</p></div></div>
+      <div style="padding:20px 22px">
+        <div class="flow">
+          <div class="flow-card">
+            <h3>🏠 O dono do imóvel</h3><p>Sem login. É um cadastro seu.</p>
+            <div class="flow-step"><b>1</b><span>Procura você para divulgar a casa dele</span></div>
+            <div class="flow-step"><b>2</b><span>Combinam a taxa e o período no ar</span></div>
+            <div class="flow-step"><b>3</b><span>Manda fotos e informações por WhatsApp</span></div>
+            <div class="flow-step"><b>4</b><span>Recebe o relatório: visualizações e contatos</span></div>
+            <div class="flow-step"><b>5</b><span>Renova a taxa ou avisa que alugou</span></div>
+          </div>
+          <div class="flow-card">
+            <h3>👀 Quem procura casa</h3><p>Sem login, sem instalar nada.</p>
+            <div class="flow-step"><b>1</b><span>Recebe o link no WhatsApp ou clica na bio do Instagram</span></div>
+            <div class="flow-step"><b>2</b><span>Filtra por quartos, preço e bairro</span></div>
+            <div class="flow-step"><b>3</b><span>Abre o imóvel: fotos, mapa, o que tem por perto</span></div>
+            <div class="flow-step"><b>4</b><span>Clica no WhatsApp ou deixa o contato</span></div>
+            <div class="flow-step"><b>5</b><span>Você recebe já sabendo de qual casa se trata</span></div>
+          </div>
+          <div class="flow-card">
+            <h3>🧑‍💼 Você</h3><p>Conta Mestre, dentro do app.</p>
+            <div class="flow-step"><b>1</b><span>Cadastra anunciante, imóvel e fotos</span></div>
+            <div class="flow-step"><b>2</b><span>Registra a taxa e a data de vencimento</span></div>
+            <div class="flow-step"><b>3</b><span>Divulga o link, o QR e o card de Story</span></div>
+            <div class="flow-step"><b>4</b><span>Atende os leads que chegam identificados</span></div>
+            <div class="flow-step"><b>5</b><span>Cobra a renovação mostrando os números</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VISÃO PÚBLICA ===== -->
+<div id="viewPub" class="public-wrap" style="display:none">
+
+  <div class="pub-top">
+    <div class="pub-top-in">
+      <svg class="brand-mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="color:#F0C76E">
+        <polygon points="16,5 27,15 5,15" fill="currentColor"/>
+        <rect x="8" y="14" width="16" height="13" rx="1" fill="currentColor"/>
+        <rect x="21.5" y="8" width="3.5" height="7" fill="currentColor"/>
+        <rect x="11.5" y="18.5" width="3.5" height="3.5" fill="#0D2923"/>
+        <rect x="17" y="18.5" width="3.5" height="3.5" fill="#0D2923"/>
+      </svg>
+      <div>
+        <span class="eyebrow">IMÓVEIS PARA ALUGAR</span>
+        <h1>Anderton Imóveis</h1>
+      </div>
+      <span class="pub-count" id="pubCount">6 imóveis disponíveis</span>
+    </div>
+  </div>
+
+  <!-- listagem -->
+  <div id="listView">
+    <div class="filters">
+      <div class="filters-in">
+        <label class="search-box">
+          <span style="color:var(--rent-muted)">⌕</span>
+          <input id="fSearch" placeholder="Bairro, rua, código do imóvel…" oninput="apply()">
+        </label>
+        <select class="sel" id="fTipo" onchange="apply()">
+          <option value="">Todos os tipos</option><option>Casa</option><option>Apartamento</option>
+          <option>Kitnet</option><option>Sobrado</option>
+        </select>
+        <select class="sel" id="fQuartos" onchange="apply()">
+          <option value="">Quartos</option><option value="1">1+</option><option value="2">2+</option>
+          <option value="3">3+</option><option value="4">4+</option>
+        </select>
+        <select class="sel" id="fPreco" onchange="apply()">
+          <option value="">Qualquer preço</option><option value="0-800">Até R$ 800</option>
+          <option value="800-1200">R$ 800 a 1.200</option><option value="1200-2000">R$ 1.200 a 2.000</option>
+          <option value="2000-99999">Acima de R$ 2.000</option>
+        </select>
+        <select class="sel" id="fBairro" onchange="apply()"><option value="">Todos os bairros</option></select>
+        <select class="sel" id="fOrder" onchange="apply()">
+          <option value="destaque">Destaques primeiro</option><option value="novos">Mais recentes</option>
+          <option value="menor">Menor preço</option><option value="maior">Maior preço</option>
+        </select>
+      </div>
+      <div class="chips" id="chipRow">
+        <button class="chip" data-f="garagem" onclick="toggleChip(this)">🚗 Garagem</button>
+        <button class="chip" data-f="mobiliado" onclick="toggleChip(this)">🛋 Mobiliado</button>
+        <button class="chip" data-f="pet" onclick="toggleChip(this)">🐾 Aceita pet</button>
+        <button class="chip" data-f="quintal" onclick="toggleChip(this)">🌳 Quintal</button>
+        <button class="chip" data-f="semFiador" onclick="toggleChip(this)">📄 Sem fiador</button>
+      </div>
+    </div>
+
+    <div class="pub-main">
+      <div class="result-line">
+        <b id="resCount">6 imóveis</b>
+        <small>Os filtros mudam o resultado na hora — e vão para o endereço do link, para você mandar já filtrado no WhatsApp</small>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div id="empty" style="display:none;text-align:center;padding:70px 20px;color:var(--rent-muted)">
+        <div style="font-size:38px;margin-bottom:10px">🔍</div>
+        <b style="font-family:var(--font-display);font-size:19px;color:var(--rent-ink)">Nenhum imóvel com esses filtros</b>
+        <p style="font-size:13px">Tente ampliar a faixa de preço ou trocar o bairro.</p>
+        <button class="btn btn-ghost" onclick="clearAll()">Limpar filtros</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- detalhe -->
+  <div class="detail" id="detailView"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ============================================================
+   Dados de demonstração
+   ============================================================ */
+const IMOVEIS = [
+  {cod:'A-104',titulo:'Casa 2 quartos no Jardim América',tipo:'Casa',aluguel:1200,cond:0,iptu:68,
+   quartos:2,banheiros:1,vagas:1,area:78,bairro:'Jardim América',rua:'Rua das Acácias',numero:'412',
+   garagem:true,mobiliado:false,pet:true,quintal:true,semFiador:true,destaque:true,novo:false,
+   fotos:6,lat:-19.9142,lng:-43.9401,cor:'linear-gradient(135deg,#3E6B5A,#1A473B)',dias:12,
+   desc:'Casa térrea em rua tranquila e asfaltada, com sala ampla, cozinha com armários planejados, dois quartos com boa iluminação natural, banheiro social e área de serviço coberta. Quintal nos fundos com espaço para churrasqueira. Garagem coberta para um carro.',
+   caucao:'2 aluguéis',contrato:'12 meses',
+   poi:[['🛒','Supermercado Bom Preço','400 m · 5 min a pé'],['🎓','E.M. Jardim América','650 m · 8 min a pé'],
+        ['💊','Drogaria Popular','300 m · 4 min a pé'],['🚌','Ponto de ônibus — linha 302','180 m · 2 min a pé'],
+        ['🏥','UBS Jardim América','1,1 km · 14 min a pé'],['🌳','Praça do Bairro','520 m · 6 min a pé']]},
+
+  {cod:'A-107',titulo:'Apartamento 3 quartos no Centro',tipo:'Apartamento',aluguel:1850,cond:320,iptu:110,
+   quartos:3,banheiros:2,vagas:1,area:96,bairro:'Centro',rua:'Av. Afonso Pena',numero:'1870, apto 302',
+   garagem:true,mobiliado:false,pet:false,quintal:false,semFiador:false,destaque:true,novo:true,
+   fotos:9,lat:-19.9245,lng:-43.9352,cor:'linear-gradient(135deg,#4A6E85,#1F3F52)',dias:3,
+   desc:'Apartamento em prédio com elevador e portaria 24 horas, terceiro andar, sol da manhã. Três quartos sendo uma suíte, sala em L com sacada, cozinha com área de serviço separada. Vaga de garagem coberta e demarcada. Condomínio inclui água e gás.',
+   caucao:'Fiador ou seguro-fiança',contrato:'30 meses',
+   poi:[['🛒','Mercado Central','300 m · 4 min a pé'],['🎓','Colégio Estadual Central','450 m · 6 min a pé'],
+        ['💊','Farmácia 24h','120 m · 2 min a pé'],['🚌','Terminal Central','600 m · 7 min a pé'],
+        ['🏦','Banco do Brasil','250 m · 3 min a pé'],['🌳','Parque Municipal','900 m · 11 min a pé']]},
+
+  {cod:'A-102',titulo:'Kitnet mobiliada na Vila Nova',tipo:'Kitnet',aluguel:680,cond:0,iptu:24,
+   quartos:1,banheiros:1,vagas:0,area:32,bairro:'Vila Nova',rua:'Rua Sete de Setembro',numero:'233, fundos',
+   garagem:false,mobiliado:true,pet:false,quintal:false,semFiador:true,destaque:false,novo:false,
+   fotos:4,lat:-19.9310,lng:-43.9480,cor:'linear-gradient(135deg,#7A6A4E,#4A3D26)',dias:26,
+   desc:'Kitnet totalmente mobiliada, pronta para morar: cama, guarda-roupa, mesa, fogão cooktop, geladeira e armário de cozinha. Ideal para estudante ou pessoa que mora sozinha. Entrada independente, com internet inclusa no valor.',
+   caucao:'1 aluguel',contrato:'6 meses',
+   poi:[['🛒','Mercearia da Vila','150 m · 2 min a pé'],['🎓','Faculdade Uni Vila','800 m · 10 min a pé'],
+        ['💊','Drogaria Vila Nova','280 m · 3 min a pé'],['🚌','Ponto de ônibus — linha 118','90 m · 1 min a pé'],
+        ['🏥','Clínica Popular','950 m · 12 min a pé'],['🌳','Academia ao ar livre','340 m · 4 min a pé']]},
+
+  {cod:'A-109',titulo:'Sobrado 4 quartos no Alto da Boa Vista',tipo:'Sobrado',aluguel:2600,cond:0,iptu:190,
+   quartos:4,banheiros:3,vagas:2,area:184,bairro:'Alto da Boa Vista',rua:'Rua dos Ipês',numero:'88',
+   garagem:true,mobiliado:false,pet:true,quintal:true,semFiador:false,destaque:false,novo:true,
+   fotos:11,lat:-19.9052,lng:-43.9298,cor:'linear-gradient(135deg,#5C6E52,#2E3B27)',dias:5,
+   desc:'Sobrado em condomínio fechado com portaria. No térreo: sala de estar e jantar integradas, lavabo, cozinha com ilha, despensa e área gourmet com churrasqueira. No piso superior: quatro quartos, sendo duas suítes, e varanda com vista. Quintal amplo e garagem para dois carros.',
+   caucao:'Fiador',contrato:'30 meses',
+   poi:[['🛒','Supermercado Verde Vale','1,2 km · 15 min a pé'],['🎓','Colégio Ipê — bilíngue','700 m · 9 min a pé'],
+        ['💊','Farmácia do Alto','850 m · 10 min a pé'],['🚌','Ponto de ônibus — linha 507','400 m · 5 min a pé'],
+        ['🏥','Hospital São Lucas','2,1 km · de carro'],['🌳','Praça dos Ipês','200 m · 3 min a pé']]},
+
+  {cod:'A-111',titulo:'Casa 3 quartos no Bela Vista',tipo:'Casa',aluguel:1450,cond:0,iptu:82,
+   quartos:3,banheiros:2,vagas:1,area:110,bairro:'Bela Vista',rua:'Rua Minas Gerais',numero:'1045',
+   garagem:true,mobiliado:false,pet:true,quintal:true,semFiador:true,destaque:false,novo:false,
+   fotos:7,lat:-19.9188,lng:-43.9542,cor:'linear-gradient(135deg,#6B5B7A,#3A2E45)',dias:18,
+   desc:'Casa reformada recentemente, com pintura nova e piso porcelanato em toda a área social. Três quartos com armários, dois banheiros, cozinha ampla e área de serviço coberta. Quintal com varal e canteiro. Portão eletrônico.',
+   caucao:'2 aluguéis',contrato:'12 meses',
+   poi:[['🛒','Atacadão Bela Vista','600 m · 7 min a pé'],['🎓','E.E. Bela Vista','380 m · 5 min a pé'],
+        ['💊','Drogasil','450 m · 6 min a pé'],['🚌','Ponto de ônibus — linha 221','210 m · 3 min a pé'],
+        ['🏥','UBS Bela Vista','700 m · 9 min a pé'],['🌳','Campo de futebol','300 m · 4 min a pé']]},
+
+  {cod:'A-113',titulo:'Apartamento 2 quartos no Santa Mônica',tipo:'Apartamento',aluguel:1100,cond:210,iptu:56,
+   quartos:2,banheiros:1,vagas:1,area:62,bairro:'Santa Mônica',rua:'Rua Goiás',numero:'560, apto 101',
+   garagem:true,mobiliado:false,pet:true,quintal:false,semFiador:true,destaque:false,novo:false,
+   fotos:5,lat:-19.9375,lng:-43.9225,cor:'linear-gradient(135deg,#4E6B6B,#25403F)',dias:9,
+   desc:'Apartamento no primeiro andar, sem elevador, em prédio pequeno e silencioso com apenas oito unidades. Dois quartos, sala com varanda, cozinha e área de serviço. Vaga descoberta. Condomínio baixo, com água inclusa.',
+   caucao:'1 aluguel',contrato:'12 meses',
+   poi:[['🛒','Supermercado Santa Mônica','250 m · 3 min a pé'],['🎓','Creche Municipal','500 m · 6 min a pé'],
+        ['💊','Farmácia São João','320 m · 4 min a pé'],['🚌','Ponto de ônibus — linha 405','160 m · 2 min a pé'],
+        ['🏥','Pronto Atendimento','1,4 km · de carro'],['🌳','Praça Santa Mônica','410 m · 5 min a pé']]}
+];
+
+const ADMIN = [
+  {cod:'A-104',nome:'Casa no Jardim América',dono:'Sebastião Alves',tel:'(34) 9 9811-2233',aluguel:1200,taxa:150,
+   venc:'em 24 dias',sit:'ok',sitLabel:'No ar',views:312,ct:9},
+  {cod:'A-107',nome:'Apartamento no Centro',dono:'Imob. Aurora',tel:'(34) 3212-8800',aluguel:1850,taxa:200,
+   venc:'em 5 dias',sit:'warn',sitLabel:'Taxa a vencer',views:428,ct:14},
+  {cod:'A-102',nome:'Kitnet Vila Nova',dono:'Dona Neusa Prado',tel:'(34) 9 9877-4410',aluguel:680,taxa:100,
+   venc:'em 3 dias',sit:'warn',sitLabel:'Taxa a vencer',views:196,ct:6},
+  {cod:'A-109',nome:'Sobrado Alto da Boa Vista',dono:'Carlos Menezes',tel:'(34) 9 9601-3355',aluguel:2600,taxa:200,
+   venc:'em 51 dias',sit:'ok',sitLabel:'No ar',views:187,ct:4},
+  {cod:'A-111',nome:'Casa no Bela Vista',dono:'Sebastião Alves',tel:'(34) 9 9811-2233',aluguel:1450,taxa:150,
+   venc:'em 33 dias',sit:'ok',sitLabel:'No ar',views:161,ct:3},
+  {cod:'A-098',nome:'Casa no Tocantins',dono:'Marlene Dias',tel:'(34) 9 9433-7712',aluguel:950,taxa:100,
+   venc:'há 6 dias',sit:'danger',sitLabel:'Fora do ar',views:243,ct:11}
+];
+
+/* ============================================================
+   Utilidades
+   ============================================================ */
+const money = v => 'R$ ' + Number(v).toLocaleString('pt-BR');
+const $ = id => document.getElementById(id);
+
+function setMode(m){
+  $('viewAdmin').style.display = m==='admin' ? '' : 'none';
+  $('viewPub').style.display   = m==='pub'   ? '' : 'none';
+  $('btnAdmin').className = m==='admin' ? 'on' : '';
+  $('btnPub').className   = m==='pub'   ? 'on' : '';
+  window.scrollTo(0,0);
+}
+
+/* ---------- tabela do administrador ---------- */
+$('adminRows').innerHTML = ADMIN.map(a =>
+  '<tr><td><span class="code">#'+a.cod+'</span><span class="cell-sub">'+a.nome+'</span></td>'+
+  '<td class="cell-strong">'+a.dono+'<span class="cell-sub">'+a.tel+'</span></td>'+
+  '<td class="cell-strong">'+money(a.aluguel)+'<span class="cell-sub">por mês</span></td>'+
+  '<td class="cell-strong">'+money(a.taxa)+'<span class="cell-sub">vence '+a.venc+'</span></td>'+
+  '<td><span class="tag tag-'+a.sit+'">'+a.sitLabel+'</span></td>'+
+  '<td class="cell-strong">'+a.views+' visitas<span class="cell-sub">'+a.ct+' contatos</span></td>'+
+  '<td><button class="btn btn-'+(a.sit==='ok'?'ghost':'gold')+' btn-sm">'+(a.sit==='ok'?'Abrir':'Renovar')+'</button></td></tr>'
+).join('');
+
+/* ---------- filtros da vitrine pública ---------- */
+let ativos = [];
+
+const bairros = [...new Set(IMOVEIS.map(i=>i.bairro))].sort();
+$('fBairro').innerHTML = '<option value="">Todos os bairros</option>' +
+  bairros.map(b=>'<option>'+b+'</option>').join('');
+
+function toggleChip(el){
+  const f = el.dataset.f;
+  el.classList.toggle('on');
+  ativos = ativos.includes(f) ? ativos.filter(x=>x!==f) : ativos.concat(f);
+  apply();
+}
+function clearAll(){
+  ['fSearch','fTipo','fQuartos','fPreco','fBairro'].forEach(id=>$(id).value='');
+  document.querySelectorAll('.chip.on').forEach(c=>c.classList.remove('on'));
+  ativos = []; apply();
+}
+
+function apply(){
+  const q = $('fSearch').value.trim().toLowerCase();
+  const tipo = $('fTipo').value, qt = Number($('fQuartos').value||0);
+  const faixa = $('fPreco').value, bairro = $('fBairro').value, ordem = $('fOrder').value;
+
+  let out = IMOVEIS.filter(i=>{
+    if(q && !(i.titulo+' '+i.bairro+' '+i.rua+' '+i.cod).toLowerCase().includes(q)) return false;
+    if(tipo && i.tipo!==tipo) return false;
+    if(qt && i.quartos < qt) return false;
+    if(bairro && i.bairro!==bairro) return false;
+    if(faixa){ const [a,b]=faixa.split('-').map(Number); if(i.aluguel<a||i.aluguel>b) return false; }
+    return ativos.every(f=>i[f]);
+  });
+
+  if(ordem==='menor') out.sort((a,b)=>a.aluguel-b.aluguel);
+  else if(ordem==='maior') out.sort((a,b)=>b.aluguel-a.aluguel);
+  else if(ordem==='novos') out.sort((a,b)=>a.dias-b.dias);
+  else out.sort((a,b)=>(b.destaque?1:0)-(a.destaque?1:0) || a.dias-b.dias);
+
+  $('grid').innerHTML = out.map(cardHtml).join('');
+  $('empty').style.display = out.length ? 'none' : 'block';
+  $('resCount').textContent = out.length + (out.length===1?' imóvel':' imóveis');
+  $('pubCount').textContent = IMOVEIS.length + ' imóveis disponíveis';
+}
+
+function cardHtml(i){
+  const total = i.aluguel + i.cond + i.iptu;
+  return '<article class="card" onclick="openDetail(\''+i.cod+'\')">'+
+    '<div class="card-photo" style="background:'+i.cor+'">'+
+      (i.destaque?'<span class="badge badge-gold">★ DESTAQUE</span>':(i.novo?'<span class="badge badge-new">NOVO</span>':''))+
+      '<span class="ph-label">FOTO DO IMÓVEL</span>'+
+      '<span class="photo-count">▣ '+i.fotos+' fotos</span>'+
+    '</div>'+
+    '<div class="card-body">'+
+      '<div class="card-top"><span class="tag tag-ok">DISPONÍVEL</span><span class="code">#'+i.cod+'</span></div>'+
+      '<h3>'+i.titulo+'</h3>'+
+      '<p class="card-addr">'+i.rua+' · '+i.bairro+'</p>'+
+      '<div class="price">'+money(i.aluguel)+' <small>/ mês</small>'+
+        '<span class="total-hint">'+money(total)+' com condomínio e IPTU</span></div>'+
+      '<div class="specs"><span><b>'+i.quartos+'</b> quartos</span><span><b>'+i.banheiros+'</b> banh.</span>'+
+        '<span><b>'+(i.vagas||'—')+'</b> vaga'+(i.vagas===1?'':'s')+'</span><span><b>'+i.area+'</b> m²</span></div>'+
+    '</div></article>';
+}
+
+/* ---------- página do imóvel ---------- */
+let mapa = null;
+
+function openDetail(cod){
+  const i = IMOVEIS.find(x=>x.cod===cod);
+  const total = i.aluguel + i.cond + i.iptu;
+  const waMsg = 'Olá! Vi o imóvel #'+i.cod+' — '+i.titulo+' ('+money(i.aluguel)+'/mês) na sua vitrine e tenho interesse.';
+
+  $('detailView').innerHTML =
+    '<button class="back" onclick="closeDetail()">← Voltar para a lista</button>'+
+    '<div class="gallery">'+
+      '<div class="g-main" style="background:'+i.cor+'">FOTO PRINCIPAL</div>'+
+      '<div class="g-side">'+
+        '<div style="background:'+i.cor+';filter:brightness(.85)">FOTO 2</div>'+
+        '<div style="background:'+i.cor+';filter:brightness(.7)">FOTO 3<span class="g-more">+ '+(i.fotos-3)+' fotos</span></div>'+
+      '</div></div>'+
+
+    '<div class="detail-cols"><div>'+
+
+      '<div class="block">'+
+        '<div style="display:flex;gap:9px;align-items:center;margin-bottom:9px">'+
+          '<span class="tag tag-ok">DISPONÍVEL</span><span class="code">#'+i.cod+'</span>'+
+          '<span class="tag tag-neutral">'+i.tipo.toUpperCase()+'</span>'+
+          (i.destaque?'<span class="tag tag-gold">★ DESTAQUE</span>':'')+'</div>'+
+        '<h2 style="font-size:26px">'+i.titulo+'</h2>'+
+        '<p class="sub" style="margin-bottom:0">'+i.rua+', '+i.numero+' · '+i.bairro+' · anunciado há '+i.dias+' dias</p>'+
+      '</div>'+
+
+      '<div class="block"><h2>O que o imóvel tem</h2><p class="sub">Confirmado na visita de cadastro.</p>'+
+        '<div class="feat-grid">'+
+          feat('🛏',i.quartos,'quartos')+feat('🛁',i.banheiros,'banheiros')+
+          feat('🚗',i.vagas||'—','vagas')+feat('📐',i.area,'m² úteis')+
+          feat('🛋',i.mobiliado?'Sim':'Não','mobiliado')+feat('🐾',i.pet?'Sim':'Não','aceita pet')+
+          feat('🌳',i.quintal?'Sim':'Não','quintal')+feat('🧺','Sim','área de serviço')+
+        '</div></div>'+
+
+      '<div class="block"><h2>Quanto custa por mês</h2>'+
+        '<p class="sub">Estimativa completa — a pergunta que mais aparece no WhatsApp, já respondida aqui.</p>'+
+        '<div class="cost-line"><span>Aluguel</span><b>'+money(i.aluguel)+'</b></div>'+
+        '<div class="cost-line"><span>Condomínio</span><b>'+(i.cond?money(i.cond):'não há')+'</b></div>'+
+        '<div class="cost-line"><span>IPTU (parcelado)</span><b>'+money(i.iptu)+'</b></div>'+
+        '<div class="cost-total"><span>Total estimado por mês</span><b>'+money(total)+'</b></div></div>'+
+
+      '<div class="block"><h2>Sobre o imóvel</h2><p class="text">'+i.desc+'</p></div>'+
+
+      '<div class="block"><h2>Onde fica</h2>'+
+        '<p class="sub">'+i.rua+', '+i.numero+' · '+i.bairro+'</p>'+
+        '<div id="map"></div>'+
+        '<div class="map-note"><span>📍</span><div><b>Endereço completo, pino no número exato.</b> '+
+          'Quem se interessou pode passar em frente antes de ligar — e quem não gostou da rua não te procura. '+
+          'Isso corta boa parte das visitas perdidas.<br><br>'+
+          '<b>Os dois cuidados que vêm junto:</b> a autorização do dono fica registrada com data no cadastro, '+
+          'e existe uma chave por anúncio para esconder o número naquele imóvel específico, '+
+          'quando algum proprietário preferir.</div></div>'+
+      '</div>'+
+
+      '<div class="block"><h2>O que tem por perto</h2>'+
+        '<p class="sub">Levantado uma vez no cadastro e guardado junto com o anúncio — a página não depende de nenhum serviço externo para carregar.</p>'+
+        '<div class="poi-list">'+i.poi.map(p=>
+          '<div class="poi"><i>'+p[0]+'</i><div><b>'+p[1]+'</b><span>'+p[2]+'</span></div></div>').join('')+
+        '</div></div>'+
+
+      '<div class="block"><h2>Regras da locação</h2>'+
+        '<div class="rule"><i>📄</i><span>Garantia: <b>'+i.caucao+'</b></span></div>'+
+        '<div class="rule"><i>📅</i><span>Contrato mínimo: <b>'+i.contrato+'</b></span></div>'+
+        '<div class="rule"><i>🐾</i><span>Animais: <b>'+(i.pet?'permitidos':'não permitidos')+'</b></span></div>'+
+        '<div class="rule"><i>🔑</i><span>Visitas: <b>agendadas com antecedência</b></span></div>'+
+      '</div>'+
+
+    '</div><div><div class="sticky"><div class="contact-card">'+
+      '<div class="contact-top">'+
+        '<span class="eyebrow">VALOR DO ALUGUEL</span>'+
+        '<div class="price">'+money(i.aluguel)+' <small>/ mês</small></div>'+
+        '<div style="font-size:11.5px;color:#B9CCC3;margin-top:5px">'+money(total)+' com condomínio e IPTU</div>'+
+      '</div>'+
+      '<div class="contact-body">'+
+        '<button class="btn btn-wa btn-block">💬 Falar no WhatsApp</button>'+
+        '<div class="wa-preview"><b>Mensagem que já vai escrita:</b><br>'+waMsg+'</div>'+
+        '<div style="font-size:11px;color:var(--rent-muted);line-height:1.55;margin-bottom:4px">'+
+          'O código <b>#'+i.cod+'</b> vai junto na mensagem. Com 20 conversas abertas por dia, '+
+          'você sabe na hora de qual casa cada pessoa está falando.</div>'+
+        '<div class="divider">OU DEIXE SEU CONTATO</div>'+
+        '<label class="field"><span>Seu nome</span><input placeholder="Como podemos te chamar"></label>'+
+        '<label class="field"><span>WhatsApp</span><input placeholder="(00) 0 0000-0000"></label>'+
+        '<label class="field"><span>Mensagem (opcional)</span><textarea rows="3" placeholder="Quando você gostaria de visitar?"></textarea></label>'+
+        '<label class="consent"><input type="checkbox"><span>Autorizo o contato sobre este imóvel. '+
+          'Meus dados serão usados só para isso e apagados depois de 12 meses.</span></label>'+
+        '<button class="btn btn-primary btn-block">Quero mais informações</button>'+
+        '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--rent-line);'+
+          'font-size:10.5px;color:var(--rent-muted);text-align:center;font-family:var(--font-mono)">'+
+          'Anúncio #'+i.cod+' · atualizado há '+i.dias+' dias</div>'+
+      '</div></div></div></div></div>';
+
+  $('listView').style.display='none';
+  $('detailView').classList.add('on');
+  window.scrollTo(0,0);
+  drawMap(i);
+}
+
+function feat(ico,val,label){
+  return '<div class="feat"><i>'+ico+'</i><div><b>'+val+'</b><span>'+label+'</span></div></div>';
+}
+
+function drawMap(i){
+  const el = $('map');
+  if(typeof L === 'undefined'){
+    el.innerHTML = '<div style="height:100%;display:grid;place-items:center;text-align:center;'+
+      'color:#63736B;font-size:12.5px;padding:20px">🗺️<br><b>Mapa Leaflet</b><br>'+
+      'Sem internet agora — na versão final o Leaflet fica hospedado junto com o app,<br>'+
+      'sem depender de CDN e sem afrouxar a política de segurança.</div>';
+    return;
+  }
+  if(mapa){ mapa.remove(); mapa = null; }
+  mapa = L.map('map',{scrollWheelZoom:false}).setView([i.lat,i.lng],16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19, attribution:'© OpenStreetMap'
+  }).addTo(mapa);
+
+  // pino exato — decisão 3
+  L.marker([i.lat,i.lng],{
+    icon: L.divIcon({className:'',iconSize:[42,42],iconAnchor:[21,38],
+      html:'<div style="width:42px;height:42px;display:grid;place-items:center;background:#F0C76E;'+
+           'border:3px solid #102E27;border-radius:50% 50% 50% 8px;transform:rotate(-45deg);'+
+           'box-shadow:0 6px 16px rgba(0,0,0,.35)">'+
+           '<span style="transform:rotate(45deg);font-size:19px">🏠</span></div>'})
+  }).addTo(mapa)
+   .bindPopup('<b>'+i.titulo+'</b><br>'+i.rua+', '+i.numero+'<br>'+i.bairro)
+   .openPopup();
+
+  // pontos de interesse espalhados ao redor, só para ilustrar
+  const off = [[.0035,.0018],[-.0026,.0031],[.0012,-.0033],[-.0031,-.0014],[.0028,.0037],[-.0018,.0026]];
+  i.poi.forEach((p,n)=>{
+    const o = off[n%off.length];
+    L.marker([i.lat+o[0], i.lng+o[1]],{
+      icon: L.divIcon({className:'',iconSize:[30,30],
+        html:'<div style="width:30px;height:30px;display:grid;place-items:center;background:#fff;'+
+             'border:2px solid #1A473B;border-radius:9px;font-size:14px;'+
+             'box-shadow:0 3px 9px rgba(0,0,0,.22)">'+p[0]+'</div>'})
+    }).addTo(mapa).bindPopup('<b>'+p[1]+'</b><br>'+p[2]);
+  });
+  setTimeout(()=>mapa.invalidateSize(),120);
+}
+
+function closeDetail(){
+  if(mapa){ mapa.remove(); mapa = null; }
+  $('detailView').classList.remove('on');
+  $('listView').style.display='';
+  window.scrollTo(0,0);
+}
+
+apply();
+</script>
+</body>
+</html>

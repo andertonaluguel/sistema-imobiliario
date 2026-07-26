@@ -14,7 +14,13 @@
 
 <!-- Estilos -->
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="minha-casa.css">
+<link rel="stylesheet" href="aluguel-ui.css">
+<link rel="stylesheet" href="vitrine.css">
 <link rel="stylesheet" href="motion.css">
+<!-- Mapa da Vitrine: hospedado junto com o app, não de CDN, para
+     manter a política de segurança do _headers fechada. -->
+<link rel="stylesheet" href="vendor/leaflet.css">
 
 <!-- PWA: instalável; mantém a interface básica em cache -->
 <link rel="manifest" href="manifest.json">
@@ -35,12 +41,20 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
   <!-- jsPDF para recibos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Leaflet local (mapa da Vitrine). Se o arquivo não existir, a
+       Vitrine continua funcionando; só o mapa deixa de aparecer. -->
+  <script src="vendor/leaflet.js" defer onerror="console.warn('Leaflet ausente: o mapa da Vitrine não será exibido.')"></script>
 
   <!-- Módulos do app (a ordem importa) -->
   <script src="config.js"></script>
   <script src="utils.js"></script>
   <script src="supabase.js"></script>
+  <script src="offline.js"></script>
   <script src="auth.js"></script>
+  <script src="commercial.js"></script>
+  <script src="minha-casa.js"></script>
+  <script src="vitrine.js"></script>
+  <script src="features.js"></script>
   <script src="dashboard.js"></script>
   <script src="houses.js"></script>
   <script src="tenants.js"></script>

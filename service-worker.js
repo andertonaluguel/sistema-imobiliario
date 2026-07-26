@@ -4,13 +4,14 @@
    - app shell (HTML/CSS/JS/ícones) fica em cache;
    - navegação: rede primeiro, cai para o cache se estiver offline;
    - demais arquivos do app: responde do cache e atualiza em segundo plano;
-   - Supabase/fontes/CDN e operações de dados exigem internet.
+   - a última carga de dados fica no IndexedDB para consulta quando a interface já estiver disponível;
+   - bibliotecas externas, gravações e sincronização de alterações exigem internet.
    O build.mjs troca automaticamente a versão do cache em cada publicação.
    ============================================================ */
 const CACHE = 'aluguel-v4';
 const ASSETS = [
-  './', './index.html', './style.css', './motion.css',
-  './config.js', './utils.js', './supabase.js', './auth.js', './dashboard.js',
+  './', './index.html', './style.css', './minha-casa.css', './aluguel-ui.css', './vitrine.css', './motion.css',
+  './config.js', './utils.js', './supabase.js', './offline.js', './auth.js', './commercial.js', './minha-casa.js', './vitrine.js', './features.js', './dashboard.js',
   './houses.js', './tenants.js', './interests.js', './contracts.js', './finance.js', './photos.js', './documents.js',
   './energy.js', './portal.js', './reports.js',
   './calendar.js', './backup.js', './app.js', './motion.js',
@@ -42,7 +43,7 @@ self.addEventListener('fetch', function(e){
   var req = e.request;
   if(req.method !== 'GET') return;                  // não intercepta POST/auth do Supabase
   var url = new URL(req.url);
-  if(url.origin !== self.location.origin) return;   // cross-origin (Supabase, fontes, CDN) passa direto
+  if(url.origin !== self.location.origin) return; // API do Supabase, fontes e bibliotecas passam direto
 
   // Navegação -> rede primeiro (pega atualizações), cai para o cache offline
   if(req.mode === 'navigate'){

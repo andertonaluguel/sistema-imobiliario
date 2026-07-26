@@ -805,15 +805,15 @@ assert.match(indexSource,/vitrine\.js/);
 assert.match(indexSource,/vitrine\.css/);
 assert.match(buildSource,/'vitrine\.js'/);
 assert.match(buildSource,/'vitrine\.css'/);
-assert.match(buildSource,/optionalFiles/);
 assert.match(serviceWorkerSource,/\.\/vitrine\.js/);
 assert.match(serviceWorkerSource,/\.\/vitrine\.css/);
 /* O mapa precisa dos ladrilhos liberados no CSP. */
 const headersSource = await readFile(join(root,'_headers'),'utf8');
 assert.match(headersSource,/img-src[^;]*tile\.openstreetmap\.org/);
-/* E o Leaflet é local, não de CDN: o script-src continua fechado. */
+/* Leaflet vem do cdnjs, que o CSP já confiava para o jsPDF: nenhum
+   domínio novo foi aberto para scripts. */
 assert.doesNotMatch(headersSource,/script-src[^;]*unpkg/);
-assert.match(indexSource,/vendor\/leaflet\.js/);
+assert.match(indexSource,/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet/);
 
 /* --- Métodos de dados --- */
 assert.match(supabaseSource,/async loadVitrine\(\)/);

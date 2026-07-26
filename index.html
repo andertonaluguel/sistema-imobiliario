@@ -18,9 +18,9 @@
 <link rel="stylesheet" href="aluguel-ui.css">
 <link rel="stylesheet" href="vitrine.css">
 <link rel="stylesheet" href="motion.css">
-<!-- Mapa da Vitrine: hospedado junto com o app, não de CDN, para
-     manter a política de segurança do _headers fechada. -->
-<link rel="stylesheet" href="vendor/leaflet.css">
+<!-- Mapa da Vitrine. Usa o cdnjs, que o CSP já confia para o jsPDF,
+     em vez de abrir um domínio novo. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 
 <!-- PWA: instalável; mantém a interface básica em cache -->
 <link rel="manifest" href="manifest.json">
@@ -42,9 +42,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
   <!-- jsPDF para recibos -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Leaflet local (mapa da Vitrine). Se o arquivo não existir, a
-       Vitrine continua funcionando; só o mapa deixa de aparecer. -->
-  <script src="vendor/leaflet.js" defer onerror="console.warn('Leaflet ausente: o mapa da Vitrine não será exibido.')"></script>
+  <!-- Leaflet (mapa da Vitrine). Se não carregar, a Vitrine continua
+       funcionando; só o mapa deixa de aparecer. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" onerror="console.warn('Leaflet indisponível: o mapa da Vitrine não será exibido.')"></script>
 
   <!-- Módulos do app (a ordem importa) -->
   <script src="config.js"></script>

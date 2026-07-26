@@ -86,17 +86,11 @@ NOTICE: Fase C concluida. Tabelas da Vitrine criadas, separadas do Financeiro.
 
 O `N` é a sua contagem de casas de sempre — a prova de que a Vitrine não encostou nelas.
 
-### O mapa (opcional, mas vale a pena)
+### O mapa
 
-O mapa usa Leaflet **hospedado junto com o app**, não de CDN. Isso mantém a política
-de segurança do `_headers` fechada.
-
-1. Baixe em <https://leafletjs.com/download.html>
-2. Crie a pasta `vendor/` ao lado do `index.html`
-3. Coloque dentro: `leaflet.js` e `leaflet.css`
-
-Sem esses arquivos a Vitrine funciona normalmente — só o mapa não aparece.
-O `build.mjs` avisa se estiverem faltando, mas não falha.
+Já funciona, sem nenhum passo extra. O Leaflet vem do **cdnjs**, o mesmo CDN que o app
+já usa para o jsPDF — então nenhum domínio novo foi aberto na política de segurança.
+Basta preencher latitude e longitude no cadastro do anúncio.
 
 ---
 

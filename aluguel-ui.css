@@ -66,6 +66,10 @@
 }
 .rental-shell .my-home-launch:not(.active){background:rgba(231,247,123,.12);color:var(--rent-lime);}
 .rental-shell .my-home-launch.active{color:#17152F;background:var(--rent-lime);}
+/* Espaçador fixo: empurra Buscar e o menu para a direita mesmo quando a
+   pílula do plano não aparece (Minha Casa, Vitrine). Antes o alinhamento
+   dependia do margin-left:auto da pílula, e sumia junto com ela. */
+.rental-shell .topbar-gap{flex:1 1 auto;min-width:0;}
 .rental-shell .plan-top-pill{
   margin-left:auto;padding:8px 12px;border:1px solid rgba(255,255,255,.18);border-radius:999px;
   color:#E8F0EC;background:rgba(255,255,255,.06);font-size:10px;

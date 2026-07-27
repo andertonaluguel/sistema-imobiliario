@@ -821,4 +821,58 @@ assert.match(supabaseSource,/async loadVitrinePublica\(slug\)/);
 assert.match(supabaseSource,/async registrarVitrineLead\(lead\)/);
 assert.match(supabaseSource,/async setModuleLicense\(/);
 
-console.log('Testes concluídos: Aluguéis 1.3, Clientes proprietários, separação exclusiva de papéis, cadastro protegido, Minha Casa, exclusão segura, navegação móvel, acabamento visual, planos, equipe, anúncios, PIX, limites, cobranças, Energia, interessados, temas, descrição, backup, módulos vendáveis, Minha Casa multi-família e Vitrine estão corretos.');
+/* ============================================================
+   CABECALHO E PAGAMENTOS DA MINHA CASA
+   ============================================================ */
+const paySource = await readFile(join(root,'migracao-minha-casa-pagamentos.sql'),'utf8');
+const myHomeCssSource2 = await readFile(join(root,'minha-casa.css'),'utf8');
+
+/* O espacador mantem Buscar e menu a direita mesmo sem a pilula do plano. */
+assert.match(appSource,/class="topbar-gap"/);
+assert.match(rentalUiCssSource,/\.rental-shell \.topbar-gap\{flex:1 1 auto/);
+
+/* Colunas novas sao aditivas: nenhum lancamento existente e apagado. */
+assert.match(paySource,/add column if not exists forma_pagamento/);
+assert.match(paySource,/add column if not exists compra_id/);
+assert.doesNotMatch(paySource,/drop table|truncate/i);
+assert.doesNotMatch(paySource,/delete from public\.minha_casa_lancamentos\s*;/i);
+
+/* Parcelar so vale no credito: nas outras formas o dinheiro sai de uma vez. */
+const salvarBlock=sqlFunctionBlock(paySource,'minha_casa_salvar_lancamento');
+assert.match(salvarBlock,/if v_forma<>'credito' then\s*v_parcelas:=1;/);
+/* A soma das parcelas tem que bater com o total ao centavo. */
+assert.match(salvarBlock,/v_primeira:=v_total-\(v_parcela\*\(v_parcelas-1\)\)/);
+/* Uma parcela por mes. */
+assert.match(salvarBlock,/interval '1 month'/);
+/* Teto de parcelas no banco, nao so na tela. */
+assert.match(salvarBlock,/No maximo 60 parcelas/);
+/* A assinatura antiga sai para nao ficar ambigua com a nova. */
+assert.match(paySource,/drop function if exists public\.minha_casa_salvar_lancamento\(\s*text,numeric,uuid,uuid,date,text,uuid\s*\)/);
+/* Excluir a compra inteira existe, para nao sobrar meia compra. */
+assert.match(paySource,/create or replace function public\.minha_casa_excluir_compra/);
+/* A lista devolve os campos novos. */
+const listarBlock=sqlFunctionBlock(paySource,'minha_casa_listar_lancamentos');
+for(const campo of ['paymentMethod','purchaseId','installment','installments']){
+  assert.match(listarBlock,new RegExp("'"+campo+"'"));
+}
+
+/* Front-end */
+assert.match(myHomeSource,/var PAYMENT_METHODS=/);
+assert.match(myHomeSource,/function isInstallmentPurchase/);
+assert.match(myHomeSource,/function updatePaymentOptions/);
+assert.match(myHomeSource,/askDeletePurchase:askDeletePurchase/);
+assert.match(myHomeSource,/updatePaymentOptions:updatePaymentOptions/);
+/* Editar uma parcela nunca reparcelam a compra. */
+assert.match(myHomeSource,/if\(paymentMethod!=='credito'\) installments=1;/);
+assert.match(supabaseSource,/p_parcelas:Number\(item\.installments\)\|\|1/);
+assert.match(supabaseSource,/async deleteMyHomePurchase\(purchaseId\)/);
+/* Ao editar, o app manda sempre 1 parcela: quem reparcela e o cadastro novo. */
+const updateTx=supabaseSource.slice(
+  supabaseSource.indexOf('async updateMyHomeTransaction'),
+  supabaseSource.indexOf('async deleteMyHomePurchase')
+);
+assert.match(updateTx,/p_parcelas:1/);
+assert.match(myHomeCssSource2,/\.mh-parcela/);
+assert.match(myHomeCssSource2,/\.mh-installment-hint/);
+
+console.log('Testes concluídos: Aluguéis 1.3, Clientes proprietários, separação exclusiva de papéis, cadastro protegido, Minha Casa, exclusão segura, navegação móvel, acabamento visual, planos, equipe, anúncios, PIX, limites, cobranças, Energia, interessados, temas, descrição, backup, módulos vendáveis, Minha Casa multi-família Vitrine, cabeçalho e pagamentos da Minha Casa estão corretos.');

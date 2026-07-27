@@ -337,6 +337,7 @@ function renderTopBar(){
         ' onclick="'+a[2]+'"><span aria-hidden="true">'+a[3]+'</span><b>'+esc(a[4])+'</b></button>';
     }).join('')+'</div>'+
     (isSimpleMode()&&mods.alugueis?'<span class="mode-label">MODO SIMPLES</span>':'')+
+    '<span class="topbar-gap" aria-hidden="true"></span>'+
     planControl+
     (mods.alugueis?'<button class="top-search-btn" onclick="openGlobalSearch()" aria-label="Buscar">Buscar</button>':'')+
     '<button class="menu-btn" onclick="openMenuModal()" aria-label="Menu">⋯</button>'+

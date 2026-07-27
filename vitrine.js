@@ -97,8 +97,8 @@ function renderVitrineView(){
     '<div class="page-header vitrine-header"><div>'+
       '<span class="eyebrow">CATÁLOGO PÚBLICO DE TERCEIROS</span>'+
       pageTitleWithIcon(vitrineIconSvg(),'Vitrine')+
-      '<p class="page-sub">Imóveis de outros proprietários que pagam para serem divulgados. '+
-      'Não entram no Financeiro nem no limite do seu plano.</p></div>'+
+      '<p class="page-sub">Imóveis de terceiros que pagam para serem divulgados. '+
+      'Não entram no Financeiro nem no limite do plano.</p></div>'+
       '<div class="header-actions">'+
         '<button class="btn btn-ghost btn-sm" onclick="copyVitrineLink()">Copiar link</button>'+
         '<button class="btn btn-primary btn-sm" onclick="openVitrineImovelModal()">+ Novo anúncio</button>'+

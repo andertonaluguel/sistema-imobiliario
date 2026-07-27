@@ -147,6 +147,29 @@
     };
   }
 
+  /* ---------- formas de pagamento ----------
+     Parcelamento só existe no crédito: nas outras formas o dinheiro
+     sai de uma vez, então o lançamento também é único. */
+  var PAYMENT_METHODS=[
+    {id:'dinheiro',      label:'Dinheiro',    emoji:'💵'},
+    {id:'pix',           label:'PIX',         emoji:'⚡'},
+    {id:'debito',        label:'Débito',      emoji:'💳'},
+    {id:'credito',       label:'Crédito',     emoji:'🪙', parcelavel:true},
+    {id:'boleto',        label:'Boleto',      emoji:'🧾'},
+    {id:'transferencia', label:'Transferência', emoji:'🏦'}
+  ];
+  function normalizePaymentMethod(value){
+    var v=String(value||'').toLowerCase().trim();
+    return PAYMENT_METHODS.some(function(m){return m.id===v;})?v:'dinheiro';
+  }
+  function paymentMethodInfo(id){
+    var v=normalizePaymentMethod(id);
+    return PAYMENT_METHODS.find(function(m){return m.id===v;})||PAYMENT_METHODS[0];
+  }
+  function isInstallmentPurchase(item){
+    return !!(item && item.purchaseId && Number(item.installments)>1);
+  }
+
   function normalizeTransaction(row,index){
     var category=pick(row,['category','categoria'],null);
     var member=pick(row,['member','membro','person','pessoa'],null);
@@ -165,6 +188,10 @@
       categoryName:String(pick(row,['categoryName','categoriaNome','category_name','categoria_nome'],pick(category,['name','nome'],'')||'')),
       memberId:String(pick(row,['memberId','membroId','personId','pessoaId','member_id','membro_id','pessoa_id'],pick(member,['id'],'')||'')),
       memberName:String(pick(row,['memberName','membroNome','personName','pessoaNome','member_name','membro_nome','pessoa_nome'],pick(member,['name','nome'],'')||'')),
+      paymentMethod:normalizePaymentMethod(pick(row,['paymentMethod','formaPagamento','forma_pagamento'],'dinheiro')),
+      purchaseId:String(pick(row,['purchaseId','compraId','compra_id'],'')||''),
+      installment:Math.max(1,parseInt(pick(row,['installment','parcelaNumero','parcela_numero'],1),10)||1),
+      installments:Math.max(1,parseInt(pick(row,['installments','parcelaTotal','parcela_total'],1),10)||1),
       sourceType:String(pick(row,['sourceType','originType','tipoOrigem','source_type','tipo_origem'],'manual')||'manual'),
       sourceLabel:String(pick(row,['sourceLabel','originLabel','origem','source_label'],'')||''),
       sourceId:String(pick(row,['sourceId','originId','origemId','source_id','origem_id'],'')||''),
@@ -660,8 +687,11 @@
     var isIncome=item.type==='entrada';
     return '<article class="mh-transaction">'+
       '<span class="mh-transaction-icon" style="--mh-item-color:'+normalizeColor(category.color,'#6D5BD0')+'">'+esc(category.emoji)+'</span>'+
-      '<div class="mh-transaction-main"><strong>'+esc(item.description||category.name)+'</strong>'+
+      '<div class="mh-transaction-main"><strong>'+esc(item.description||category.name)+
+        (isInstallmentPurchase(item)?'<em class="mh-parcela">'+item.installment+'/'+item.installments+'</em>':'')+'</strong>'+
         '<span>'+esc(category.name)+' · '+esc(member.emoji+' '+member.name)+' · '+esc(formatDate(item.date))+'</span>'+
+        (item.paymentMethod&&item.paymentMethod!=='dinheiro'
+          ?'<small class="mh-pay-tag">'+esc(paymentMethodInfo(item.paymentMethod).emoji+' '+paymentMethodInfo(item.paymentMethod).label)+'</small>':'')+
         (item.sourceType&&item.sourceType!=='manual'?'<small>'+esc(source.icon+' '+source.label)+'</small>':'')+
       '</div>'+
       '<strong class="mh-transaction-value mh-money '+(isIncome?'income':'expense')+'">'+(isIncome?'+':'−')+' '+esc(formatMoney(item.amount))+'</strong>'+
@@ -902,6 +932,7 @@
       '<div class="mh-choice-block"><span>Categoria</span><div id="mh_tx_category_choices" class="mh-choice-grid">'+categoryChoices(item.categoryId,item.type)+'</div></div>'+
       '<div class="mh-choice-block"><span>Quem gastou ou recebeu</span><div class="mh-choice-grid mh-member-choice-grid">'+memberChoices(item.memberId)+'</div>'+
       '</div>'+
+      paymentBlockHtml(item)+
       ((!activeCategories().length||!activeMembers().length)?'<p class="mh-form-warning">Crie pelo menos uma categoria e uma pessoa em Organizar antes de salvar.</p>':'')+
       '<details class="mh-more"'+(item.description?' open':'')+'><summary>Mais detalhes <span>opcional</span></summary>'+
         '<div class="mh-form-grid"><label class="mh-field"><span>Data</span><input id="mh_tx_date" type="date" value="'+esc(item.date||today())+'"></label>'+
@@ -909,6 +940,68 @@
       '</details>'+
       '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
         '<button class="mh-btn mh-btn-primary" onclick="MinhaCasaUI.submitTransaction()"'+(homeState.busy?' disabled':'')+'>'+esc(buttonLabel)+'</button></div>';
+  }
+
+  /* Bloco de pagamento. Ao editar uma parcela, o parcelamento fica
+     travado: mudar de 10x para 4x no meio bagunçaria as parcelas já
+     lançadas. Para isso, exclua a compra e lance de novo. */
+  function paymentBlockHtml(item){
+    var atual=normalizePaymentMethod(item.paymentMethod);
+    var editandoParcela=isInstallmentPurchase(item);
+    var parcelas=Math.max(1,Number(item.installments)||1);
+    return '<div class="mh-choice-block"><span>Forma de pagamento</span>'+
+      '<div class="mh-choice-grid mh-pay-grid">'+PAYMENT_METHODS.map(function(m){
+        return '<label class="mh-choice'+(m.id===atual?' is-selected':'')+'">'+
+          '<input type="radio" name="mh_tx_payment" value="'+m.id+'"'+(m.id===atual?' checked':'')+
+          ' onchange="MinhaCasaUI.updatePaymentOptions()">'+
+          '<span><i aria-hidden="true">'+m.emoji+'</i><b>'+esc(m.label)+'</b></span></label>';
+      }).join('')+'</div></div>'+
+      '<div id="mh_tx_installment_block" class="mh-installments"'+
+        (atual==='credito'?'':' hidden')+'>'+
+        (editandoParcela
+          ? '<p class="mh-installment-lock">Parcela '+item.installment+' de '+parcelas+
+            '. Para mudar o parcelamento, exclua a compra inteira e lance de novo.</p>'+
+            '<input type="hidden" id="mh_tx_installments" value="1">'
+          : '<label class="mh-field"><span>Parcelas</span>'+
+            '<select id="mh_tx_installments" onchange="MinhaCasaUI.updatePaymentOptions()">'+
+            installmentOptions(parcelas)+'</select></label>'+
+            '<p class="mh-installment-hint" id="mh_tx_installment_hint"></p>')+
+      '</div>';
+  }
+  function installmentOptions(selected){
+    var out='';
+    for(var n=1;n<=24;n++){
+      out+='<option value="'+n+'"'+(n===selected?' selected':'')+'>'+
+        (n===1?'À vista (1x)':n+'x')+'</option>';
+    }
+    return out;
+  }
+  /* Mostra a conta feita: "10x de R$ 120,00 — a última em mar/2027".
+     É a informação que evita o susto de lançar errado. */
+  function updatePaymentOptions(){
+    var bloco=document.getElementById('mh_tx_installment_block');
+    if(!bloco) return;
+    var forma=selectedPaymentMethod();
+    if(forma==='credito') bloco.removeAttribute('hidden');
+    else bloco.setAttribute('hidden','');
+    var dica=document.getElementById('mh_tx_installment_hint');
+    if(!dica) return;
+    var n=Math.max(1,parseInt((document.getElementById('mh_tx_installments')||{}).value,10)||1);
+    var total=toNumber((document.getElementById('mh_tx_amount')||{}).value);
+    if(forma!=='credito'||n<2||total<=0){ dica.textContent=''; return; }
+    var parcela=Math.trunc((total/n)*100)/100;
+    var primeira=Math.round((total-parcela*(n-1))*100)/100;
+    var base=(document.getElementById('mh_tx_date')||{}).value||today();
+    var partes=base.split('-');
+    var ultima=new Date(Number(partes[0]),Number(partes[1])-1+(n-1),1);
+    var mes=String(ultima.getMonth()+1).padStart(2,'0')+'/'+ultima.getFullYear();
+    dica.textContent=n+'x de '+formatMoney(parcela)+
+      (primeira!==parcela?' (primeira de '+formatMoney(primeira)+')':'')+
+      ' · última em '+mes;
+  }
+  function selectedPaymentMethod(){
+    var field=document.querySelector('input[name="mh_tx_payment"]:checked');
+    return field?normalizePaymentMethod(field.value):'dinheiro';
   }
 
   function selectedTransactionType(){
@@ -939,13 +1032,19 @@
     if(!categoryId) throw new Error('Escolha uma categoria.');
     if(!memberId) throw new Error('Escolha quem gastou ou recebeu.');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Informe uma data válida.');
+    var paymentMethod=selectedPaymentMethod();
+    var installments=Math.max(1,parseInt((document.getElementById('mh_tx_installments')||{}).value,10)||1);
+    if(paymentMethod!=='credito') installments=1;
+    if(installments>24) throw new Error('No máximo 24 parcelas.');
     return {
       type:selectedTransactionType(),
       amount:amount,
       categoryId:categoryId,
       memberId:memberId,
       date:date,
-      description:description
+      description:description,
+      paymentMethod:paymentMethod,
+      installments:installments
     };
   }
 
@@ -963,7 +1062,10 @@
       await runMutation('updateMyHomeTransaction',[context.id,payload],'Movimentação atualizada.');
       return;
     }
-    await runMutation('createMyHomeTransaction',[payload],'Movimentação registrada.');
+    var aviso = payload.installments>1
+      ? payload.installments+'x lançadas, uma por mês.'
+      : 'Movimentação registrada.';
+    await runMutation('createMyHomeTransaction',[payload],aviso);
   }
 
   function openTransactionMenu(id){
@@ -972,9 +1074,29 @@
     dialog('<h3 class="modal-title">O que deseja fazer?</h3>'+
       '<p class="modal-text">'+esc(item.description||transactionCategory(item).name)+' · '+esc(formatMoney(item.amount))+'</p>'+
       '<div class="mh-action-menu">'+
-        '<button data-id="'+esc(item.id)+'" onclick="closeModal();MinhaCasaUI.openTransaction(null,this.dataset.id)"><span>✎</span><b>Editar movimentação</b></button>'+
-        '<button class="danger" data-id="'+esc(item.id)+'" onclick="MinhaCasaUI.askDeleteTransaction(this.dataset.id)"><span>×</span><b>Excluir movimentação</b></button>'+
+        '<button data-id="'+esc(item.id)+'" onclick="closeModal();MinhaCasaUI.openTransaction(null,this.dataset.id)"><span>✎</span><b>Editar '+(isInstallmentPurchase(item)?'esta parcela':'movimentação')+'</b></button>'+
+        (isInstallmentPurchase(item)
+          ? '<button class="danger" data-id="'+esc(item.purchaseId)+'" onclick="MinhaCasaUI.askDeletePurchase(this.dataset.id)"><span>×</span><b>Excluir a compra inteira ('+item.installments+'x)</b></button>'
+          : '<button class="danger" data-id="'+esc(item.id)+'" onclick="MinhaCasaUI.askDeleteTransaction(this.dataset.id)"><span>×</span><b>Excluir movimentação</b></button>')+
       '</div>');
+  }
+
+  function askDeletePurchase(purchaseId){
+    var parcelas=homeState.data.transactions.filter(function(row){
+      return String(row.purchaseId)===String(purchaseId);
+    });
+    if(!parcelas.length) return;
+    var total=parcelas.reduce(function(soma,row){return soma+toNumber(row.amount);},0);
+    var nome=parcelas[0].description||transactionCategory(parcelas[0]).name;
+    dialog('<h3 class="modal-title">Excluir a compra inteira?</h3>'+
+      '<p class="modal-text"><strong>'+esc(nome)+'</strong> — '+parcelas[0].installments+
+      ' parcelas, somando <strong>'+esc(formatMoney(total))+'</strong>. '+
+      'Todas as parcelas serão removidas, inclusive as dos próximos meses.</p>'+
+      '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-danger" data-id="'+esc(purchaseId)+'" onclick="MinhaCasaUI.deletePurchase(this.dataset.id)">Excluir tudo</button></div>');
+  }
+  async function deletePurchase(purchaseId){
+    await runMutation('deleteMyHomePurchase',[purchaseId],'Compra excluída com todas as parcelas.');
   }
 
   function askDeleteTransaction(id){
@@ -1274,6 +1396,9 @@
     openTransactionMenu:openTransactionMenu,
     askDeleteTransaction:askDeleteTransaction,
     deleteTransaction:deleteTransaction,
+    updatePaymentOptions:updatePaymentOptions,
+    askDeletePurchase:askDeletePurchase,
+    deletePurchase:deletePurchase,
     acceptSuggestion:acceptSuggestion,
     editSuggestion:editSuggestion,
     askIgnoreSuggestion:askIgnoreSuggestion,

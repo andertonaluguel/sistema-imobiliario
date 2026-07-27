@@ -952,7 +952,8 @@ const db = {
   async createMyHomeTransaction(item){
     const {data,error}=await sb.rpc('minha_casa_salvar_lancamento',{
       p_tipo:item.type,p_valor:Number(item.amount)||0,p_categoria_id:item.categoryId,
-      p_membro_id:item.memberId,p_data:item.date||todayISO(),p_descricao:item.description||'',p_id:null
+      p_membro_id:item.memberId,p_data:item.date||todayISO(),p_descricao:item.description||'',p_id:null,
+      p_forma_pagamento:item.paymentMethod||'dinheiro',p_parcelas:Number(item.installments)||1
     });
     if(error) throw error;
     return data||{};
@@ -961,8 +962,16 @@ const db = {
   async updateMyHomeTransaction(id,item){
     const {data,error}=await sb.rpc('minha_casa_salvar_lancamento',{
       p_tipo:item.type,p_valor:Number(item.amount)||0,p_categoria_id:item.categoryId,
-      p_membro_id:item.memberId,p_data:item.date||todayISO(),p_descricao:item.description||'',p_id:id
+      p_membro_id:item.memberId,p_data:item.date||todayISO(),p_descricao:item.description||'',p_id:id,
+      p_forma_pagamento:item.paymentMethod||'dinheiro',p_parcelas:1
     });
+    if(error) throw error;
+    return data||{};
+  },
+
+  /* Apagar uma parcela sozinha deixaria a compra pela metade. */
+  async deleteMyHomePurchase(purchaseId){
+    const {data,error}=await sb.rpc('minha_casa_excluir_compra',{p_compra_id:purchaseId});
     if(error) throw error;
     return data||{};
   },

@@ -610,3 +610,34 @@
   .mh-content,.mh-skeleton,.mh-skeleton-grid span{animation:none!important;}
   .mh-bar-fill,.mh-quick,.mh-btn{transition:none!important;}
 }
+
+/* ---------- forma de pagamento e parcelamento ---------- */
+.mh-pay-grid{grid-template-columns:repeat(auto-fit,minmax(104px,1fr));}
+.mh-pay-grid .mh-choice span{gap:6px;}
+.mh-pay-grid .mh-choice i{font-style:normal;font-size:16px;}
+
+.mh-installments{margin:0 0 16px;}
+.mh-installments[hidden]{display:none;}
+.mh-installments select{
+  width:100%;min-height:44px;padding:0 12px;
+  border:1px solid var(--mh-line,#E2E0EC);border-radius:12px;
+  background:#fff;font-family:inherit;font-size:14px;color:inherit;
+}
+.mh-installment-hint{
+  margin:8px 0 0;padding:9px 12px;border-radius:10px;
+  background:#F3F1FA;color:#4A3F7A;font-size:12px;font-weight:600;
+}
+.mh-installment-hint:empty{display:none;}
+.mh-installment-lock{
+  margin:0;padding:11px 13px;border-radius:11px;
+  background:#FFF6E6;border:1px solid #F0D9A8;color:#6A5320;
+  font-size:12px;line-height:1.5;
+}
+
+/* Marca da parcela no histórico: 3/10 ao lado da descrição */
+.mh-parcela{
+  display:inline-block;margin-left:7px;padding:2px 7px;border-radius:999px;
+  background:#EFECF9;color:#5B4CA8;font-style:normal;
+  font-size:10.5px;font-weight:700;vertical-align:middle;
+}
+.mh-transaction-main small.mh-pay-tag{color:var(--mh-muted,#6B6880);font-weight:600;}

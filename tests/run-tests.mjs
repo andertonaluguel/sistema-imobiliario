@@ -773,17 +773,21 @@ assert.match(vitrineCssSource,/\.rent-product-switch\.vitrine/);
    o seletor `.rental-app > .page-header`. Um <section> em volta tirava o
    arredondamento e o respiro que as outras abas tem. */
 assert.doesNotMatch(vitrineSource,/<section class="vitrine-page">/);
-assert.match(vitrineSource,/<nav class="rent-tabs"/);
+assert.match(vitrineSource,/<nav class="rent-tabs vitrine-nav"/);
 assert.match(vitrineSource,/<div class="page-header vitrine-header">/);
 /* A navegacao vem antes do heroi, igual as outras abas. */
 assert.ok(
-  vitrineSource.indexOf('<nav class="rent-tabs"') <
+  vitrineSource.indexOf('<nav class="rent-tabs vitrine-nav"') <
     vitrineSource.indexOf('<div class="page-header vitrine-header">'),
   'As abas internas vem antes do cabecalho, como no resto do app.'
 );
 /* Nada de recriar componente que ja existe. */
 assert.doesNotMatch(vitrineCssSource,/\.vitrine-tabs\{/);
 assert.doesNotMatch(vitrineCssSource,/\.vitrine-page\{/);
+/* O app esconde .rent-tabs no celular porque a barra inferior assume —
+   mas ela só cobre os Aluguéis. Sem esta regra a Vitrine ficaria presa
+   no Painel no telefone. */
+assert.match(vitrineCssSource,/@media\(max-width:720px\)\{[\s\S]*?\.rent-tabs\.vitrine-nav\{[\s\S]*?display:flex/);
 assert.match(rentalUiCssSource,/--rent-gold:#F0C76E/);
 
 /* --- Fotos do anúncio --- */

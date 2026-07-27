@@ -97,7 +97,7 @@ function renderVitrineView(){
      O cabeçalho precisa ser FILHO DIRETO de .rental-app — o estilo dele
      usa o seletor `.rental-app > .page-header`. Envolver em um <section>
      tira o arredondamento, o respiro e o fundo. */
-  return '<nav class="rent-tabs" aria-label="Áreas da Vitrine">'+abas.map(function(a){
+  return '<nav class="rent-tabs vitrine-nav" aria-label="Áreas da Vitrine">'+abas.map(function(a){
       const ativa=tab===a[0];
       return '<button class="rent-tab'+(ativa?' active':'')+'"'+(ativa?' aria-current="page"':'')+
         ' onclick="setVitrineTab(\''+a[0]+'\')">'+

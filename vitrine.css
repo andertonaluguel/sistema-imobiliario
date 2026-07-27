@@ -26,6 +26,19 @@
 .vitrine-header .page-ico{border-color:var(--rent-gold);color:var(--rent-gold);}
 .rent-tab.active>span{color:var(--rent-lime);}
 
+/* No celular o app esconde .rent-tabs porque a barra inferior assume a
+   navegação — mas essa barra só cobre os Aluguéis. Sem esta regra a
+   Vitrine ficaria presa no Painel no telefone. Aqui ela vira uma faixa
+   deslizável, que é o padrão usado na Minha Casa. */
+@media(max-width:720px){
+  .rent-tabs.vitrine-nav{
+    display:flex;flex-wrap:nowrap;overflow-x:auto;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .rent-tabs.vitrine-nav::-webkit-scrollbar{display:none;}
+  .rent-tabs.vitrine-nav .rent-tab{flex:0 0 auto;min-width:112px;}
+}
+
 .vitrine-stats{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));
   gap:14px;margin-bottom:17px;

@@ -90,10 +90,19 @@ function renderVitrineView(){
     return '<div class="app-loading">'+logoSvg()+'<span>Carregando a Vitrine…</span></div>';
   }
   const tab=state.vitrineTab||'painel';
-  const abas=[['painel','Painel','▤'],['anuncios','Anúncios','⌂'],
-    ['anunciantes','Anunciantes','☺'],['leads','Leads','♡'],
-    ['taxas','Taxas','R$'],['divulgacao','Divulgação','◈']];
-  return '<section class="vitrine-page">'+
+  const abas=[['painel','Painel','&#9636;'],['anuncios','Anúncios','&#9638;'],
+    ['anunciantes','Anunciantes','&#9786;'],['leads','Leads','&#9825;'],
+    ['taxas','Taxas','R$'],['divulgacao','Divulgação','&#9670;']];
+  /* Mesma estrutura das outras abas: navegação primeiro, depois o herói.
+     O cabeçalho precisa ser FILHO DIRETO de .rental-app — o estilo dele
+     usa o seletor `.rental-app > .page-header`. Envolver em um <section>
+     tira o arredondamento, o respiro e o fundo. */
+  return '<nav class="rent-tabs" aria-label="Áreas da Vitrine">'+abas.map(function(a){
+      const ativa=tab===a[0];
+      return '<button class="rent-tab'+(ativa?' active':'')+'"'+(ativa?' aria-current="page"':'')+
+        ' onclick="setVitrineTab(\''+a[0]+'\')">'+
+        '<span aria-hidden="true">'+a[2]+'</span><b>'+esc(a[1])+'</b></button>';
+    }).join('')+'</nav>'+
     '<div class="page-header vitrine-header"><div>'+
       '<span class="eyebrow">CATÁLOGO PÚBLICO DE TERCEIROS</span>'+
       pageTitleWithIcon(vitrineIconSvg(),'Vitrine')+
@@ -103,17 +112,12 @@ function renderVitrineView(){
         '<button class="btn btn-ghost btn-sm" onclick="copyVitrineLink()">Copiar link</button>'+
         '<button class="btn btn-primary btn-sm" onclick="openVitrineImovelModal()">+ Novo anúncio</button>'+
       '</div></div>'+
-    '<nav class="vitrine-tabs">'+abas.map(function(a){
-      return '<button class="vitrine-tab'+(tab===a[0]?' active':'')+'" onclick="setVitrineTab(\''+a[0]+'\')">'+
-        '<span aria-hidden="true">'+a[2]+'</span><b>'+esc(a[1])+'</b></button>';
-    }).join('')+'</nav>'+
     (tab==='anuncios'?renderVitrineAnuncios():
      tab==='anunciantes'?renderVitrineAnunciantes():
      tab==='leads'?renderVitrineLeads():
      tab==='taxas'?renderVitrineTaxas():
      tab==='divulgacao'?renderVitrineDivulgacao():
-     renderVitrinePainel())+
-  '</section>';
+     renderVitrinePainel());
 }
 
 function vitrineIconSvg(){

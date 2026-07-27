@@ -769,6 +769,21 @@ assert.match(vitrineSource,/function gravarFiltrosNaUrl\(\)/);
 assert.match(vitrineSource,/applyAppTheme\('original'\)/);
 /* Nenhuma cor inventada: a aba usa o dourado que já existe. */
 assert.match(vitrineCssSource,/\.rent-product-switch\.vitrine/);
+/* O cabecalho tem que ser FILHO DIRETO de .rental-app: o estilo dele usa
+   o seletor `.rental-app > .page-header`. Um <section> em volta tirava o
+   arredondamento e o respiro que as outras abas tem. */
+assert.doesNotMatch(vitrineSource,/<section class="vitrine-page">/);
+assert.match(vitrineSource,/<nav class="rent-tabs"/);
+assert.match(vitrineSource,/<div class="page-header vitrine-header">/);
+/* A navegacao vem antes do heroi, igual as outras abas. */
+assert.ok(
+  vitrineSource.indexOf('<nav class="rent-tabs"') <
+    vitrineSource.indexOf('<div class="page-header vitrine-header">'),
+  'As abas internas vem antes do cabecalho, como no resto do app.'
+);
+/* Nada de recriar componente que ja existe. */
+assert.doesNotMatch(vitrineCssSource,/\.vitrine-tabs\{/);
+assert.doesNotMatch(vitrineCssSource,/\.vitrine-page\{/);
 assert.match(rentalUiCssSource,/--rent-gold:#F0C76E/);
 
 /* --- Fotos do anúncio --- */

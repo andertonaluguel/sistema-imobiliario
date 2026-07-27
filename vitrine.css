@@ -18,37 +18,21 @@
 }
 .rent-product-switch.vitrine.active>span{color:#2A1E00;}
 
-/* ---------- área interna ---------- */
-.vitrine-page{display:block;}
-.rental-app .page-header.vitrine-header{
-  background:
-    radial-gradient(circle at 88% -40%,rgba(240,199,110,.22),transparent 40%),
-    linear-gradient(115deg,#0D2923,var(--rent-night-3));
-}
-.vitrine-header .page-ico{color:var(--rent-gold);}
-
-.vitrine-tabs{
-  display:flex;gap:6px;flex-wrap:wrap;padding:6px;margin-bottom:20px;
-  background:var(--rent-card);border:1px solid var(--rent-line);
-  border-radius:16px;box-shadow:var(--rent-shadow-small);
-}
-.vitrine-tab{
-  display:inline-flex;align-items:center;gap:7px;padding:10px 15px;
-  border:none;border-radius:11px;background:transparent;
-  color:var(--rent-muted);font-size:12px;font-weight:700;
-  transition:background .15s,color .15s;
-}
-.vitrine-tab:hover{background:#EDF3EF;color:var(--rent-ink);}
-.vitrine-tab.active{background:var(--rent-night-2);color:#fff;box-shadow:0 5px 14px rgba(16,46,39,.2);}
-.vitrine-tab.active span{color:var(--rent-gold);}
+/* ---------- área interna ----------
+   A Vitrine reaproveita .rental-app > .page-header e .rent-tabs, os
+   mesmos das outras abas. Aqui só ficam o acento dourado e o que é
+   exclusivo da Vitrine — nada de recriar estrutura. */
+.vitrine-header .eyebrow{color:var(--rent-gold) !important;}
+.vitrine-header .page-ico{border-color:var(--rent-gold);color:var(--rent-gold);}
+.rent-tab.active>span{color:var(--rent-lime);}
 
 .vitrine-stats{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));
-  gap:12px;margin-bottom:20px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));
+  gap:14px;margin-bottom:17px;
 }
 .vitrine-stat{
-  padding:16px 18px;background:var(--rent-card);
-  border:1px solid var(--rent-line);border-radius:16px;box-shadow:var(--rent-shadow-small);
+  padding:17px 19px;background:var(--rent-card);
+  border:1px solid var(--rent-line);border-radius:18px;box-shadow:var(--rent-shadow-small);
 }
 .vitrine-stat strong{
   display:block;font-family:var(--font-display);font-size:28px;
@@ -62,8 +46,8 @@
 
 .vitrine-alert{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
-  flex-wrap:wrap;padding:15px 18px;margin-bottom:16px;
-  background:#FFF8E8;border:1px solid rgba(240,199,110,.5);border-radius:14px;
+  flex-wrap:wrap;padding:16px 19px;margin-bottom:17px;
+  background:#FFF8E8;border:1px solid rgba(240,199,110,.5);border-radius:18px;
 }
 .vitrine-alert.lead{background:#EFF6F2;border-color:var(--rent-line);}
 .vitrine-alert strong{display:block;font-size:13.5px;}
@@ -71,8 +55,8 @@
 
 .vitrine-panel{
   background:var(--rent-card);border:1px solid var(--rent-line);
-  border-radius:18px;box-shadow:var(--rent-shadow-small);
-  margin-bottom:20px;overflow:hidden;
+  border-radius:22px;box-shadow:var(--rent-shadow-small);
+  margin-bottom:17px;overflow:hidden;
 }
 .vitrine-panel-head{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
@@ -340,9 +324,6 @@
 @media(max-width:640px){
   .vitrine-grid{grid-template-columns:1fr;}
   .vitrine-pub-count{margin-left:0;}
-  .vitrine-tabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;}
-  .vitrine-tabs::-webkit-scrollbar{display:none;}
-  .vitrine-tab{flex:0 0 auto;}
   .vitrine-detalhe,.vitrine-pub-main{padding-left:14px;padding-right:14px;}
 }
 

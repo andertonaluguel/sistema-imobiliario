@@ -14,12 +14,39 @@ let _actingOwnerId = null;
 /* ---- Vitrine: banco (snake_case) <-> memória (camelCase) ---- */
 function rowToVitrineAnunciante(r){
   return {id:r.id,nome:r.nome||'',telefone:r.telefone||'',email:r.email||'',
-    documento:r.documento||'',observacoes:r.observacoes||'',createdAt:r.created_at||''};
+    documento:r.documento||'',observacoes:r.observacoes||'',
+    /* Ponte com o cadastro de proprietários-clientes da gestão. O
+       anunciante continua existindo por si — a Vitrine anuncia imóvel de
+       gente que não é cliente da administração. */
+    proprietarioClienteId:r.proprietario_cliente_id||'',
+    createdAt:r.created_at||''};
+}
+/* Endereço da cidade na URL pública: sem acento, sem espaço. */
+function vitrineCidadeSlug(valor){
+  return String(valor||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    .slice(0,60);
+}
+function rowToVitrineCidade(r){
+  return {
+    id:r.id,nome:r.nome||'',uf:r.uf||'PE',slug:r.slug||'',
+    fotoPath:r.foto_path||'',ordem:Number(r.ordem)||0,ativa:r.ativa!==false
+  };
 }
 function rowToVitrineImovel(r){
   return {
     id:r.id,anuncianteId:r.anunciante_id||'',codigo:r.codigo||'',titulo:r.titulo||'',
     tipo:r.tipo||'casa',
+    /* Site da corretora: finalidade, venda, cidade e terreno. */
+    finalidade:r.finalidade||'alugar',
+    precoVenda:Number(r.preco_venda)||0,
+    cidadeId:r.cidade_id||'',
+    frenteM:(r.frente_m==null?null:Number(r.frente_m)),
+    fundoM:(r.fundo_m==null?null:Number(r.fundo_m)),
+    murado:!!r.murado,esquina:!!r.esquina,topografia:r.topografia||'',
     aluguel:Number(r.aluguel)||0,condominio:Number(r.condominio)||0,iptu:Number(r.iptu)||0,
     quartos:Number(r.quartos)||0,banheiros:Number(r.banheiros)||0,vagas:Number(r.vagas)||0,
     areaM2:Number(r.area_m2)||0,
@@ -33,17 +60,29 @@ function rowToVitrineImovel(r){
     enderecoExatoPublico:r.endereco_exato_publico!==false,
     autorizacaoEnderecoEm:r.autorizacao_endereco_em||'',
     pontosInteresse:Array.isArray(r.pontos_interesse)?r.pontos_interesse:[],
+    imovelId:r.imovel_id||'',
     status:r.status||'rascunho',destaque:!!r.destaque,
     publicadoEm:r.publicado_em||'',expiraEm:r.expira_em||'',
     visualizacoes:Number(r.visualizacoes)||0,
     contatosWhatsapp:Number(r.contatos_whatsapp)||0,
     contatosFormulario:Number(r.contatos_formulario)||0,
-    createdAt:r.created_at||''
+    createdAt:r.created_at||'',
+    /* Quando o anúncio mudou de situação pela última vez. É o que permite
+       contar quantos saíram do ar por terem sido alugados ou vendidos no
+       mês — o número que a corretora acompanha. */
+    updatedAt:r.updated_at||''
   };
 }
 function vitrineImovelToRow(i){
   return {
     anunciante_id:i.anuncianteId||null,codigo:i.codigo,titulo:i.titulo,tipo:i.tipo||'casa',
+    finalidade:['alugar','vender','ambos'].includes(i.finalidade)?i.finalidade:'alugar',
+    preco_venda:Number(i.precoVenda)||0,
+    cidade_id:i.cidadeId||null,
+    frente_m:(i.frenteM===''||i.frenteM==null)?null:Number(i.frenteM),
+    fundo_m:(i.fundoM===''||i.fundoM==null)?null:Number(i.fundoM),
+    murado:!!i.murado,esquina:!!i.esquina,
+    topografia:['','plano','aclive','declive','irregular'].includes(i.topografia)?i.topografia:'',
     aluguel:Number(i.aluguel)||0,condominio:Number(i.condominio)||0,iptu:Number(i.iptu)||0,
     quartos:Number(i.quartos)||0,banheiros:Number(i.banheiros)||0,vagas:Number(i.vagas)||0,
     area_m2:Number(i.areaM2)||0,
@@ -58,12 +97,16 @@ function vitrineImovelToRow(i){
     autorizacao_endereco_em:i.autorizacaoEnderecoEm||null,
     pontos_interesse:Array.isArray(i.pontosInteresse)?i.pontosInteresse:[],
     destaque:!!i.destaque,
+    /* Qual imóvel da gestão gerou este anúncio. Vazio no anúncio de
+       terceiro, que é o caso mais comum numa corretora. */
+    imovel_id:i.imovelId||null,
     updated_at:new Date().toISOString()
   };
 }
 function rowToVitrineLead(r){
   return {id:r.id,imovelId:r.imovel_id||'',nome:r.nome||'',telefone:r.telefone||'',
     mensagem:r.mensagem||'',origem:r.origem||'formulario',status:r.status||'novo',
+    interessadoId:r.interessado_id||'',
     createdAt:r.created_at||''};
 }
 function rowToVitrineTaxa(r){
@@ -78,8 +121,12 @@ function rowToHouse(r){
   return {
     id: r.id,
     nome: r.nome,
+    tipo: r.tipo || 'casa',
     endereco: r.endereco || '',
     status: r.status || 'vaga',
+    /* De quem é a casa. Vazio quando é do próprio dono da conta — o caso
+       do proprietário que administra o que é dele. */
+    proprietarioClienteId: r.proprietario_cliente_id || '',
     aluguelValor: Number(r.aluguel_valor) || 0,
     diaVencimento: r.dia_vencimento || 5,
     ultimaVistoria: r.ultima_vistoria || '',
@@ -97,16 +144,39 @@ function rowToHouse(r){
     descricaoPublica: r.descricao_publica || '',
     energiaAtiva: r.energia_ativa!==false,
     energiaDiaVencimento: r.energia_dia_vencimento||5,
+    createdAt: r.created_at || '',
+    arquivadoEm: r.arquivado_em || '',
+    motivoArquivamento: r.motivo_arquivamento || '',
     statusHistorico: [],
     contracts: [],
     pagamentos: [],
+    cobrancas: [],
+    recebimentos: [],
     despesas: [],
+    chamados: [],
     aluguelHistorico: [],
     energias: []
   };
 }
+/* "tipo" do imóvel é campo novo. Se a coluna ainda não existe (migração
+   migracao-imovel-tipo.sql não aplicada), a 1ª gravação falha, marcamos e
+   reenviamos sem o campo — o cadastro nunca quebra por causa disso. */
+let _imovelTipoOff=false;
+function _isMissingTipoError(err){ return /tipo/i.test(String(err&&err.message||'')); }
+/* Mesmo padrão para o RG do inquilino (campo novo, migracao-inquilino-rg.sql). */
+let _inquilinoRgOff=false;
+/* Idem para as preferências de forma de pagamento da Minha Casa. */
+let _myHomePayPrefsOff=false;
+function _isMissingRgError(err){ return /\brg\b/i.test(String(err&&err.message||'')); }
+/* Idem para o vínculo com o proprietário-cliente
+   (migracao-proprietario-cliente.sql). Enquanto a migração não roda, o
+   imóvel salva sem o vínculo em vez de a gravação falhar. */
+let _imovelDonoOff=false;
+function _isMissingDonoError(err){
+  return /proprietario_cliente_id/i.test(String(err&&err.message||''));
+}
 function houseToRow(h){
-  return {
+  const row = {
     nome: h.nome,
     endereco: h.endereco || '',
     status: h.status || 'vaga',
@@ -129,6 +199,9 @@ function houseToRow(h){
     energia_dia_vencimento: Math.min(31,Math.max(1,parseInt(h.energiaDiaVencimento,10)||5)),
     updated_at: new Date().toISOString()
   };
+  if(!_imovelTipoOff) row.tipo = normalizeImovelTipo(h.tipo);
+  if(!_imovelDonoOff) row.proprietario_cliente_id = h.proprietarioClienteId || null;
+  return row;
 }
 function rowToConfig(r){
   r=r||{};
@@ -136,11 +209,42 @@ function rowToConfig(r){
     tema:normalizeAppTheme(r.tema),onboardingConcluido:!!r.onboarding_concluido,ultimoBackupExterno:r.ultimo_backup_externo||'',
     pixChave:r.pix_chave||'',pixNome:r.pix_nome||'',pixCidade:r.pix_cidade||''};
 }
+/* Proprietário-cliente: o dono do imóvel que a corretora administra.
+   Não confundir com `proprietarios`, que é a conta do próprio cliente da
+   plataforma. */
+function rowToOwnerClient(r){
+  return {
+    id:r.id, nome:r.nome||'',
+    telefone:r.telefone||'', email:r.email||'', documento:r.documento||'',
+    pixChave:r.pix_chave||'', banco:r.banco||'',
+    agencia:r.agencia||'', conta:r.conta||'',
+    taxaAdministracao:Number(r.taxa_administracao)||0,
+    observacoes:r.observacoes||'',
+    arquivadoEm:r.arquivado_em||'', motivoArquivamento:r.motivo_arquivamento||''
+  };
+}
+function ownerClientToRow(o){
+  return {
+    nome:String(o.nome||'').trim().slice(0,160),
+    telefone:String(o.telefone||'').trim().slice(0,40),
+    email:String(o.email||'').trim().slice(0,180),
+    documento:String(o.documento||'').trim().slice(0,80),
+    pix_chave:String(o.pixChave||'').trim().slice(0,180),
+    banco:String(o.banco||'').trim().slice(0,80),
+    agencia:String(o.agencia||'').trim().slice(0,20),
+    conta:String(o.conta||'').trim().slice(0,30),
+    taxa_administracao:Math.min(100,Math.max(0,Number(o.taxaAdministracao)||0)),
+    observacoes:String(o.observacoes||'').trim().slice(0,2000),
+    updated_at:new Date().toISOString()
+  };
+}
+
 function rowToTenant(r){
   return {
     id: r.id, nome: r.nome,
     telefone: r.telefone || '', email: r.email || '',
-    documento: r.documento || '', emergenciaNome: r.emergencia_nome || ''
+    documento: r.documento || '', rg: r.rg || '', emergenciaNome: r.emergencia_nome || '',
+    arquivadoEm:r.arquivado_em||'',motivoArquivamento:r.motivo_arquivamento||''
   };
 }
 
@@ -155,6 +259,103 @@ function rowToInterest(r){
   };
 }
 
+function rowToMaintenanceCall(r){
+  return {
+    id:r.id,houseId:r.imovel_id||'',tenantId:r.inquilino_id||'',
+    titulo:r.titulo||'',descricao:r.descricao||'',
+    categoria:r.categoria||'outro',prioridade:r.prioridade||'normal',
+    status:r.status||'aberto',abertoPor:r.aberto_por||'proprietario',
+    resposta:r.resposta||'',despesaId:r.despesa_id||'',
+    resolvidoEm:r.resolvido_em||'',createdAt:r.created_at||'',
+    updatedAt:r.updated_at||'',
+    /* Campos da gestão completa. Ausentes enquanto a migração não roda. */
+    prazo:r.prazo||'',responsavel:r.responsavel||'',fornecedor:r.fornecedor||'',
+    orcamento:(r.orcamento===null||r.orcamento===undefined)?null:Number(r.orcamento),
+    custoFinal:(r.custo_final===null||r.custo_final===undefined)?null:Number(r.custo_final),
+    quemPaga:r.quem_paga||'proprietario',observacoes:r.observacoes||'',
+    motivoEncerramento:r.motivo_encerramento||'',encerradoEm:r.encerrado_em||'',
+    arquivadoEm:r.arquivado_em||'',
+    historico:Array.isArray(r.historico)?r.historico:[]
+  };
+}
+
+function rowToExpense(r){
+  return {
+    id:r.id,
+    descricao:r.descricao||'',
+    categoria:r.categoria||'Outro',
+    valor:Number(r.valor)||0,
+    data:r.data||'',
+    prestador:r.prestador||'',
+    status:r.status||'Concluído',
+    arquivadoEm:r.arquivado_em||'',
+    motivoArquivamento:r.motivo_arquivamento||''
+  };
+}
+
+/* Campos da gestão completa (migracao-manutencoes.sql). Se a migração
+   ainda não foi aplicada, a primeira gravação falha, marcamos e
+   reenviamos só com as colunas antigas — o chamado nunca deixa de ser
+   salvo por causa disso. */
+let _manutencaoCamposOff=false;
+function _isMissingManutencaoError(err){
+  return /prazo|responsavel|fornecedor|orcamento|custo_final|quem_paga|observacoes|motivo_encerramento|encerrado_em|arquivado_em|historico|aguardando_orcamento|aprovado/i
+    .test(String(err&&err.message||''));
+}
+const MANUTENCAO_CAMPOS_NOVOS=['prazo','responsavel','fornecedor','orcamento','custo_final',
+  'quem_paga','observacoes','motivo_encerramento','encerrado_em','arquivado_em','historico'];
+function _semCamposNovosManutencao(row){
+  const copia=Object.assign({},row);
+  MANUTENCAO_CAMPOS_NOVOS.forEach(function(c){ delete copia[c]; });
+  /* As situações novas também dependem da migração: sem ela, o banco só
+     aceita as cinco antigas. */
+  if(copia.status==='aguardando_orcamento'||copia.status==='aprovado') copia.status='aberto';
+  return copia;
+}
+function maintenanceCallToRow(item,houseId){
+  const categories=['hidraulica','eletrica','estrutura','eletrodomestico','pintura','outro'];
+  const priorities=['urgente','alta','normal','baixa'];
+  const statuses=['aberto','aguardando_orcamento','aprovado','em_andamento',
+    'aguardando_peca','resolvido','cancelado'];
+  const pagadores=['proprietario','inquilino','dividido','outro'];
+  const status=statuses.includes(item.status)?item.status:'aberto';
+  const numero=function(v){
+    if(v===''||v===null||v===undefined) return null;
+    const n=Number(v);
+    return isFinite(n)&&n>=0?n:null;
+  };
+  const extras=_manutencaoCamposOff?{}:{
+    prazo:item.prazo||null,
+    responsavel:String(item.responsavel||'').trim().slice(0,180),
+    fornecedor:String(item.fornecedor||'').trim().slice(0,180),
+    orcamento:numero(item.orcamento),
+    custo_final:numero(item.custoFinal),
+    quem_paga:pagadores.includes(item.quemPaga)?item.quemPaga:'proprietario',
+    observacoes:String(item.observacoes||'').trim().slice(0,4000),
+    motivo_encerramento:String(item.motivoEncerramento||'').trim().slice(0,600),
+    encerrado_em:(status==='resolvido'||status==='cancelado')
+      ? (item.encerradoEm||new Date().toISOString()) : null,
+    arquivado_em:item.arquivadoEm||null,
+    historico:Array.isArray(item.historico)?item.historico.slice(-100):[]
+  };
+  return Object.assign(extras,{
+    imovel_id:houseId||item.houseId,
+    inquilino_id:item.tenantId||null,
+    titulo:String(item.titulo||'').trim(),
+    descricao:String(item.descricao||'').trim(),
+    categoria:categories.includes(item.categoria)?item.categoria:'outro',
+    prioridade:priorities.includes(item.prioridade)?item.prioridade:'normal',
+    status:status,
+    aberto_por:item.abertoPor==='inquilino'?'inquilino':'proprietario',
+    resposta:String(item.resposta||'').trim(),
+    despesa_id:item.despesaId||null,
+    resolvido_em:status==='resolvido'
+      ? (item.resolvidoEm||new Date().toISOString())
+      : null,
+    updated_at:new Date().toISOString()
+  });
+}
+
 function rowToEnergy(r){
   return {
     id:r.id,mes:r.mes,contractId:r.contrato_id||'',valor:Number(r.valor)||0,kwh:Number(r.kwh)||0,
@@ -163,7 +364,9 @@ function rowToEnergy(r){
     descontos:Number(r.descontos)||0,ajusteDescricao:r.ajuste_descricao||'',
     valorCalculado:Number(r.valor_calculado)||0,valorManual:!!r.valor_manual,
     vencimento:r.vencimento||'',fotoPath:r.foto_path||'',pago:!!r.pago,
-    dataPagamento:r.data_pagamento||''
+    dataPagamento:r.data_pagamento||'',
+    arquivadoEm:r.arquivado_em||'',
+    motivoArquivamento:r.motivo_arquivamento||''
   };
 }
 
@@ -171,13 +374,83 @@ function rowToContract(r){
   return {
     id:r.id, houseId:r.imovel_id||'', tenantId:r.tenant_id||'',
     inicio:r.inicio||'', fim:r.fim||'', valor:Number(r.valor)||0,
+    valorInicial:Number(r.valor_inicial==null?r.valor:r.valor_inicial)||0,
+    valorInicialRevisar:!!r.valor_inicial_revisar,
+    valorInicialOrigem:r.valor_inicial_origem||'',
     diaVencimento:r.dia_vencimento||5,
     modalidade:r.modalidade_vencimento==='entrada'?'entrada':'fixo',
     ativo:!!r.ativo,
+    reajustes:[],
     proporcionalDias:Number(r.proporcional_dias)||0,
     proporcionalValor:Number(r.proporcional_valor)||0,
     proporcionalPago:!!r.proporcional_pago,
-    proporcionalDataPagamento:r.proporcional_data_pagamento||''
+    proporcionalDataPagamento:r.proporcional_data_pagamento||'',
+    arquivadoEm:r.arquivado_em||'',motivoArquivamento:r.motivo_arquivamento||''
+  };
+}
+
+function rowToCharge(r){
+  return {
+    id:r.id,houseId:r.imovel_id||'',contractId:r.contrato_id||'',
+    tenantId:r.inquilino_id||'',mes:r.mes||r.competencia||'',
+    competencia:r.competencia||r.mes||'',tipo:r.tipo||'outro',
+    descricao:r.descricao||'',valorPrevisto:Number(r.valor_previsto)||0,
+    vencimento:r.vencimento||'',toleranciaDias:Number(r.tolerancia_dias)||0,
+    status:r.status||'a_vencer',totalRecebido:Number(r.total_recebido)||0,
+    saldoAberto:Number(r.saldo_aberto)||0,creditoAFavor:Number(r.credito_a_favor)||0,
+    primeiroPagamento:r.primeiro_pagamento||'',ultimoPagamento:r.ultimo_pagamento||'',
+    origemTipo:r.origem_tipo||'manual',origemId:r.origem_id||'',
+    observacao:r.observacao||'',arquivadoEm:r.arquivado_em||'',
+    motivoArquivamento:r.motivo_arquivamento||''
+  };
+}
+
+function chargeToRow(item,houseId){
+  return {
+    imovel_id:houseId||item.houseId,
+    contrato_id:item.contractId||null,
+    inquilino_id:item.tenantId||null,
+    competencia:item.competencia||item.mes,
+    tipo:['aluguel','energia','ajuste','outro'].includes(item.tipo)?item.tipo:'outro',
+    descricao:item.descricao||'',
+    valor_previsto:Number(item.valorPrevisto)||0,
+    vencimento:item.vencimento,
+    tolerancia_dias:item.toleranciaDias==null?5:Math.max(0,Math.min(60,Number(item.toleranciaDias)||0)),
+    origem_tipo:item.origemTipo||'manual',
+    origem_id:item.origemId||null,
+    observacao:item.observacao||'',
+    updated_at:new Date().toISOString()
+  };
+}
+
+function rowToReceipt(r){
+  return {
+    id:r.id,cobrancaId:r.cobranca_id||'',valor:Number(r.valor)||0,
+    dataPagamento:r.data_pagamento||'',competenciaCaixa:r.competencia_caixa||'',
+    forma:r.forma||'',observacao:r.observacao||'',
+    origemTipo:r.origem_tipo||'manual',origemId:r.origem_id||'',
+    arquivadoEm:r.arquivado_em||'',motivoArquivamento:r.motivo_arquivamento||''
+  };
+}
+
+function receiptToRow(item){
+  const paidAt=item.dataPagamento||todayISO();
+  const originType=item.origemTipo||'manual';
+  let originId=item.origemId||null;
+  if(originType==='manual'&&!originId){
+    originId=newOperationId();
+    item.origemId=originId;
+  }
+  return {
+    cobranca_id:item.cobrancaId,
+    valor:Number(item.valor)||0,
+    data_pagamento:paidAt,
+    competencia_caixa:item.competenciaCaixa||paidAt.slice(0,7),
+    forma:item.forma||'',
+    observacao:item.observacao||'',
+    origem_tipo:originType,
+    origem_id:originId,
+    updated_at:new Date().toISOString()
   };
 }
 
@@ -186,7 +459,8 @@ function rowToDocument(r){
     id:r.id, houseId:r.imovel_id||'', tenantId:r.inquilino_id||'',
     tipo:r.tipo||'outro', nome:r.nome||'Arquivo', mime:r.mime||'',
     tamanho:Number(r.tamanho)||0, storagePath:r.storage_path||'',
-    visivelInquilino:!!r.visivel_inquilino, dados:r.dados||'', url:''
+    visivelInquilino:!!r.visivel_inquilino, restrito:!!r.restrito,
+    dados:r.dados||'', url:''
   };
 }
 
@@ -208,6 +482,14 @@ function blobToDataUrl(blob){
     reader.onerror=reject; reader.readAsDataURL(blob);
   });
 }
+function dataUrlToBlob(value){
+  const match=String(value||'').match(/^data:([^;]+);base64,([A-Za-z0-9+/=]+)$/i);
+  if(!match)throw new Error('Arquivo incorporado inválido.');
+  const binary=atob(match[2]);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i+=1)bytes[i]=binary.charCodeAt(i);
+  return new Blob([bytes],{type:match[1]});
+}
 
 async function removeStoragePaths(paths){
   const unique=Array.from(new Set((paths||[]).filter(Boolean)));
@@ -217,18 +499,62 @@ async function removeStoragePaths(paths){
   }
 }
 
-async function fetchAllRows(table,orderColumn,ascending){
+async function fetchAllRows(table,orderColumn,ascending,activeOnly){
   const all=[];let from=0;const pageSize=1000;
   while(true){
     let query=sb.from(table).select('*').range(from,from+pageSize-1);
+    if(activeOnly) query=query.is('arquivado_em',null);
     query=query.order(orderColumn||'id',{ascending:ascending!==false});
-    const result=await query;
+    let result=await query;
+    if(activeOnly && result.error
+      && ['42703','PGRST204'].includes(result.error.code)
+      && /arquivado_em/i.test(result.error.message||'')){
+      result=await sb.from(table).select('*').range(from,from+pageSize-1)
+        .order(orderColumn||'id',{ascending:ascending!==false});
+    }
     if(result.error)return {data:null,error:result.error};
     const page=result.data||[];all.push.apply(all,page);
     if(page.length<pageSize)break;
     from+=pageSize;
   }
   return {data:all,error:null};
+}
+
+function missingOptionalRelation(error){
+  if(!error) return false;
+  return ['42P01','PGRST200','PGRST204','PGRST205'].includes(error.code)
+    || /relation .* does not exist|schema cache/i.test(error.message||'');
+}
+
+function missingOptionalRpc(error){
+  if(!error) return false;
+  return ['42883','PGRST202'].includes(error.code)
+    || /function .* does not exist|schema cache/i.test(error.message||'');
+}
+
+/* Perfil do proprietário. O CRECI só existe depois de
+   migracao-vitrine-fotos.sql; sem ele, lê o mesmo conjunto de antes em
+   vez de derrubar o login inteiro por uma coluna de rodapé. */
+const CAMPOS_PROPRIETARIO='user_id,nome,email,slug_publico,nome_publico,contato_publico';
+let _creciOff=false;
+async function selectProprietario(userId){
+  if(!_creciOff){
+    const res=await sb.from('proprietarios')
+      .select(CAMPOS_PROPRIETARIO+',creci').eq('user_id',userId).maybeSingle();
+    if(!res.error) return res;
+    if(!missingOptionalRelation(res.error)&&!/creci/i.test(res.error.message||'')) return res;
+    _creciOff=true;
+  }
+  return sb.from('proprietarios')
+    .select(CAMPOS_PROPRIETARIO).eq('user_id',userId).maybeSingle();
+}
+
+async function fetchOptionalRows(table,orderColumn,ascending,activeOnly){
+  const result=await fetchAllRows(table,orderColumn,ascending,activeOnly);
+  if(result.error && missingOptionalRelation(result.error)){
+    return {data:[],error:null};
+  }
+  return result;
 }
 
 async function fetchAllRpc(name){
@@ -248,11 +574,15 @@ function _backupText(value, max, fallback){
   const text = String(value==null ? (fallback||'') : value).trim();
   return text.slice(0, max||500);
 }
-function _backupNumber(value, label){
+function _backupDecimal(value, label, scale){
   if(value==null || value==='') return 0;
   const n = Number(value);
   if(!Number.isFinite(n) || n < 0) throw new Error((label||'Valor')+' inválido no backup.');
-  return Math.round(n*100)/100;
+  const factor=Math.pow(10,Math.max(0,Math.min(8,Number(scale)||0)));
+  return Math.round(n*factor)/factor;
+}
+function _backupNumber(value, label){
+  return _backupDecimal(value,label,2);
 }
 function _backupDate(value, label){
   if(value==null || value==='') return null;
@@ -265,6 +595,28 @@ function _backupDate(value, label){
   }
   return s;
 }
+function _backupTimestamp(value,label){
+  if(value==null||value==='') return null;
+  const date=new Date(String(value));
+  if(Number.isNaN(date.getTime())){
+    throw new Error((label||'Data e hora')+' inválida no backup.');
+  }
+  return date.toISOString();
+}
+function _backupArchiveFields(item){
+  const source=item||{};
+  const archivedAt=_backupTimestamp(
+    source.arquivadoEm||source.arquivado_em,
+    'Data de arquivamento'
+  );
+  return {
+    arquivado_em:archivedAt,
+    arquivado_por:null,
+    motivo_arquivamento:archivedAt
+      ?_backupText(source.motivoArquivamento||source.motivo_arquivamento,500)
+      :''
+  };
+}
 function _backupMonth(value){
   const s = String(value||'');
   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(s)) throw new Error('Mês inválido no backup.');
@@ -276,10 +628,66 @@ function _backupId(value, label){
   return s;
 }
 function _newImportId(){ return (crypto.randomUUID && crypto.randomUUID()) || _uuid(); }
+function _backupDataUrlBytes(value){
+  const encoded=String(value||'').split(',')[1]||'';
+  const padding=(encoded.match(/=+$/)||[''])[0].length;
+  return Math.max(0,Math.floor((encoded.length*3)/4)-padding);
+}
+function backupPayloadStorageBytes(payload){
+  const energyFiles=(payload&&payload.energy||[]).filter(function(item){
+    return !!(item&&item.foto_dados);
+  }).map(function(item){return {tamanho:item.foto_tamanho};});
+  const rows=[].concat(payload&&payload.photos||[],payload&&payload.documents||[],energyFiles);
+  return rows.reduce(function(total,item){
+    const size=Math.max(0,Number(item&&item.tamanho)||0);
+    const next=total+size;
+    if(!Number.isSafeInteger(next)) throw new Error('O backup ultrapassa o limite seguro de armazenamento.');
+    return next;
+  },0);
+}
+function _backupBytesLabel(value){
+  const bytes=Math.max(0,Number(value)||0),units=['B','KB','MB','GB'];
+  let amount=bytes,index=0;
+  while(amount>=1024&&index<units.length-1){amount/=1024;index++;}
+  return amount.toLocaleString('pt-BR',{maximumFractionDigits:index?1:0})+' '+units[index];
+}
+function _backupAccessNumber(access,camel,snake){
+  const source=access||{};
+  const raw=source[camel]!==undefined?source[camel]:source[snake];
+  const value=Number(raw);
+  return Number.isFinite(value)&&value>=0?value:null;
+}
+async function assertBackupStorageAvailable(payload,replace){
+  const incoming=backupPayloadStorageBytes(payload);
+  if(incoming<=0)return;
+  /* Consulta novamente o servidor: o valor mantido na tela pode estar
+     desatualizado por outra aba. O trigger do banco continua sendo a
+     autoridade final caso haja uma corrida entre esta checagem e a gravação. */
+  const result=await sb.rpc('acesso_comercial_atual');
+  if(result.error)throw result.error;
+  const access=result.data||{};
+  const limit=_backupAccessNumber(access,'limiteArmazenamento','limite_armazenamento');
+  const used=_backupAccessNumber(access,'armazenamentoUsado','armazenamento_usado');
+  if(limit==null||limit<=0||(!replace&&used==null)){
+    throw new Error('Não foi possível confirmar o armazenamento disponível desta conta.');
+  }
+  const available=replace?limit:Math.max(0,limit-used);
+  if(incoming>available){
+    throw new Error('O backup precisa de '+_backupBytesLabel(incoming)+
+      ', mas há '+_backupBytesLabel(available)+' disponíveis no armazenamento atual.');
+  }
+}
 
 function normalizeBackupForImport(data){
   if(!data || typeof data!=='object' || !Array.isArray(data.houses)){
     throw new Error('Esse arquivo não parece ser um backup do Aluguel.');
+  }
+  const version=data.version==null?1:Number(data.version);
+  if(!Number.isInteger(version)||version<1){
+    throw new Error('A versão informada no backup é inválida.');
+  }
+  if(version>7){
+    throw new Error('Este backup foi criado por uma versão mais nova do aplicativo.');
   }
   const housesIn = data.houses;
   const tenantsIn = Array.isArray(data.tenants) ? data.tenants : [];
@@ -295,14 +703,39 @@ function normalizeBackupForImport(data){
   const seenHouseIds = {};
   const tenantRows = [];
 
+  /* Proprietários-clientes. Backup antigo não tem a seção: a lista fica
+     vazia, os imóveis ficam sem dono vinculado e nada quebra. */
+  const ownersIn = Array.isArray(data.owners) ? data.owners : [];
+  if(ownersIn.length>2000) throw new Error('O backup ultrapassa o limite seguro de registros.');
+  const ownerIdMap = {};
+  const seenOwnerIds = {};
+  const ownerRows = [];
+  ownersIn.forEach(function(o){
+    const oldId=_backupId(o&&o.id,'ID do proprietário');
+    if(seenOwnerIds[oldId]) throw new Error('Há proprietários duplicados no backup.');
+    seenOwnerIds[oldId]=true;
+    const id=_newImportId(); ownerIdMap[oldId]=id;
+    ownerRows.push(Object.assign({ id:id,
+      nome:_backupText(o.nome,160,'(sem nome)')||'(sem nome)',
+      telefone:_backupText(o.telefone,40), email:_backupText(o.email,180),
+      documento:_backupText(o.documento,80),
+      pix_chave:_backupText(o.pixChave,180), banco:_backupText(o.banco,80),
+      agencia:_backupText(o.agencia,20), conta:_backupText(o.conta,30),
+      taxa_administracao:Math.min(100,Math.max(0,Number(o.taxaAdministracao)||0)),
+      observacoes:_backupText(o.observacoes,2000) },
+      _backupArchiveFields(o)));
+  });
+
   tenantsIn.forEach(function(t){
     const oldId = _backupId(t && t.id, 'ID do inquilino');
     if(seenTenantIds[oldId]) throw new Error('Há inquilinos duplicados no backup.');
     seenTenantIds[oldId] = true;
     const id = _newImportId(); tenantIdMap[oldId] = id;
-    tenantRows.push({ id:id, nome:_backupText(t.nome,160,'(sem nome)')||'(sem nome)',
+    tenantRows.push(Object.assign({ id:id, nome:_backupText(t.nome,160,'(sem nome)')||'(sem nome)',
       telefone:_backupText(t.telefone,40), email:_backupText(t.email,180),
-      documento:_backupText(t.documento,80), emergencia_nome:_backupText(t.emergenciaNome,220) });
+      documento:_backupText(t.documento,80), rg:_backupText(t.rg,40),
+      emergencia_nome:_backupText(t.emergenciaNome,220) },
+      _backupArchiveFields(t)));
   });
 
   housesIn.forEach(function(h){
@@ -318,8 +751,11 @@ function normalizeBackupForImport(data){
   });
 
   const houseIdMap = {};
-  const houseRows=[], contractRows=[], pagRows=[], despRows=[], histRows=[], fotoRows=[], documentoRows=[], reajRows=[], enerRows=[],interestRows=[];
-  const contractIdMap={},contractsByHouse={};
+  const houseRows=[],contractRows=[],pagRows=[],despRows=[],histRows=[],
+    fotoRows=[],documentoRows=[],reajRows=[],enerRows=[],chargeRows=[],
+    receiptRows=[],maintenanceRows=[],interestRows=[];
+  const contractIdMap={},paymentIdMap={},energyIdMap={},expenseIdMap={},
+    chargeIdMap={},contractsByHouse={};
   const allowedHouseStatus = ['alugada','vaga','manutencao'];
   const allowedExpenseStatus = CONFIG.DESPESA_STATUS;
   const allowedCategories = CONFIG.CATEGORIAS;
@@ -336,8 +772,19 @@ function normalizeBackupForImport(data){
     const contratoInicio = _backupDate(h.contratoInicio, 'Início do contrato');
     const contratoFim = _backupDate(h.contratoFim, 'Fim do contrato');
     if(contratoInicio && contratoFim && contratoFim<contratoInicio) throw new Error('Há contrato terminando antes da data de início.');
-    houseRows.push({ id:id, nome:_backupText(h.nome,160,'Casa')||'Casa', endereco:_backupText(h.endereco,400),
-      status:status, aluguel_valor:_backupNumber(h.aluguelValor,'Aluguel'), dia_vencimento:dueDay,
+    /* tipo e rg passam a viajar no backup normalizado. Sem eles aqui, a
+       exportação carrega o campo e a restauração o descarta — a coluna
+       existe nos dois lados e some no meio do caminho. */
+    const tipoImovel=normalizeImovelTipo(h.tipo);
+    /* Um imóvel que aponta para um proprietário inexistente entra sem
+       vínculo, em vez de derrubar a importação inteira: o dono é
+       informação de gestão, não de integridade do imóvel. */
+    const donoOrigem=h.proprietarioClienteId
+      ? _backupId(h.proprietarioClienteId,'ID do proprietário do imóvel') : '';
+    houseRows.push(Object.assign({ id:id, nome:_backupText(h.nome,160,'Casa')||'Casa', endereco:_backupText(h.endereco,400),
+      status:status, tipo:tipoImovel,
+      proprietario_cliente_id:(donoOrigem&&ownerIdMap[donoOrigem])||null,
+      aluguel_valor:_backupNumber(h.aluguelValor,'Aluguel'), dia_vencimento:dueDay,
       ultima_vistoria:_backupDate(h.ultimaVistoria,'Última vistoria'), tenant_id:tenantId||null,
       contrato_inicio:contratoInicio, contrato_fim:contratoFim,
       quartos:Math.max(0,parseInt(h.quartos,10)||0),banheiros:Math.max(0,parseInt(h.banheiros,10)||0),
@@ -345,7 +792,8 @@ function normalizeBackupForImport(data){
       area_servico:!!h.areaServico,
       energia_ativa:h.energiaAtiva!==false,
       energia_dia_vencimento:Math.min(31,Math.max(1,parseInt(h.energiaDiaVencimento,10)||5)),
-      publicado:!!h.publicado,descricao_publica:_backupText(h.descricaoPublica,3000) });
+      publicado:!!h.publicado,descricao_publica:_backupText(h.descricaoPublica,3000) },
+      _backupArchiveFields(h)));
 
     let sourceContracts=Array.isArray(h.contracts)?h.contracts.slice():[];
     if(!sourceContracts.length&&tenantId&&contratoInicio){
@@ -365,39 +813,67 @@ function normalizeBackupForImport(data){
       if(cFim&&cFim<cInicio) throw new Error('Há contrato terminando antes da data de início.');
       const cDia=Math.min(31,Math.max(1,Number(c.diaVencimento)||dueDay));
       const modalidade=c.modalidade==='entrada'?'entrada':'fixo';
-      const cRow={id:newContractId,imovel_id:id,tenant_id:newContractTenant,inicio:cInicio,fim:cFim,
-        valor:_backupNumber(c.valor==null?h.aluguelValor:c.valor,'Valor do contrato'),dia_vencimento:cDia,
+      const contractInitialValue=_backupNumber(c.valorInicial==null
+        ? (c.valor==null?h.aluguelValor:c.valor)
+        : c.valorInicial,'Valor inicial do contrato');
+      const contractCurrentValue=_backupNumber(
+        c.valor==null?contractInitialValue:c.valor,
+        'Valor atual do contrato'
+      );
+      const cRow=Object.assign({id:newContractId,imovel_id:id,tenant_id:newContractTenant,inicio:cInicio,fim:cFim,
+        valor:contractCurrentValue,valor_inicial:contractInitialValue,dia_vencimento:cDia,
+        valor_inicial_revisar:!!c.valorInicialRevisar,
+        valor_inicial_origem:_backupText(
+          c.valorInicialOrigem,80,
+          c.valorInicialRevisar?'migracao_valor_atual':'cadastro_contrato'
+        ),
         modalidade_vencimento:modalidade,ativo:!!c.ativo,
         proporcional_dias:Math.max(0,Number(c.proporcionalDias)||0),
         proporcional_valor:_backupNumber(c.proporcionalValor,'Ajuste inicial'),
         proporcional_pago:!!c.proporcionalPago,
-        proporcional_data_pagamento:c.proporcionalPago?_backupDate(c.proporcionalDataPagamento,'Pagamento do ajuste inicial'):null};
-      contractRows.push(cRow);contractsByHouse[oldId].push({oldId:oldContractId,newId:newContractId,inicio:cInicio,fim:cFim});
+        proporcional_data_pagamento:c.proporcionalPago?_backupDate(c.proporcionalDataPagamento,'Pagamento do ajuste inicial'):null},
+        _backupArchiveFields(c));
+      contractRows.push(cRow);contractsByHouse[oldId].push({
+        oldId:oldContractId,newId:newContractId,tenantId:newContractTenant,
+        inicio:cInicio,fim:cFim,diaVencimento:cDia
+      });
     });
 
     function importedContractForMovement(rec){
       if(rec&&rec.contractId&&contractIdMap[String(rec.contractId)]) return contractIdMap[String(rec.contractId)];
-      const mes=String(rec&&rec.mes||'');
+      const mes=String(rec&&(rec.mes||rec.competencia||(rec.dataInicio||'').slice(0,7))||'');
       const candidates=(contractsByHouse[oldId]||[]).filter(function(c){return mes>=c.inicio.slice(0,7)&&(!c.fim||mes<=c.fim.slice(0,7));})
         .sort(function(a,b){return b.inicio.localeCompare(a.inicio);});
       return candidates.length?candidates[0].newId:null;
     }
 
     const seenMonths = {};
-    (Array.isArray(h.pagamentos)?h.pagamentos:[]).forEach(function(p){
+    (Array.isArray(h.pagamentos)?h.pagamentos:[]).forEach(function(p,index){
       const mes = _backupMonth(p.mes);
       const movementContract=importedContractForMovement(p),key=(movementContract||'legacy')+'-'+mes;
       if(seenMonths[key]) throw new Error('Há pagamentos duplicados para o mesmo contrato e mês.');
       seenMonths[key] = true;
-      pagRows.push({ imovel_id:id,contrato_id:movementContract,mes:mes, valor_pago:_backupNumber(p.valorPago,'Pagamento'),
-        data_pagamento:_backupDate(p.dataPagamento,'Data do pagamento') });
+      const fallbackPaymentId=oldId+'-payment-'+index;
+      const oldPaymentId=_backupText(p&&p.id,160,fallbackPaymentId)||fallbackPaymentId;
+      const newPaymentId=_newImportId();
+      paymentIdMap[oldPaymentId]=newPaymentId;
+      pagRows.push(Object.assign({
+        id:newPaymentId,imovel_id:id,contrato_id:movementContract,mes:mes,
+        valor_pago:_backupNumber(p.valorPago,'Pagamento'),
+        data_pagamento:_backupDate(p.dataPagamento,'Data do pagamento')
+      },_backupArchiveFields(p)));
     });
-    (Array.isArray(h.despesas)?h.despesas:[]).forEach(function(e){
+    (Array.isArray(h.despesas)?h.despesas:[]).forEach(function(e,index){
       const categoria = allowedCategories.includes(e.categoria) ? e.categoria : 'Outro';
       const despStatus = allowedExpenseStatus.includes(e.status) ? e.status : 'Concluído';
-      despRows.push({ imovel_id:id, descricao:_backupText(e.descricao,300,'Despesa')||'Despesa',
+      const fallbackExpenseId=oldId+'-expense-'+index;
+      const oldExpenseId=_backupText(e&&e.id,160,fallbackExpenseId)||fallbackExpenseId;
+      const newExpenseId=_newImportId();
+      expenseIdMap[oldExpenseId]=newExpenseId;
+      despRows.push(Object.assign({ id:newExpenseId,imovel_id:id, descricao:_backupText(e.descricao,300,'Despesa')||'Despesa',
         categoria:categoria, valor:_backupNumber(e.valor,'Despesa'), data:_backupDate(e.data,'Data da despesa'),
-        prestador:_backupText(e.prestador,180), status:despStatus });
+        prestador:_backupText(e.prestador,180), status:despStatus },
+        _backupArchiveFields(e)));
     });
     (Array.isArray(h.statusHistorico)?h.statusHistorico:[]).forEach(function(s){
       const histStatus = allowedHouseStatus.includes(s.status) ? s.status : 'vaga';
@@ -408,27 +884,196 @@ function normalizeBackupForImport(data){
         status:histStatus, tenant_id:histTenant });
     });
     (Array.isArray(h.aluguelHistorico)?h.aluguelHistorico:[]).forEach(function(rj){
-      reajRows.push({ imovel_id:id, valor:_backupNumber(rj.valor,'Reajuste'),
-        data_inicio:_backupDate(rj.dataInicio,'Data do reajuste')||todayISO() });
+      const confirmedBy=_backupText(
+        rj.confirmadoPor||rj.confirmado_por,160
+      );
+      reajRows.push(Object.assign({
+        id:_newImportId(),imovel_id:id,
+        contrato_id:importedContractForMovement(rj),
+        valor:_backupNumber(rj.valor,'Reajuste'),
+        data_inicio:_backupDate(rj.dataInicio,'Data do reajuste')||todayISO(),
+        motivo:_backupText(rj.motivo,500),
+        confirmado_em:_backupTimestamp(
+          rj.confirmadoEm||rj.confirmado_em,
+          'Confirmação do reajuste'
+        ),
+        confirmado_por:confirmedBy||null
+      },_backupArchiveFields(rj)));
     });
     const seenEnergyMonths = {};
-    (Array.isArray(h.energias)?h.energias:[]).forEach(function(en){
+    (Array.isArray(h.energias)?h.energias:[]).forEach(function(en,index){
       const mes = _backupMonth(en.mes);
       const movementContract=importedContractForMovement(en),key=(movementContract||'legacy')+'-'+mes;
       if(seenEnergyMonths[key]) throw new Error('Há registros de energia duplicados para o mesmo contrato e mês.');
       seenEnergyMonths[key] = true;
-      enerRows.push({ imovel_id:id,contrato_id:movementContract, mes:mes, valor:_backupNumber(en.valor,'Energia'),
+      const fallbackEnergyId=oldId+'-energy-'+index;
+      const oldEnergyId=_backupText(en&&en.id,160,fallbackEnergyId)||fallbackEnergyId;
+      const newEnergyId=_newImportId();
+      energyIdMap[oldEnergyId]=newEnergyId;
+      const photoBackup=en&&en.fotoBackup&&typeof en.fotoBackup==='object'?en.fotoBackup:null;
+      const photoData=String(photoBackup&&photoBackup.dados||'');
+      let photoSize=0,photoMime='';
+      if(photoData){
+        if(photoData.length>22000000||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(photoData)){
+          throw new Error('O backup contém uma foto de energia inválida ou grande demais.');
+        }
+        photoSize=_backupDataUrlBytes(photoData);
+        photoMime=(photoData.match(/^data:([^;]+)/i)||[])[1]||'image/jpeg';
+      }
+      enerRows.push(Object.assign({ id:newEnergyId,imovel_id:id,contrato_id:movementContract, mes:mes, valor:_backupNumber(en.valor,'Energia'),
         kwh:_backupNumber(en.kwh,'Consumo de energia'),
         leitura_anterior:_backupNumber(en.leituraAnterior,'Leitura anterior'),leitura_atual:_backupNumber(en.leituraAtual,'Leitura atual'),
-        tarifa_kwh:_backupNumber(en.tarifaKwh,'Tarifa de energia'),acrescimos:_backupNumber(en.acrescimos,'Acréscimos de energia'),
+        tarifa_kwh:_backupDecimal(en.tarifaKwh,'Tarifa de energia',4),acrescimos:_backupNumber(en.acrescimos,'Acréscimos de energia'),
         descontos:_backupNumber(en.descontos,'Descontos de energia'),ajuste_descricao:_backupText(en.ajusteDescricao,300),
         valor_calculado:_backupNumber(en.valorCalculado,'Valor calculado de energia'),valor_manual:!!en.valorManual,
         vencimento:_backupDate(en.vencimento,'Vencimento da energia'),pago:!!en.pago,
-        data_pagamento:en.pago?_backupDate(en.dataPagamento,'Data do pagamento da energia'):null });
+        data_pagamento:en.pago?_backupDate(en.dataPagamento,'Data do pagamento da energia'):null,
+        foto_dados:photoData||null,foto_mime:photoMime||null,foto_tamanho:photoSize },
+        _backupArchiveFields(en)));
+    });
+
+    const sourceCharges=Array.isArray(h.cobrancas)?h.cobrancas:[];
+    const chargeByOldId={};
+    const seenChargeKeys={};
+    sourceCharges.forEach(function(charge,index){
+      const fallbackChargeId=oldId+'-charge-'+index;
+      const oldChargeId=_backupText(charge&&charge.id,160,fallbackChargeId)||fallbackChargeId;
+      const newChargeId=_newImportId();
+      chargeIdMap[oldChargeId]=newChargeId;
+      chargeByOldId[oldChargeId]=charge;
+      const competencia=_backupMonth(charge.competencia||charge.mes);
+      const tipo=['aluguel','energia','ajuste','outro'].includes(charge.tipo)
+        ?charge.tipo:'outro';
+      const contractId=importedContractForMovement(charge);
+      const contractMeta=(contractsByHouse[oldId]||[]).find(function(item){
+        return item.newId===contractId;
+      });
+      const oldChargeTenant=charge.tenantId
+        ?_backupId(charge.tenantId,'Inquilino da cobrança'):'';
+      const tenantId=oldChargeTenant
+        ?tenantIdMap[oldChargeTenant]
+        :(contractMeta?contractMeta.tenantId:null);
+      if(oldChargeTenant&&!tenantId){
+        throw new Error('Uma cobrança aponta para um inquilino inexistente.');
+      }
+
+      let originType=_backupText(charge.origemTipo,80,'manual')||'manual';
+      const oldOrigin=_backupText(charge.origemId,160);
+      let originId=null;
+      if(oldOrigin){
+        if(originType==='pagamento_legado') originId=paymentIdMap[oldOrigin]||null;
+        else if(originType==='energia') originId=energyIdMap[oldOrigin]||null;
+        else if(originType==='contrato_ajuste') originId=contractIdMap[oldOrigin]||contractId||null;
+        if(!originId){
+          originType='backup';
+          originId=newChargeId;
+        }
+      }
+      const dueDay=contractMeta?contractMeta.diaVencimento:5;
+      const fallbackDue=competencia+'-'+String(
+        dueDateForMonth(competencia,dueDay).getDate()
+      ).padStart(2,'0');
+      const key=(contractId||'legacy')+'|'+competencia+'|'+tipo;
+      const archiveFields=_backupArchiveFields(charge);
+      if((tipo==='aluguel'||tipo==='energia')&&!archiveFields.arquivado_em){
+        if(seenChargeKeys[key]){
+          throw new Error('Há cobranças mensais ativas duplicadas no backup.');
+        }
+        seenChargeKeys[key]=true;
+      }
+      chargeRows.push(Object.assign({
+        id:newChargeId,imovel_id:id,contrato_id:contractId,
+        inquilino_id:tenantId,competencia:competencia,tipo:tipo,
+        descricao:_backupText(charge.descricao,300),
+        valor_previsto:_backupNumber(charge.valorPrevisto,'Valor previsto'),
+        vencimento:_backupDate(charge.vencimento,'Vencimento da cobrança')||fallbackDue,
+        tolerancia_dias:Math.min(60,Math.max(0,charge.toleranciaDias==null
+          ?5:Math.trunc(Number(charge.toleranciaDias)||0))),
+        origem_tipo:originType,origem_id:originId,
+        observacao:_backupText(charge.observacao,1000)
+      },archiveFields));
+    });
+
+    (Array.isArray(h.recebimentos)?h.recebimentos:[]).forEach(function(receipt,index){
+      const oldChargeId=_backupText(receipt&&receipt.cobrancaId,160);
+      const originalCharge=chargeByOldId[oldChargeId];
+      const mappedChargeId=chargeIdMap[oldChargeId];
+      if(!oldChargeId||!originalCharge||!mappedChargeId){
+        throw new Error('Um recebimento aponta para uma cobrança inexistente.');
+      }
+      const newReceiptId=_newImportId();
+      const paidAt=_backupDate(receipt.dataPagamento,'Data do recebimento')||todayISO();
+      const value=_backupNumber(receipt.valor,'Recebimento');
+      if(value<=0) throw new Error('O backup contém um recebimento sem valor.');
+      let originType=_backupText(receipt.origemTipo,80,'manual')||'manual';
+      const oldOrigin=_backupText(receipt.origemId,160);
+      let originId=null;
+      if(oldOrigin){
+        if(originType==='pagamento_legado') originId=paymentIdMap[oldOrigin]||null;
+        else if(originType==='energia_legado') originId=energyIdMap[oldOrigin]||null;
+        else if(originType==='ajuste_legado') originId=contractIdMap[oldOrigin]||null;
+        if(!originId){
+          originType='backup';
+          originId=newReceiptId;
+        }
+      }
+      receiptRows.push(Object.assign({
+        id:newReceiptId,cobranca_id:mappedChargeId,valor:value,
+        data_pagamento:paidAt,
+        competencia_caixa:_backupMonth(receipt.competenciaCaixa||paidAt.slice(0,7)),
+        forma:_backupText(receipt.forma,80),
+        observacao:_backupText(receipt.observacao,1000),
+        origem_tipo:originType,origem_id:originId,
+        cobranca_origem_tipo:_backupText(originalCharge.origemTipo,80,'manual')||'manual',
+        cobranca_origem_id:(function(){
+          const raw=_backupText(originalCharge.origemId,160);
+          if(!raw) return null;
+          if(originalCharge.origemTipo==='pagamento_legado') return paymentIdMap[raw]||null;
+          if(originalCharge.origemTipo==='energia') return energyIdMap[raw]||null;
+          if(originalCharge.origemTipo==='contrato_ajuste') return contractIdMap[raw]||null;
+          return null;
+        })(),
+        imovel_id:id,contrato_id:importedContractForMovement(originalCharge),
+        competencia:_backupMonth(originalCharge.competencia||originalCharge.mes),
+        tipo:['aluguel','energia','ajuste','outro'].includes(originalCharge.tipo)
+          ?originalCharge.tipo:'outro'
+      },_backupArchiveFields(receipt)));
+    });
+
+    const maintenanceCategories=['hidraulica','eletrica','estrutura','eletrodomestico','pintura','outro'];
+    const maintenancePriorities=['urgente','alta','normal','baixa'];
+    const maintenanceStatuses=['aberto','em_andamento','aguardando_peca','resolvido','cancelado'];
+    (Array.isArray(h.chamados)?h.chamados:[]).forEach(function(call){
+      const oldCallTenant=call.tenantId?_backupId(call.tenantId,'Inquilino do chamado'):'';
+      const oldExpenseId=_backupText(call.despesaId,160);
+      const status=maintenanceStatuses.includes(call.status)?call.status:'aberto';
+      const callTenantId=oldCallTenant?(tenantIdMap[oldCallTenant]||null):null;
+      if(oldCallTenant&&!callTenantId){
+        throw new Error('Um chamado aponta para um inquilino inexistente.');
+      }
+      maintenanceRows.push({
+        id:_newImportId(),imovel_id:id,
+        inquilino_id:callTenantId,
+        titulo:_backupText(call.titulo,220,'Chamado')||'Chamado',
+        descricao:_backupText(call.descricao,3000),
+        categoria:maintenanceCategories.includes(call.categoria)?call.categoria:'outro',
+        prioridade:maintenancePriorities.includes(call.prioridade)?call.prioridade:'normal',
+        status:status,
+        aberto_por:call.abertoPor==='inquilino'?'inquilino':'proprietario',
+        resposta:_backupText(call.resposta,3000),
+        despesa_id:oldExpenseId?(expenseIdMap[oldExpenseId]||null):null,
+        resolvido_em:status==='resolvido'
+          ?(_backupTimestamp(call.resolvidoEm,'Conclusão do chamado')||new Date().toISOString())
+          :null,
+        created_at:_backupTimestamp(call.createdAt,'Abertura do chamado')||new Date().toISOString()
+      });
     });
   });
 
-  if(pagRows.length>50000 || despRows.length>50000 || histRows.length>50000 || reajRows.length>50000 || enerRows.length>50000){
+  if(pagRows.length>50000 || despRows.length>50000 || histRows.length>50000
+    || reajRows.length>50000 || enerRows.length>50000
+    || chargeRows.length>50000 || receiptRows.length>100000
+    || maintenanceRows.length>50000){
     throw new Error('O backup ultrapassa o limite seguro de movimentações.');
   }
 
@@ -436,28 +1081,27 @@ function normalizeBackupForImport(data){
   Object.keys(photos).forEach(function(oldHouseId){
     const houseId = houseIdMap[String(oldHouseId)];
     if(!houseId) return;
-    const list = Array.isArray(photos[oldHouseId]) ? photos[oldHouseId].slice(0,6) : [];
+    const list = Array.isArray(photos[oldHouseId]) ? photos[oldHouseId] : [];
     list.forEach(function(dataUrl, i){
       const safe = String(dataUrl||'');
       if(safe.length>2500000 || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(safe)){
         throw new Error('O backup contém uma foto inválida ou grande demais.');
       }
-      const encoded=safe.split(',')[1]||'';
       fotoRows.push({ imovel_id:houseId, dados:safe, ordem:i,nome:'foto-'+(i+1)+'.jpg',
-        mime:(safe.match(/^data:([^;]+)/i)||[])[1]||'image/jpeg',tamanho:Math.floor(encoded.length*3/4) });
+        mime:(safe.match(/^data:([^;]+)/i)||[])[1]||'image/jpeg',tamanho:_backupDataUrlBytes(safe) });
     });
   });
 
   const documents = data.documents && typeof data.documents==='object' ? data.documents : {};
   Object.keys(documents).forEach(function(oldHouseId){
     const houseId=houseIdMap[String(oldHouseId)]; if(!houseId)return;
-    const list=Array.isArray(documents[oldHouseId])?documents[oldHouseId].slice(0,100):[];
+    const list=Array.isArray(documents[oldHouseId])?documents[oldHouseId]:[];
     list.forEach(function(doc){
       const content=String(doc&&doc.dados||'');
       if(content.length>22000000 || !/^data:(application\/pdf|image\/(jpeg|png|webp));base64,[A-Za-z0-9+/=]+$/i.test(content)){
         throw new Error('O backup contém um documento inválido ou grande demais.');
       }
-      const encoded=content.split(',')[1]||'',actualSize=Math.floor(encoded.length*3/4);
+      const actualSize=_backupDataUrlBytes(content);
       const oldTenant=doc.tenantId?_backupId(doc.tenantId,'Inquilino do documento'):'';
       documentoRows.push({imovel_id:houseId,inquilino_id:oldTenant?(tenantIdMap[oldTenant]||null):null,
         tipo:_backupText(doc.tipo,40,'outro')||'outro',nome:_backupText(doc.nome,240,'Arquivo')||'Arquivo',
@@ -465,6 +1109,9 @@ function normalizeBackupForImport(data){
         visivel_inquilino:!!doc.visivelInquilino,dados:content});
     });
   });
+  if(fotoRows.length>50000||documentoRows.length>5000){
+    throw new Error('O backup ultrapassa o limite seguro de arquivos.');
+  }
 
   const eventRows = eventsIn.map(function(ev){
     return { data:_backupDate(ev.data,'Data do lembrete')||todayISO(), texto:_backupText(ev.texto,500) };
@@ -492,11 +1139,46 @@ function normalizeBackupForImport(data){
     pix_cidade:_backupText(data.config.pixCidade,15)
   } : null;
 
-  return { tenants:tenantRows, houses:houseRows, contracts:contractRows, payments:pagRows, expenses:despRows,
-    history:histRows, photos:fotoRows, documents:documentoRows, adjustments:reajRows, energy:enerRows,
-    interests:interestRows,events:eventRows, config:cfg };
+  return {
+    owners:ownerRows,
+    tenants:tenantRows,houses:houseRows,contracts:contractRows,
+    adjustments:reajRows,charges:chargeRows,payments:pagRows,energy:enerRows,
+    receipts:receiptRows,expenses:despRows,maintenance:maintenanceRows,
+    history:histRows,photos:fotoRows,documents:documentoRows,
+    interests:interestRows,events:eventRows,config:cfg,
+    /* Identificador da exportação, para o banco recusar o mesmo arquivo
+       duas vezes no modo "adicionar". Arquivos baixados antes desta versão
+       não têm o campo e continuam sendo aceitos — só não ficam protegidos
+       contra repetição. */
+    export_id:_backupExportId(data.exportId),
+    exported_at:_backupExportedAt(data.exportedAt)
+  };
 }
 
+/* Data da exportação, só informativa. Vai validada porque ela é gravada no
+   FIM da restauração: uma data torta ali derrubaria a transação inteira
+   depois de tudo já ter sido inserido — o pior momento possível para
+   falhar. Qualquer coisa que não seja uma data reconhecível vira null. */
+function _backupExportedAt(value){
+  const texto=String(value==null?'':value).trim();
+  if(!/^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:?\d{2})?)?$/.test(texto)) return null;
+  const quando=new Date(texto);
+  return Number.isNaN(quando.getTime()) ? null : quando.toISOString();
+}
+
+/* Aceita apenas UUID. Um arquivo antigo (sem o campo) devolve null, e o
+   banco entende null como "não dá para saber se já veio". */
+function _backupExportId(value){
+  const texto=String(value==null?'':value).trim().toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(texto)
+    ? texto : null;
+}
+
+/* Sincronização de tema por usuário. Se a tabela (migracao-tema-usuario)
+   ainda não existir no Supabase, a primeira tentativa falha e desligamos
+   o servidor pelo resto da sessão — a preferência segue valendo por
+   localStorage (por aparelho). Sem barulho no console. */
+let _userThemeServerOff=false;
 const db = {
   /* Descobre o perfil antes de carregar qualquer dado da interface. */
   async loadRole(){
@@ -509,9 +1191,7 @@ const db = {
     const commercial=commercialResult.data||{};
     if(commercial.administradorPlataforma){
       const workingOwnerId=commercial.proprietarioId||uid;
-      const ownerResult=await sb.from('proprietarios')
-        .select('user_id,nome,email,slug_publico,nome_publico,contato_publico')
-        .eq('user_id',workingOwnerId).maybeSingle();
+      const ownerResult=await selectProprietario(workingOwnerId);
       if(ownerResult.error) throw ownerResult.error;
       _actingOwnerId=workingOwnerId;
       return {
@@ -529,8 +1209,7 @@ const db = {
     const roleResults=await Promise.all([
       sb.from('acessos_inquilino').select('*').eq('user_id',uid).maybeSingle(),
       sb.from('acessos_colaborador').select('*').eq('user_id',uid).maybeSingle(),
-      sb.from('proprietarios')
-        .select('user_id,nome,email,slug_publico,nome_publico,contato_publico').eq('user_id',uid).maybeSingle()
+      selectProprietario(uid)
     ]);
     const accessResult=roleResults[0],staffResult=roleResults[1],ownerResultSelf=roleResults[2];
     const roleError=accessResult.error||staffResult.error||ownerResultSelf.error;
@@ -546,8 +1225,7 @@ const db = {
     if(staff){
       if(!staff.ativo) return {role:'pending',staff:staff,commercial:commercial};
       _actingOwnerId=staff.proprietario_id;
-      const ownerResult=await sb.from('proprietarios')
-        .select('user_id,nome,email,slug_publico,nome_publico,contato_publico').eq('user_id',staff.proprietario_id).maybeSingle();
+      const ownerResult=await selectProprietario(staff.proprietario_id);
       if(ownerResult.error) throw ownerResult.error;
       return {role:'owner',owner:ownerResult.data||{},staff:staff,commercial:commercial};
     }
@@ -665,16 +1343,18 @@ const db = {
   },
 
   async loadTenantPortal(access){
-    const [imoveis, inquilinos, contratos, pagamentos, energia, cfg, documentos] = await Promise.all([
+    const [imoveis, inquilinos, contratos, pagamentos, energia, cfg, documentos, portalFinance] = await Promise.all([
       sb.from('imoveis').select('*').order('created_at',{ascending:true}),
-      sb.from('inquilinos').select('*').eq('id',access.inquilino_id),
+      sb.rpc('listar_inquilinos_aluguel',{p_incluir_arquivados:false}),
       sb.from('contratos').select('*').eq('tenant_id',access.inquilino_id).order('inicio',{ascending:false}),
       sb.from('pagamentos').select('*').order('mes',{ascending:false}),
       sb.from('energia').select('*').order('mes',{ascending:false}),
       sb.from('configuracoes').select('*').eq('user_id',access.proprietario_id).maybeSingle(),
-      sb.from('documentos').select('*').eq('visivel_inquilino',true).order('created_at',{ascending:false})
+      sb.rpc('listar_documentos_portal'),
+      sb.rpc('carregar_financeiro_portal')
     ]);
-    const err=imoveis.error||inquilinos.error||contratos.error||pagamentos.error||energia.error||cfg.error||documentos.error;
+    const err=imoveis.error||inquilinos.error||contratos.error||pagamentos.error||energia.error||cfg.error||documentos.error
+      ||portalFinance.error;
     if(err) throw err;
     const houses=(imoveis.data||[]).map(rowToHouse), byId={};
     houses.forEach(function(h){ byId[h.id]=h; });
@@ -684,6 +1364,28 @@ const db = {
     });
     (energia.data||[]).forEach(function(e){
       if(byId[e.imovel_id]) byId[e.imovel_id].energias.push(rowToEnergy(e));
+    });
+    const financeData=portalFinance.data||{};
+    (financeData.adjustments||[]).forEach(function(r){
+      const h=byId[r.imovel_id];if(!h)return;
+      const item={
+        id:r.id,valor:Number(r.valor)||0,dataInicio:r.data_inicio,
+        contractId:r.contrato_id||'',motivo:r.motivo||'',
+        confirmadoEm:r.confirmado_em||'',confirmadoPor:r.confirmado_por||''
+      };
+      h.aluguelHistorico.push(item);
+      const contract=(h.contracts||[]).find(function(c){return c.id===item.contractId;});
+      if(contract)contract.reajustes.push(item);
+    });
+    const chargeHouse={};
+    (financeData.charges||[]).forEach(function(row){
+      const h=byId[row.imovel_id];if(!h)return;
+      const charge=rowToCharge(row);
+      h.cobrancas.push(charge);
+      chargeHouse[charge.id]=h;
+    });
+    (financeData.receipts||[]).forEach(function(row){
+      const h=chargeHouse[row.cobranca_id];if(h)h.recebimentos.push(rowToReceipt(row));
     });
     const docs=(documentos.data||[]).map(rowToDocument);
     await Promise.all(docs.map(async function(d){ if(d.storagePath) d.url=await signedStorageUrl(d.storagePath); }));
@@ -710,21 +1412,42 @@ const db = {
   },
 
   async listTeam(){
-    const {data,error}=await sb.rpc('listar_colaboradores');
+    let result=await sb.rpc('listar_colaboradores_com_papel');
+    if(result.error && missingOptionalRpc(result.error)){
+      result=await sb.rpc('listar_colaboradores');
+    }
+    const {data,error}=result;
     if(error) throw error;
     return (data||[]).map(function(item){return {conviteId:item.convite_id||'',userId:item.user_id||'',
       nome:item.nome||'',email:item.email||'',ativo:!!item.ativo,aceito:!!item.aceito,status:item.status||'pendente',
-      createdAt:item.created_at||''};});
+      papel:item.papel||'administrador',createdAt:item.created_at||''};});
   },
 
-  async inviteTeamMember(nome,email){
-    const {data,error}=await sb.rpc('criar_convite_colaborador',{p_nome:nome,p_email:email});
+  async inviteTeamMember(nome,email,papel){
+    let result=await sb.rpc('criar_convite_colaborador_com_papel',{
+      p_nome:nome,p_email:email,p_papel:papel||'operacional'
+    });
+    if(result.error && missingOptionalRpc(result.error)){
+      result=await sb.rpc('criar_convite_colaborador',{p_nome:nome,p_email:email});
+    }
+    const {data,error}=result;
     if(error) throw error;
     return data||{};
   },
 
-  async updateTeamMember(userId,active){
-    const {error}=await sb.rpc('atualizar_colaborador',{p_user_id:userId,p_ativo:!!active});
+  async updateTeamMember(userId,active,papel){
+    let result;
+    if(papel){
+      result=await sb.rpc('atualizar_colaborador_com_papel',{
+        p_user_id:userId,p_ativo:!!active,p_papel:papel
+      });
+      if(result.error && missingOptionalRpc(result.error)){
+        result=await sb.rpc('atualizar_colaborador',{p_user_id:userId,p_ativo:!!active});
+      }
+    }else{
+      result=await sb.rpc('atualizar_colaborador',{p_user_id:userId,p_ativo:!!active});
+    }
+    const {error}=result;
     if(error) throw error;
   },
 
@@ -734,8 +1457,16 @@ const db = {
   },
 
   async savePublicProfile(profile){
-    const {error}=await sb.rpc('salvar_perfil_publico',{p_slug:profile.slug||'',p_nome:profile.nome||'',p_contato:profile.contato||''});
-    if(error) throw error;
+    const base={p_slug:profile.slug||'',p_nome:profile.nome||'',p_contato:profile.contato||''};
+    /* A versão com CRECI só existe depois de migracao-vitrine-fotos.sql.
+       Mesmo padrão dos papéis de colaborador: tenta a nova, cai na antiga
+       e o resto do formulário salva do mesmo jeito. */
+    let res=await sb.rpc('salvar_perfil_publico',
+      Object.assign({p_creci:profile.creci||''},base));
+    if(res.error&&missingOptionalRpc(res.error)){
+      res=await sb.rpc('salvar_perfil_publico',base);
+    }
+    if(res.error) throw res.error;
   },
 
   async loadPublicListings(slug){
@@ -750,11 +1481,14 @@ const db = {
      Tabelas próprias, separadas de public.imoveis de propósito: um imóvel
      de terceiro nunca pode entrar no Financeiro nem no limite do plano. */
   async loadVitrine(){
-    const [anunciantes,imoveis,leads,taxas]=await Promise.all([
+    const [anunciantes,imoveis,leads,taxas,cidades]=await Promise.all([
       sb.from('vitrine_anunciantes').select('*').order('nome'),
       sb.from('vitrine_imoveis').select('*').order('created_at',{ascending:false}),
       sb.from('vitrine_leads').select('*').order('created_at',{ascending:false}).limit(300),
-      sb.from('vitrine_taxas').select('*').order('periodo_fim',{ascending:false})
+      sb.from('vitrine_taxas').select('*').order('periodo_fim',{ascending:false}),
+      /* Cidades só existem depois de migracao-vitrine-corretora.sql.
+         Sem ela, a Vitrine segue funcionando como antes. */
+      sb.from('vitrine_cidades').select('*').order('ordem').order('nome')
     ]);
     if(anunciantes.error) throw anunciantes.error;
     if(imoveis.error) throw imoveis.error;
@@ -764,13 +1498,44 @@ const db = {
       anunciantes:(anunciantes.data||[]).map(rowToVitrineAnunciante),
       imoveis:(imoveis.data||[]).map(rowToVitrineImovel),
       leads:(leads.data||[]).map(rowToVitrineLead),
-      taxas:(taxas.data||[]).map(rowToVitrineTaxa)
+      taxas:(taxas.data||[]).map(rowToVitrineTaxa),
+      cidades:cidades.error?[]:(cidades.data||[]).map(rowToVitrineCidade)
     };
+  },
+
+  /* ---------- cidades (os cards da entrada do site) ---------- */
+  async saveVitrineCidade(item){
+    const payload={
+      nome:String(item.nome||'').trim().slice(0,120),
+      uf:String(item.uf||'PE').trim().toUpperCase().slice(0,2),
+      slug:vitrineCidadeSlug(item.slug||item.nome),
+      ordem:Number(item.ordem)||0,
+      ativa:item.ativa!==false,
+      updated_at:new Date().toISOString()
+    };
+    /* O user_id é sempre o do PROPRIETÁRIO, nunca o de quem está logado.
+       Sem isto, o colaborador grava com o próprio uid e a linha é rejeitada
+       pela policy (que compara com usuario_proprietario_id) — ou, no caso das
+       cidades, some para o dono da conta. No update não se mexe: a linha já
+       pertence a quem tem de pertencer. */
+    if(!item.id) payload.user_id=await _userId();
+    const query=item.id
+      ? sb.from('vitrine_cidades').update(payload).eq('id',item.id).select().single()
+      : sb.from('vitrine_cidades').insert(payload).select().single();
+    const {data,error}=await query;
+    if(error) throw error;
+    return rowToVitrineCidade(data);
+  },
+  async deleteVitrineCidade(id){
+    const {error}=await sb.from('vitrine_cidades').delete().eq('id',id);
+    if(error) throw error;
   },
 
   async saveVitrineAnunciante(item){
     const payload={nome:item.nome,telefone:item.telefone||'',email:item.email||'',
       documento:item.documento||'',observacoes:item.observacoes||'',updated_at:new Date().toISOString()};
+    if(item.proprietarioClienteId) payload.proprietario_cliente_id=item.proprietarioClienteId;
+    if(!item.id) payload.user_id=await _userId();
     const query=item.id
       ? sb.from('vitrine_anunciantes').update(payload).eq('id',item.id).select().single()
       : sb.from('vitrine_anunciantes').insert(payload).select().single();
@@ -785,12 +1550,22 @@ const db = {
 
   async saveVitrineImovel(item){
     const payload=vitrineImovelToRow(item);
-    const query=item.id
-      ? sb.from('vitrine_imoveis').update(payload).eq('id',item.id).select().single()
-      : sb.from('vitrine_imoveis').insert(payload).select().single();
-    const {data,error}=await query;
-    if(error) throw error;
-    return rowToVitrineImovel(data);
+    if(!item.id) payload.user_id=await _userId();
+    const gravar=function(){
+      return item.id
+        ? sb.from('vitrine_imoveis').update(payload).eq('id',item.id).select().single()
+        : sb.from('vitrine_imoveis').insert(payload).select().single();
+    };
+    let res=await gravar();
+    /* A coluna que liga o anúncio ao imóvel da gestão só existe depois de
+       migracao-proprietario-cliente.sql. Sem ela o anúncio salva do mesmo
+       jeito — só não fica vinculado. */
+    if(res.error&&('imovel_id' in payload)&&/imovel_id/i.test(String(res.error.message||''))){
+      delete payload.imovel_id;
+      res=await gravar();
+    }
+    if(res.error) throw res.error;
+    return rowToVitrineImovel(res.data);
   },
   async deleteVitrineImovel(id){
     const {error}=await sb.from('vitrine_imoveis').delete().eq('id',id);
@@ -812,6 +1587,7 @@ const db = {
       valor:Number(item.valor)||0,forma_pagamento:item.formaPagamento||'',
       periodo_inicio:item.periodoInicio||null,periodo_fim:item.periodoFim||null,
       pago:!!item.pago,data_pagamento:item.dataPagamento||null,observacao:item.observacao||''};
+    if(!item.id) payload.user_id=await _userId();
     const query=item.id
       ? sb.from('vitrine_taxas').update(payload).eq('id',item.id).select().single()
       : sb.from('vitrine_taxas').insert(payload).select().single();
@@ -829,6 +1605,7 @@ const db = {
       .eq('imovel_id',imovelId).order('ordem').order('created_at');
     if(error) throw error;
     const fotos=(data||[]).map(function(f){return {id:f.id,storagePath:f.storage_path,
+      thumbPath:f.thumb_path||'',
       ordem:Number(f.ordem)||0,legenda:f.legenda||'',url:''};});
     await Promise.all(fotos.map(async function(f){
       if(f.storagePath) f.url=await signedStorageUrl(f.storagePath).catch(function(){return '';});
@@ -840,23 +1617,59 @@ const db = {
     const added=[];
     for(let i=0;i<files.length;i++){
       const file=files[i];
-      const path=uid+'/vitrine/'+imovelId+'/'+_uuid()+'-'+safeStorageName(file.nome||'foto.jpg');
+      const nome=safeStorageName(file.nome||'foto.jpg');
+      const base=uid+'/vitrine/'+imovelId+'/'+_uuid()+'-';
+      const path=base+nome;
       const up=await sb.storage.from(FILE_BUCKET).upload(path,file.blob,
         {contentType:file.mime||'image/jpeg',upsert:false});
       if(up.error) throw up.error;
-      const ins=await sb.from('vitrine_fotos').insert({imovel_id:imovelId,storage_path:path,
-        ordem:(startOrder||0)+i,legenda:'',bytes:file.blob.size||0}).select().single();
-      if(ins.error){ await sb.storage.from(FILE_BUCKET).remove([path]); throw ins.error; }
-      added.push({id:ins.data.id,storagePath:path,ordem:ins.data.ordem,legenda:'',
-        url:await signedStorageUrl(path)});
+      /* Miniatura de 640 px para a grade. Se o navegador não conseguir
+         gerar (canvas bloqueado, memória), o anúncio entra sem ela e a
+         grade usa a foto grande. Nunca é motivo para falhar o upload. */
+      let thumbPath='';
+      if(file.thumb){
+        thumbPath=base+'thumb-'+nome;
+        const upThumb=await sb.storage.from(FILE_BUCKET).upload(thumbPath,file.thumb,
+          {contentType:'image/jpeg',upsert:false});
+        if(upThumb.error) thumbPath='';
+      }
+      const row={user_id:uid,imovel_id:imovelId,storage_path:path,
+        ordem:(startOrder||0)+i,legenda:'',bytes:(file.blob.size||0)+((file.thumb&&file.thumb.size)||0)};
+      if(thumbPath) row.thumb_path=thumbPath;
+      let ins=await sb.from('vitrine_fotos').insert(row).select().single();
+      /* Banco ainda sem a coluna: grava sem ela em vez de barrar a foto. */
+      if(ins.error&&thumbPath&&/thumb_path/i.test(ins.error.message||'')){
+        delete row.thumb_path;
+        await sb.storage.from(FILE_BUCKET).remove([thumbPath]);
+        thumbPath='';
+        ins=await sb.from('vitrine_fotos').insert(row).select().single();
+      }
+      if(ins.error){
+        await sb.storage.from(FILE_BUCKET).remove(thumbPath?[path,thumbPath]:[path]);
+        throw ins.error;
+      }
+      added.push({id:ins.data.id,storagePath:path,thumbPath:thumbPath,
+        ordem:ins.data.ordem,legenda:'',url:await signedStorageUrl(path)});
     }
     return added;
   },
+  /* Legenda da foto. A coluna existia desde o começo e nunca teve tela:
+     é ela que explica "sala vista da entrada" quando a foto sozinha não
+     diz o que a pessoa está vendo. */
+  async setVitrineFotoLegenda(fotoId,legenda){
+    const {error}=await sb.from('vitrine_fotos')
+      .update({legenda:String(legenda||'').slice(0,140)}).eq('id',fotoId);
+    if(error) throw error;
+  },
   async deleteVitrineFoto(fotoId){
-    const found=await sb.from('vitrine_fotos').select('storage_path').eq('id',fotoId).maybeSingle();
+    const found=await sb.from('vitrine_fotos').select('*').eq('id',fotoId).maybeSingle();
     if(found.error) throw found.error;
     if(found.data&&found.data.storage_path){
-      const rem=await sb.storage.from(FILE_BUCKET).remove([found.data.storage_path]);
+      /* A miniatura vai junto: deixá-la para trás ocuparia armazenamento
+         do plano para sempre, sem nada que a referencie. */
+      const alvos=[found.data.storage_path];
+      if(found.data.thumb_path) alvos.push(found.data.thumb_path);
+      const rem=await sb.storage.from(FILE_BUCKET).remove(alvos);
       if(rem.error) throw rem.error;
     }
     const {error}=await sb.from('vitrine_fotos').delete().eq('id',fotoId);
@@ -869,6 +1682,14 @@ const db = {
     }
   },
 
+  /* Liga o contato do site ao interessado criado a partir dele. Só existe
+     depois de migracao-proprietario-cliente.sql; sem a coluna, o cadastro
+     do interessado continua valendo — só não fica marcado como convertido. */
+  async setVitrineLeadInteressado(leadId,interessadoId){
+    const {error}=await sb.from('vitrine_leads')
+      .update({interessado_id:interessadoId,status:'contatado'}).eq('id',leadId);
+    if(error) throw error;
+  },
   async setVitrineLeadStatus(id,status){
     const {error}=await sb.from('vitrine_leads').update({status:status}).eq('id',id);
     if(error) throw error;
@@ -891,15 +1712,36 @@ const db = {
     const result=data||{perfil:null,imoveis:[]};
     await Promise.all((result.imoveis||[]).map(async function(i){
       const paths=Array.isArray(i.fotos)?i.fotos:[];
-      i.fotoUrls=(await Promise.all(paths.map(function(p){
-        return signedStorageUrl(p).catch(function(){return '';});
-      }))).filter(Boolean);
+      /* `thumbs` só existe depois de migracao-vitrine-fotos.sql. Sem ela,
+         a grade continua usando a foto grande — mais pesada, mas nada
+         quebra. */
+      const thumbs=Array.isArray(i.thumbs)&&i.thumbs.length?i.thumbs:paths;
+      i.legendas=Array.isArray(i.legendas)?i.legendas:[];
+      const assinadas=await Promise.all([
+        Promise.all(paths.map(function(p){return signedStorageUrl(p).catch(function(){return '';});})),
+        Promise.all(thumbs.map(function(p){return signedStorageUrl(p).catch(function(){return '';});}))
+      ]);
+      i.fotoUrls=assinadas[0].filter(Boolean);
+      i.thumbUrls=assinadas[1].filter(Boolean);
     }));
     return result;
   },
   async registrarVitrineVisita(imovelId,tipo){
     try{ await sb.rpc('vitrine_registrar_visita',{p_imovel_id:imovelId,p_tipo:tipo||'visualizacao'}); }
     catch(e){ console.warn('Contador não registrado:',e&&e.message); }
+  },
+  /* Clique no botão do WhatsApp: conta e registra o lead. Se a migração
+     migracao-vitrine-equipe.sql ainda não rodou, cai no contador antigo —
+     o visitante nunca vê erro por causa disto. */
+  async registrarVitrineCliqueWhatsapp(imovelId,contexto){
+    try{
+      const {error}=await sb.rpc('vitrine_registrar_clique_whatsapp',
+        {p_imovel_id:imovelId,p_contexto:contexto||''});
+      if(error) throw error;
+    }catch(e){
+      console.warn('Contato do WhatsApp não registrado:',e&&e.message);
+      await this.registrarVitrineVisita(imovelId,'whatsapp');
+    }
   },
   async registrarVitrineLead(lead){
     const {data,error}=await sb.rpc('vitrine_registrar_lead',{
@@ -982,6 +1824,26 @@ const db = {
     return data||{};
   },
 
+  /* Formas de pagamento disponíveis nos NOVOS lançamentos (escopo da
+     família). Enquanto migracao-minha-casa-formas-pagamento.sql não for
+     aplicada, as funções não existem: seguimos com todas ativas, sem
+     erro na tela e sem barulho no console. */
+  async loadMyHomePaymentPrefs(){
+    if(_myHomePayPrefsOff) return null;
+    try{
+      const {data,error}=await sb.rpc('minha_casa_formas_pagamento');
+      if(error){ _myHomePayPrefsOff=true; return null; }
+      return Array.isArray(data)?data:[];
+    }catch(e){ _myHomePayPrefsOff=true; return null; }
+  },
+  async saveMyHomePaymentPrefs(inativas){
+    const {data,error}=await sb.rpc('minha_casa_salvar_formas_pagamento',{
+      p_inativas:Array.isArray(inativas)?inativas:[]
+    });
+    if(error) throw error;
+    return Array.isArray(data)?data:[];
+  },
+
   async saveMyHomeMember(item){
     const {data,error}=await sb.rpc('minha_casa_salvar_membro',{
       p_nome:item.name,p_emoji:item.emoji||'👤',p_cor:item.color||'#64748B',
@@ -1050,21 +1912,32 @@ const db = {
   },
 
   /* Carrega tudo do usuário logado e monta o estado em memória. */
-  async loadAll(){
-    const [imoveis, inquilinos, contratos, pagamentos, despesas, historico, cfg, eventos, reajustes, energia, interesses] = await Promise.all([
-      fetchAllRows('imoveis','created_at',true),
-      fetchAllRows('inquilinos','created_at',true),
-      fetchAllRows('contratos','inicio',true),
-      fetchAllRows('pagamentos'),
-      fetchAllRows('despesas'),
+  async loadAll(options){
+    const includeArchived=!!(options&&options.includeArchived);
+    const activeOnly=!includeArchived;
+    const chargeSource=includeArchived
+      ?'financeiro_cobrancas'
+      :'financeiro_cobrancas_resumo';
+    const [imoveis, inquilinos, contratos, pagamentos, despesas, historico, cfg, eventos, reajustes, energia, interesses, cobrancas, recebimentos, chamados, donos] = await Promise.all([
+      fetchAllRows('imoveis','created_at',true,activeOnly),
+      sb.rpc('listar_inquilinos_aluguel',{p_incluir_arquivados:includeArchived}),
+      fetchAllRows('contratos','inicio',true,activeOnly),
+      fetchAllRows('pagamentos','id',true,activeOnly),
+      fetchAllRows('despesas','id',true,activeOnly),
       fetchAllRows('historico_status','data',true),
       sb.from('configuracoes').select('*').maybeSingle(),
       fetchAllRows('eventos','data',true),
-      fetchAllRows('aluguel_historico','data_inicio',true),
-      fetchAllRows('energia'),
-      fetchAllRows('interessados','created_at',false)
+      fetchAllRows('aluguel_historico','data_inicio',true,activeOnly),
+      fetchAllRows('energia','id',true,activeOnly),
+      fetchAllRows('interessados','created_at',false),
+      fetchOptionalRows(chargeSource,'competencia',false,false),
+      fetchOptionalRows('financeiro_recebimentos','data_pagamento',false,activeOnly),
+      fetchOptionalRows('chamados','created_at',false,false),
+      /* Proprietários-clientes. Opcional: a conta que ainda não recebeu
+         migracao-proprietario-cliente.sql segue funcionando sem eles. */
+      fetchOptionalRows('proprietarios_clientes','nome',true,activeOnly)
     ]);
-    const firstErr = imoveis.error||inquilinos.error||contratos.error||pagamentos.error||despesas.error||historico.error||cfg.error||eventos.error||reajustes.error||energia.error||interesses.error;
+    const firstErr = imoveis.error||inquilinos.error||contratos.error||pagamentos.error||despesas.error||historico.error||cfg.error||eventos.error||reajustes.error||energia.error||interesses.error||cobrancas.error||recebimentos.error||chamados.error;
     if(firstErr) throw firstErr;
 
     const houses = (imoveis.data||[]).map(rowToHouse);
@@ -1077,12 +1950,21 @@ const db = {
 
     (pagamentos.data||[]).forEach(function(p){
       const h = byId[p.imovel_id]; if(!h) return;
-      h.pagamentos.push({ id:p.id, mes:p.mes, contractId:p.contrato_id||'', valorPago:Number(p.valor_pago)||0, dataPagamento:p.data_pagamento||'' });
+      h.pagamentos.push({
+        id:p.id,mes:p.mes,contractId:p.contrato_id||'',
+        valorPago:Number(p.valor_pago)||0,dataPagamento:p.data_pagamento||'',
+        arquivadoEm:p.arquivado_em||'',
+        motivoArquivamento:p.motivo_arquivamento||''
+      });
     });
     (despesas.data||[]).forEach(function(e){
       const h = byId[e.imovel_id]; if(!h) return;
-      h.despesas.push({ id:e.id, descricao:e.descricao, categoria:e.categoria, valor:Number(e.valor)||0,
-                        data:e.data||'', prestador:e.prestador||'', status:e.status||'Concluído' });
+      h.despesas.push({
+        id:e.id,descricao:e.descricao,categoria:e.categoria,
+        valor:Number(e.valor)||0,data:e.data||'',prestador:e.prestador||'',
+        status:e.status||'Concluído',arquivadoEm:e.arquivado_em||'',
+        motivoArquivamento:e.motivo_arquivamento||''
+      });
     });
     (historico.data||[]).forEach(function(s){
       const h = byId[s.imovel_id]; if(!h) return;
@@ -1090,11 +1972,37 @@ const db = {
     });
     (reajustes.data||[]).forEach(function(r){
       const h = byId[r.imovel_id]; if(!h) return;
-      h.aluguelHistorico.push({ id:r.id, valor:Number(r.valor)||0, dataInicio:r.data_inicio });
+      const item={
+        id:r.id,valor:Number(r.valor)||0,dataInicio:r.data_inicio,
+        contractId:r.contrato_id||'',motivo:r.motivo||'',
+        confirmadoEm:r.confirmado_em||'',confirmadoPor:r.confirmado_por||'',
+        arquivadoEm:r.arquivado_em||'',
+        motivoArquivamento:r.motivo_arquivamento||''
+      };
+      h.aluguelHistorico.push(item);
+      if(item.contractId){
+        const contract=(h.contracts||[]).find(function(c){return c.id===item.contractId;});
+        if(contract) contract.reajustes.push(item);
+      }
     });
     (energia.data||[]).forEach(function(en){
       const h = byId[en.imovel_id]; if(!h) return;
       h.energias.push(rowToEnergy(en));
+    });
+    const chargeHouse={};
+    (cobrancas.data||[]).forEach(function(row){
+      const h=byId[row.imovel_id]; if(!h) return;
+      const charge=rowToCharge(row);
+      h.cobrancas.push(charge);
+      chargeHouse[charge.id]=h;
+    });
+    (recebimentos.data||[]).forEach(function(row){
+      const h=chargeHouse[row.cobranca_id]; if(!h) return;
+      h.recebimentos.push(rowToReceipt(row));
+    });
+    (chamados.data||[]).forEach(function(row){
+      const h=byId[row.imovel_id]; if(!h) return;
+      h.chamados.push(rowToMaintenanceCall(row));
     });
     // garante pelo menos um ponto de histórico
     houses.forEach(function(h){
@@ -1107,7 +2015,8 @@ const db = {
     const config = rowToConfig(cfg.data);
     const evs = (eventos.data||[]).map(function(e){ return { id:e.id, data:e.data, texto:e.texto||'' }; });
 
-    return { houses, tenants, interests:(interesses.data||[]).map(rowToInterest), config, eventos: evs };
+    return { houses, tenants, interests:(interesses.data||[]).map(rowToInterest), config, eventos: evs,
+      owners:(donos.data||[]).map(rowToOwnerClient) };
   },
 
   /* Fotos de uma casa (carregadas sob demanda). */
@@ -1115,14 +2024,18 @@ const db = {
     const { data, error } = await sb.from('fotos').select('*')
       .eq('imovel_id', imovelId).order('ordem', {ascending:true});
     if(error) throw error;
-    const photos=(data||[]).map(function(r){ return { id:r.id, dados:r.dados||'', storagePath:r.storage_path||'', nome:r.nome||'' }; });
+    const photos=(data||[]).map(function(r){ return { id:r.id, dados:r.dados||'', storagePath:r.storage_path||'',
+      nome:r.nome||'',tamanho:Number(r.tamanho)||0,
+      /* Foto sem chamado segue sendo foto do imóvel, como sempre foi. */
+      chamadoId:r.chamado_id||'',momento:r.momento||'' }; });
     await Promise.all(photos.map(async function(p){ if(p.storagePath) p.dados=await signedStorageUrl(p.storagePath); }));
     return photos;
   },
 
   async getDocuments(imovelId){
-    const { data, error } = await sb.from('documentos').select('*')
-      .eq('imovel_id',imovelId).order('created_at',{ascending:false});
+    const { data, error } = await sb.rpc('listar_documentos_imovel',{
+      p_imovel_id:imovelId
+    });
     if(error) throw error;
     const docs=(data||[]).map(rowToDocument);
     await Promise.all(docs.map(async function(d){
@@ -1151,12 +2064,37 @@ const db = {
     if(error) throw error;
   },
 
-  /* Exporta tudo, incluindo fotos e documentos privados. */
+  /* Preferência de TEMA POR USUÁRIO (cada colaborador a sua). Silenciosa:
+     se a tabela ainda não existe, não quebra nem polui o console. */
+  async loadUserTheme(){
+    if(_userThemeServerOff) return null;
+    try{
+      const uid=await _authUserId();
+      if(!uid) return null;
+      const { data, error } = await sb.from('preferencias_usuario').select('tema').eq('user_id',uid).maybeSingle();
+      if(error){ _userThemeServerOff=true; return null; }
+      return (data&&data.tema)||null;
+    }catch(e){ _userThemeServerOff=true; return null; }
+  },
+  async saveUserTheme(tema){
+    if(_userThemeServerOff) return;
+    try{
+      const uid=await _authUserId();
+      if(!uid) return;
+      const { error } = await sb.from('preferencias_usuario').upsert(
+        { user_id:uid, tema:normalizeUserTheme(tema), atualizado_em:new Date().toISOString() },
+        { onConflict:'user_id' });
+      if(error){ _userThemeServerOff=true; }
+    }catch(e){ _userThemeServerOff=true; }
+  },
+
+  /* Exporta os dados suportados pelo formato V7, incluindo fotos, documentos
+     privados e comprovantes de leitura de energia. */
   async exportAll(){
-    const base = await this.loadAll();
+    const base = await this.loadAll({includeArchived:true});
     const results=await Promise.all([
       fetchAllRows('fotos','ordem',true),
-      fetchAllRows('documentos','created_at',true)
+      sb.rpc('listar_documentos_backup')
     ]);
     if(results[0].error) throw results[0].error;
     if(results[1].error) throw results[1].error;
@@ -1183,7 +2121,25 @@ const db = {
         tipo:d.tipo||'outro',nome:d.nome||'Arquivo',mime:d.mime||'',tamanho:Number(d.tamanho)||0,
         visivelInquilino:!!d.visivel_inquilino,dados:content});
     }
-    return { version:6, exportedAt:new Date().toISOString(),
+    for(const h of base.houses){
+      for(const en of (h.energias||[])){
+        if(!en.fotoPath)continue;
+        const downloaded=await sb.storage.from(FILE_BUCKET).download(en.fotoPath);
+        if(downloaded.error)throw downloaded.error;
+        const content=await blobToDataUrl(downloaded.data);
+        en.fotoBackup={
+          dados:content,
+          mime:downloaded.data.type||'image/jpeg',
+          tamanho:downloaded.data.size||_backupDataUrlBytes(content)
+        };
+      }
+    }
+    /* O exportId identifica ESTE arquivo. É o que permite ao banco recusar
+       a mesma exportação importada duas vezes — antes, importar o mesmo
+       arquivo de novo simplesmente duplicava a carteira inteira, e a única
+       proteção era uma frase na tela pedindo para não fazer isso. */
+    return { version:7, exportId:_uuid(), exportedAt:new Date().toISOString(),
+             owners:base.owners||[],
              houses:base.houses, tenants:base.tenants, interests:base.interests||[], photos:photos,
              documents:documents,config:base.config, eventos:base.eventos||[] };
   },
@@ -1192,21 +2148,63 @@ const db = {
      falhar, nenhuma linha é gravada e uma restauração não apaga o estado atual. */
   async importBackup(data, options){
     const payload = normalizeBackupForImport(data);
-    let oldPaths=[];
+    await assertBackupStorageAvailable(payload,!!(options&&options.replace));
+    let oldPaths=[],uploadedPaths=[];
     if(options&&options.replace){
+      const protectedRows=await Promise.all([
+        sb.from('vistorias').select('id').limit(1),
+        sb.from('vistoria_fotos').select('id').limit(1),
+        sb.from('chamado_fotos').select('id').limit(1),
+        sb.from('acessos_inquilino').select('user_id').limit(1),
+        sb.from('convites_inquilino').select('id').limit(1)
+      ]);
+      const protectedError=protectedRows.find(function(result){return result.error;});
+      if(protectedError)throw protectedError.error;
+      if(protectedRows.some(function(result){return (result.data||[]).length>0;})){
+        throw new Error('A restauração foi bloqueada porque existem vistorias, fotos de chamados, convites ou acessos do Portal que este formato ainda não substitui com segurança.');
+      }
       const current=await Promise.all([
-        sb.from('fotos').select('storage_path'),sb.from('documentos').select('storage_path'),sb.from('energia').select('foto_path')
+        sb.from('fotos').select('storage_path'),sb.rpc('listar_documentos_backup'),sb.from('energia').select('foto_path')
       ]);
       const currentError=current.find(function(r){return r.error;});if(currentError)throw currentError.error;
       oldPaths=[].concat(current[0].data||[],current[1].data||[]).map(function(r){return r.storage_path;})
         .concat((current[2].data||[]).map(function(r){return r.foto_path;}));
     }
-    const { error } = await sb.rpc('importar_backup_atomico_v6', {
-      p_payload: payload,
-      p_substituir: !!(options && options.replace)
-    });
-    if(error) throw error;
-    if(oldPaths.length) await removeStoragePaths(oldPaths);
+    try{
+      const uid=await _userId();
+      for(const entry of (payload.energy||[])){
+        if(!entry.foto_dados)continue;
+        const blob=dataUrlToBlob(entry.foto_dados);
+        const extension=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';
+        const path=uid+'/'+entry.imovel_id+'/energia/import-'+entry.id+'-'+_uuid()+'.'+extension;
+        const uploaded=await sb.storage.from(FILE_BUCKET).upload(path,blob,{
+          contentType:blob.type||'image/jpeg',upsert:false
+        });
+        if(uploaded.error)throw uploaded.error;
+        uploadedPaths.push(path);
+        entry.foto_path=path;
+        delete entry.foto_dados;
+        delete entry.foto_mime;
+        delete entry.foto_tamanho;
+      }
+      const { error } = await sb.rpc('importar_backup_atomico_v7', {
+        p_payload: payload,
+        p_substituir: !!(options && options.replace)
+      });
+      if(error) throw error;
+    }catch(error){
+      if(uploadedPaths.length){
+        try{await removeStoragePaths(uploadedPaths);}
+        catch(cleanupError){console.warn('Arquivos temporários do backup precisam de limpeza posterior.',cleanupError);}
+      }
+      throw error;
+    }
+    if(oldPaths.length){
+      try{await removeStoragePaths(oldPaths);}
+      catch(cleanupError){
+        console.warn('Dados restaurados; alguns arquivos antigos não puderam ser removidos agora.',cleanupError);
+      }
+    }
   },
 
   async markExternalBackup(){
@@ -1218,13 +2216,39 @@ const db = {
 
   /* ---------------- ESCRITAS ---------------- */
 
+  /* Proprietários-clientes — os donos dos imóveis administrados */
+  async saveOwnerClient(item){
+    const payload=ownerClientToRow(item);
+    /* Como em toda tabela desta base, o user_id do INSERT é o do
+       proprietário da conta, nunca o de quem está logado. */
+    if(!item.id) payload.user_id=await _userId();
+    const query=item.id
+      ? sb.from('proprietarios_clientes').update(payload).eq('id',item.id).select().single()
+      : sb.from('proprietarios_clientes').insert(payload).select().single();
+    const {data,error}=await query;
+    if(error) throw error;
+    return rowToOwnerClient(data);
+  },
+  async deleteOwnerClient(id){
+    const {error}=await sb.from('proprietarios_clientes').delete().eq('id',id);
+    if(error) throw error;
+  },
+
   /* Casas */
   async insertHouse(h){
     const uid = await _userId();
     const row = houseToRow(h); row.user_id = uid;
-    const { data, error } = await sb.from('imoveis').insert(row).select().single();
-    if(error) throw error;
-    const novo = rowToHouse(data);
+    let res = await sb.from('imoveis').insert(row).select().single();
+    if(res.error && !_imovelTipoOff && ('tipo' in row) && _isMissingTipoError(res.error)){
+      _imovelTipoOff=true; delete row.tipo;
+      res = await sb.from('imoveis').insert(row).select().single();
+    }
+    if(res.error && !_imovelDonoOff && ('proprietario_cliente_id' in row) && _isMissingDonoError(res.error)){
+      _imovelDonoOff=true; delete row.proprietario_cliente_id;
+      res = await sb.from('imoveis').insert(row).select().single();
+    }
+    if(res.error) throw res.error;
+    const novo = rowToHouse(res.data);
     const ini = { data: novo.contratoInicio||todayISO(), status:novo.status, tenantId:novo.tenantId||'' };
     novo.statusHistorico = [ini];
     await sb.from('historico_status').insert({ user_id:uid, imovel_id:novo.id,
@@ -1232,20 +2256,38 @@ const db = {
     return novo;
   },
   async updateHouse(h){
-    const { error } = await sb.from('imoveis').update(houseToRow(h)).eq('id', h.id);
+    const row = houseToRow(h);
+    let res = await sb.from('imoveis').update(row).eq('id', h.id);
+    if(res.error && !_imovelTipoOff && ('tipo' in row) && _isMissingTipoError(res.error)){
+      _imovelTipoOff=true; delete row.tipo;
+      res = await sb.from('imoveis').update(row).eq('id', h.id);
+    }
+    if(res.error && !_imovelDonoOff && ('proprietario_cliente_id' in row) && _isMissingDonoError(res.error)){
+      _imovelDonoOff=true; delete row.proprietario_cliente_id;
+      res = await sb.from('imoveis').update(row).eq('id', h.id);
+    }
+    if(res.error) throw res.error;
+  },
+  async registerBasicInspection(imovelId,date){
+    const {data,error}=await sb.rpc('registrar_vistoria_basica',{
+      p_imovel_id:imovelId,
+      p_data:date||todayISO()
+    });
     if(error) throw error;
+    const row=data||{};
+    return {
+      id:row.id||'',
+      houseId:row.imovel_id||imovelId,
+      contractId:row.contrato_id||'',
+      data:row.data||date||todayISO(),
+      tipo:row.tipo||'periodica',
+      estado:row.estado||'bom',
+      observacoes:row.observacoes||'',
+      createdBy:row.criado_por||''
+    };
   },
   async deleteHouse(id){
-    const files=await Promise.all([
-      sb.from('fotos').select('storage_path').eq('imovel_id',id),
-      sb.from('documentos').select('storage_path').eq('imovel_id',id),
-      sb.from('energia').select('foto_path').eq('imovel_id',id)
-    ]);
-    const fileError=files.find(function(r){return r.error;}); if(fileError)throw fileError.error;
-    await removeStoragePaths([].concat(files[0].data||[],files[1].data||[]).map(function(r){return r.storage_path;})
-      .concat((files[2].data||[]).map(function(r){return r.foto_path;})));
-    const { error } = await sb.from('imoveis').delete().eq('id', id); // cascata apaga filhos
-    if(error) throw error;
+    return this.archiveHouse(id,'Arquivado pela gestao de imoveis.');
   },
 
   /* Histórico de status: substitui o conjunto do imóvel (espelha a memória) */
@@ -1319,6 +2361,14 @@ const db = {
     const {error}=await sb.from('contratos').update(row).eq('id',c.id);
     if(error) throw error;
   },
+  async confirmContractInitialValue(contractId,value){
+    const {data,error}=await sb.rpc('confirmar_valor_inicial_contrato',{
+      p_contrato_id:contractId,
+      p_valor:Number(value)||0
+    });
+    if(error)throw error;
+    return data||{};
+  },
   async closeContract(id,endDate){
     const {error}=await sb.from('contratos').update({fim:endDate,ativo:false}).eq('id',id);
     if(error) throw error;
@@ -1333,18 +2383,155 @@ const db = {
   async upsertPayment(imovelId, p){
     const uid = await _userId();
     const row = { user_id:uid, imovel_id:imovelId, mes:p.mes,
-      contrato_id:p.contractId||null,valor_pago:Number(p.valorPago)||0, data_pagamento:p.dataPagamento||null };
+      contrato_id:p.contractId||null,valor_pago:Number(p.valorPago)||0, data_pagamento:p.dataPagamento||null,
+      arquivado_em:null,arquivado_por:null,motivo_arquivamento:'' };
     const { error } = await sb.from('pagamentos').upsert(row, { onConflict:'contrato_id,mes' });
     if(error) throw error;
   },
   async deletePayment(imovelId, mes,contractId){
-    let q=sb.from('pagamentos').delete().eq('imovel_id', imovelId).eq('mes', mes);
+    let q=sb.from('pagamentos').select('id').eq('imovel_id', imovelId).eq('mes', mes);
     if(contractId) q=q.eq('contrato_id',contractId);
-    const { error } = await q;
+    const {data,error}=await q.limit(1).maybeSingle();
     if(error) throw error;
+    if(data) await this.archiveEntity('pagamento',data.id,'Pagamento desmarcado.');
   },
 
   /* Energia (um registro por casa/mês; leituras, cálculo e recebimento). */
+  /* Financeiro V2: competencia e caixa em registros separados. */
+  async upsertCharge(imovelId,item){
+    const uid=await _userId();
+    const row=chargeToRow(item,imovelId);
+    row.user_id=uid;
+    let result;
+    if(item.id){
+      result=await sb.from('financeiro_cobrancas').update(row)
+        .eq('id',item.id).select().single();
+    }else if(item.origemId){
+      result=await sb.from('financeiro_cobrancas').upsert(row,{
+        onConflict:'user_id,origem_tipo,origem_id'
+      }).select().single();
+    }else{
+      result=await sb.from('financeiro_cobrancas').insert(row).select().single();
+    }
+    if(result.error) throw result.error;
+    const refreshed=await sb.from('financeiro_cobrancas_resumo')
+      .select('*').eq('id',result.data.id).single();
+    if(refreshed.error) throw refreshed.error;
+    return rowToCharge(refreshed.data);
+  },
+
+  async generateMonthlyCharges(competencia){
+    const {data,error}=await sb.rpc('gerar_cobrancas_aluguel_mes',{
+      p_competencia:competencia
+    });
+    if(error) throw error;
+    return Number(data)||0;
+  },
+
+  async getChargeByOrigin(originType,originId){
+    if(!originId)return null;
+    const {data,error}=await sb.from('financeiro_cobrancas_resumo').select('*')
+      .eq('origem_tipo',originType)
+      .eq('origem_id',originId)
+      .maybeSingle();
+    if(error)throw error;
+    return data?rowToCharge(data):null;
+  },
+
+  async insertReceipt(item){
+    const uid=await _userId();
+    const row=receiptToRow(item); row.user_id=uid;
+    const {data,error}=await sb.from('financeiro_recebimentos')
+      .insert(row).select().single();
+    if(error){
+      /* O identificador nasce quando o formulário é aberto. Se a resposta
+         da rede se perder e o usuário tentar novamente, devolvemos o mesmo
+         recebimento em vez de criar uma segunda parcela. */
+      if(String(error.code||'')==='23505'&&row.origem_id){
+        const existing=await sb.from('financeiro_recebimentos').select('*')
+          .eq('user_id',uid)
+          .eq('origem_tipo',row.origem_tipo)
+          .eq('origem_id',row.origem_id)
+          .maybeSingle();
+        if(!existing.error&&existing.data) return rowToReceipt(existing.data);
+      }
+      throw error;
+    }
+    return rowToReceipt(data);
+  },
+
+  async updateReceipt(item){
+    const row=receiptToRow(item);
+    delete row.cobranca_id;
+    delete row.origem_tipo;
+    delete row.origem_id;
+    const {data,error}=await sb.from('financeiro_recebimentos')
+      .update(row).eq('id',item.id).select().single();
+    if(error) throw error;
+    return rowToReceipt(data);
+  },
+
+  async archiveCharge(id,reason){
+    return this.archiveEntity('cobranca',id,reason);
+  },
+
+  async restoreCharge(id){
+    return this.restoreEntity('cobranca',id);
+  },
+
+  async archiveReceipt(id,reason){
+    return this.archiveEntity('recebimento',id,reason);
+  },
+
+  async restoreReceipt(id){
+    return this.restoreEntity('recebimento',id);
+  },
+
+  async archiveHouse(id,reason){ return this.archiveEntity('imovel',id,reason); },
+  async restoreHouse(id){ return this.restoreEntity('imovel',id); },
+  async archiveTenant(id,reason){ return this.archiveEntity('inquilino',id,reason); },
+  async restoreTenant(id){ return this.restoreEntity('inquilino',id); },
+  async archiveContract(id,reason){ return this.archiveEntity('contrato',id,reason); },
+  async restoreContract(id){ return this.restoreEntity('contrato',id); },
+
+  async archiveEntity(entity,id,reason){
+    const {data,error}=await sb.rpc('alterar_arquivamento_aluguel',{
+      p_entidade:entity,p_id:id,p_arquivar:true,p_motivo:reason||''
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  async restoreEntity(entity,id){
+    const {data,error}=await sb.rpc('alterar_arquivamento_aluguel',{
+      p_entidade:entity,p_id:id,p_arquivar:false,p_motivo:''
+    });
+    if(error) throw error;
+    return data||{};
+  },
+
+  async listArchived(){
+    const {data,error}=await sb.rpc('listar_arquivados_aluguel');
+    if(error) throw error;
+    return (data||[]).map(function(item){return {
+      entidade:item.entidade||'',id:item.id,titulo:item.titulo||'',
+      arquivadoEm:item.arquivado_em||'',motivo:item.motivo||''
+    };});
+  },
+
+  async listFinancialAudit(limit){
+    const maxRows=Math.min(500,Math.max(1,Number(limit)||100));
+    const {data,error}=await sb.from('financeiro_auditoria').select('*')
+      .order('created_at',{ascending:false}).limit(maxRows);
+    if(error) throw error;
+    return (data||[]).map(function(item){return {
+      id:item.id,atorId:item.ator_id||'',atorPapel:item.ator_papel||'',
+      entidade:item.entidade||'',registroId:item.registro_id||'',
+      acao:item.acao||'',antes:item.dados_anteriores||null,
+      depois:item.dados_posteriores||null,createdAt:item.created_at||''
+    };});
+  },
+
   async upsertEnergia(imovelId, en){
     const uid = await _userId();
     const row = { user_id:uid, imovel_id:imovelId, mes:en.mes,
@@ -1355,19 +2542,18 @@ const db = {
       descontos:Number(en.descontos)||0,ajuste_descricao:en.ajusteDescricao||'',
       valor_calculado:Number(en.valorCalculado)||0,valor_manual:!!en.valorManual,
       vencimento:en.vencimento||null,foto_path:en.fotoPath||null,
-      pago:!!en.pago, data_pagamento:en.dataPagamento||null };
-    const { error } = await sb.from('energia').upsert(row, { onConflict:'contrato_id,mes' });
+      pago:!!en.pago, data_pagamento:en.dataPagamento||null,
+      arquivado_em:null,arquivado_por:null,motivo_arquivamento:'' };
+    const { data,error } = await sb.from('energia').upsert(row, { onConflict:'contrato_id,mes' })
+      .select().single();
     if(error) throw error;
+    return rowToEnergy(data);
   },
   async deleteEnergia(imovelId, mes,contractId){
-    let find=sb.from('energia').select('foto_path').eq('imovel_id',imovelId).eq('mes',mes);
+    let find=sb.from('energia').select('id').eq('imovel_id',imovelId).eq('mes',mes);
     if(contractId) find=find.eq('contrato_id',contractId);
     const found=await find.maybeSingle(); if(found.error) throw found.error;
-    let q=sb.from('energia').delete().eq('imovel_id', imovelId).eq('mes', mes);
-    if(contractId) q=q.eq('contrato_id',contractId);
-    const { error } = await q;
-    if(error) throw error;
-    if(found.data&&found.data.foto_path) await sb.storage.from(FILE_BUCKET).remove([found.data.foto_path]);
+    if(found.data) await this.archiveEntity('energia',found.data.id,'Leitura de energia arquivada.');
   },
   async uploadEnergyPhoto(imovelId,mes,blob){
     const uid=await _userId();
@@ -1424,27 +2610,109 @@ const db = {
     if(error) throw error;
   },
   async deleteExpense(id){
-    const { error } = await sb.from('despesas').delete().eq('id', id);
+    return this.archiveEntity('despesa',id,'Despesa arquivada.');
+  },
+
+  /* Chamados acompanham o serviço; uma despesa é vinculada apenas
+     quando a resolução realmente tiver custo. Cancelar preserva o
+     histórico pelo status e nunca apaga o chamado. */
+  async insertMaintenanceCall(imovelId,item){
+    const uid=await _userId();
+    const row=maintenanceCallToRow(item,imovelId);
+    if(item.id) row.id=item.id;
+    row.user_id=uid;
+    let res=await sb.from('chamados').insert(row).select().single();
+    if(res.error && !_manutencaoCamposOff && _isMissingManutencaoError(res.error)){
+      _manutencaoCamposOff=true;
+      res=await sb.from('chamados').insert(_semCamposNovosManutencao(row)).select().single();
+    }
+    if(res.error) throw res.error;
+    return rowToMaintenanceCall(res.data);
+  },
+  async updateMaintenanceCall(item){
+    const mapped=maintenanceCallToRow(item,item.houseId);
+    const row=Object.assign({},mapped);
+    /* imóvel, inquilino e quem abriu não mudam numa edição. */
+    delete row.imovel_id; delete row.inquilino_id; delete row.aberto_por;
+    let res=await sb.from('chamados').update(row).eq('id',item.id).select().single();
+    if(res.error && !_manutencaoCamposOff && _isMissingManutencaoError(res.error)){
+      _manutencaoCamposOff=true;
+      res=await sb.from('chamados').update(_semCamposNovosManutencao(row))
+        .eq('id',item.id).select().single();
+    }
+    if(res.error) throw res.error;
+    return rowToMaintenanceCall(res.data);
+  },
+
+  async getMaintenanceCall(id){
+    const {data,error}=await sb.from('chamados').select('*')
+      .eq('id',id).maybeSingle();
     if(error) throw error;
+    return data?rowToMaintenanceCall(data):null;
+  },
+
+  async resolveMaintenanceCallWithExpense(item,expense){
+    const {data,error}=await sb.rpc('resolver_chamado_com_despesa',{
+      p_chamado_id:item.id,
+      p_resposta:item.resposta||'',
+      p_criar_despesa:!!expense,
+      p_valor:expense?Number(expense.valor)||0:null,
+      p_data:expense?(expense.data||todayISO()):todayISO(),
+      p_prestador:expense?(expense.prestador||''):'',
+      p_categoria_despesa:expense?(expense.categoria||'Manutenção'):'Manutenção'
+    });
+    if(error) throw error;
+    const result=data||{};
+    const [loaded,loadedExpense]=await Promise.all([
+      sb.from('chamados').select('*').eq('id',item.id).maybeSingle(),
+      result.despesa_id
+        ?sb.from('despesas').select('*').eq('id',result.despesa_id).maybeSingle()
+        :Promise.resolve({data:null,error:null})
+    ]);
+    if(loaded.error){
+      console.warn('O chamado foi resolvido, mas será recarregado depois.',loaded.error);
+    }
+    if(loadedExpense.error){
+      console.warn('A despesa vinculada será recarregada depois.',loadedExpense.error);
+    }
+    return {
+      call:loaded.data?rowToMaintenanceCall(loaded.data):Object.assign({},item,{
+        status:'resolvido',
+        despesaId:result.despesa_id||'',
+        resolvidoEm:result.resolvido_em||new Date().toISOString()
+      }),
+      expenseId:result.despesa_id||'',
+      expense:loadedExpense.data?rowToExpense(loadedExpense.data):null
+    };
   },
 
   /* Inquilinos */
   async insertTenant(t){
     const uid = await _userId();
-    const row = { user_id:uid, nome:t.nome, telefone:t.telefone||'', email:t.email||'',
+    const row = { id:_uuid(),user_id:uid, nome:t.nome, telefone:t.telefone||'', email:t.email||'',
       documento:t.documento||'', emergencia_nome:t.emergenciaNome||'' };
-    const { data, error } = await sb.from('inquilinos').insert(row).select().single();
-    if(error) throw error;
-    return rowToTenant(data);
+    if(!_inquilinoRgOff) row.rg = String(t.rg||'').slice(0,40);
+    let res = await sb.from('inquilinos').insert(row);
+    if(res.error && !_inquilinoRgOff && ('rg' in row) && _isMissingRgError(res.error)){
+      _inquilinoRgOff=true; delete row.rg;
+      res = await sb.from('inquilinos').insert(row);
+    }
+    if(res.error) throw res.error;
+    return rowToTenant(row);
   },
   async updateTenant(t){
-    const { error } = await sb.from('inquilinos').update({ nome:t.nome, telefone:t.telefone||'',
-      email:t.email||'', documento:t.documento||'', emergencia_nome:t.emergenciaNome||'' }).eq('id', t.id);
-    if(error) throw error;
+    const row = { nome:t.nome, telefone:t.telefone||'',
+      email:t.email||'', documento:t.documento||'', emergencia_nome:t.emergenciaNome||'' };
+    if(!_inquilinoRgOff) row.rg = String(t.rg||'').slice(0,40);
+    let res = await sb.from('inquilinos').update(row).eq('id', t.id);
+    if(res.error && !_inquilinoRgOff && ('rg' in row) && _isMissingRgError(res.error)){
+      _inquilinoRgOff=true; delete row.rg;
+      res = await sb.from('inquilinos').update(row).eq('id', t.id);
+    }
+    if(res.error) throw res.error;
   },
   async deleteTenant(id){
-    const { error } = await sb.from('inquilinos').delete().eq('id', id);
-    if(error) throw error;
+    return this.archiveTenant(id,'Inquilino arquivado.');
   },
   async previewTenantRemoval(tenantId){
     const {data,error}=await sb.rpc('prever_exclusao_inquilino',{p_inquilino_id:tenantId});
@@ -1465,21 +2733,74 @@ const db = {
   },
 
   /* Fotos em bucket privado. */
-  async addPhotos(imovelId, files, startOrder){
+  async addPhotos(imovelId, files, startOrder, vinculo){
     const uid = await _userId();
-    const added=[];
-    for(let i=0;i<files.length;i++){
-      const file=files[i];
-      const path=uid+'/'+imovelId+'/fotos/'+_uuid()+'-'+safeStorageName(file.nome||'foto.jpg');
-      const up=await sb.storage.from(FILE_BUCKET).upload(path,file.blob,{contentType:file.mime||'image/jpeg',upsert:false});
-      if(up.error) throw up.error;
-      const ins=await sb.from('fotos').insert({user_id:uid,imovel_id:imovelId,dados:null,
-        storage_path:path,nome:file.nome||'foto.jpg',mime:file.mime||'image/jpeg',tamanho:file.blob.size||0,
-        ordem:(startOrder||0)+i}).select().single();
-      if(ins.error){ await sb.storage.from(FILE_BUCKET).remove([path]); throw ins.error; }
-      added.push({id:ins.data.id,dados:await signedStorageUrl(path),storagePath:path,nome:file.nome||'foto.jpg'});
+    const prepared=[],insertedIds=[];
+    let rowsInserted=false;
+    try{
+      for(let i=0;i<files.length;i++){
+        const file=files[i];
+        const path=uid+'/'+imovelId+'/fotos/'+_uuid()+'-'+safeStorageName(file.nome||'foto.jpg');
+        const up=await sb.storage.from(FILE_BUCKET).upload(path,file.blob,{
+          contentType:file.mime||'image/jpeg',upsert:false
+        });
+        if(up.error)throw up.error;
+        prepared.push({path:path,file:file,order:(startOrder||0)+i});
+      }
+      const vinculoChamado=(vinculo&&vinculo.chamadoId&&!_manutencaoCamposOff)
+        ? {chamado_id:vinculo.chamadoId,momento:vinculo.momento==='depois'?'depois':'antes'}
+        : null;
+      const rows=prepared.map(function(item){return Object.assign({
+        user_id:uid,imovel_id:imovelId,dados:null,storage_path:item.path,
+        nome:item.file.nome||'foto.jpg',mime:item.file.mime||'image/jpeg',
+        tamanho:item.file.blob.size||0,ordem:item.order
+      },vinculoChamado||{});});
+      let ins=await sb.from('fotos').insert(rows).select();
+      /* Sem a migração de manutenções, a coluna do chamado não existe:
+         a foto entra como foto do imóvel em vez de falhar. */
+      if(ins.error&&vinculoChamado&&/chamado_id|momento/i.test(String(ins.error.message||''))){
+        _manutencaoCamposOff=true;
+        ins=await sb.from('fotos').insert(prepared.map(function(item){return {
+          user_id:uid,imovel_id:imovelId,dados:null,storage_path:item.path,
+          nome:item.file.nome||'foto.jpg',mime:item.file.mime||'image/jpeg',
+          tamanho:item.file.blob.size||0,ordem:item.order
+        };})).select();
+      }
+      if(ins.error)throw ins.error;
+      rowsInserted=true;
+      (ins.data||[]).forEach(function(row){if(row&&row.id)insertedIds.push(row.id);});
+      if(insertedIds.length!==prepared.length){
+        throw new Error('O envio das fotos não foi concluído pelo servidor.');
+      }
+      const byPath={};
+      (ins.data||[]).forEach(function(row){byPath[row.storage_path]=row;});
+      return await Promise.all(prepared.map(async function(item){
+        const row=byPath[item.path];
+        if(!row)throw new Error('Uma foto enviada não foi confirmada pelo servidor.');
+        return {id:row.id,dados:await signedStorageUrl(item.path),storagePath:item.path,
+          nome:row.nome||item.file.nome||'foto.jpg',tamanho:Number(row.tamanho)||item.file.blob.size||0};
+      }));
+    }catch(error){
+      let mayRemoveFiles=!rowsInserted,cleanupError=null;
+      if(rowsInserted&&prepared.length){
+        const rollback=await sb.from('fotos').delete().eq('imovel_id',imovelId)
+          .in('storage_path',prepared.map(function(item){return item.path;}));
+        if(rollback.error)cleanupError=rollback.error;
+        else mayRemoveFiles=true;
+      }
+      if(mayRemoveFiles&&prepared.length){
+        try{await removeStoragePaths(prepared.map(function(item){return item.path;}));}
+        catch(storageError){cleanupError=cleanupError||storageError;}
+      }
+      if(cleanupError){
+        console.error('Falha ao desfazer envio parcial de fotos:',cleanupError);
+        const combined=new Error((error&&error.message?error.message:'Não foi possível enviar as fotos.')+
+          ' A limpeza automática não foi concluída; atualize a tela antes de tentar novamente.');
+        combined.cause=error;
+        throw combined;
+      }
+      throw error;
     }
-    return added;
   },
   async deletePhoto(fotoId){
     const found=await sb.from('fotos').select('storage_path').eq('id',fotoId).maybeSingle();
@@ -1497,21 +2818,24 @@ const db = {
     const path=uid+'/'+imovelId+'/documentos/'+_uuid()+'-'+safeStorageName(file.name);
     const up=await sb.storage.from(FILE_BUCKET).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
     if(up.error) throw up.error;
-    const ins=await sb.from('documentos').insert({user_id:uid,imovel_id:imovelId,
+    const row={id:_uuid(),user_id:uid,imovel_id:imovelId,
       inquilino_id:tenantId||null,tipo:tipo||'outro',nome:file.name,mime:file.type||'',dados:null,
-      storage_path:path,tamanho:file.size||0,visivel_inquilino:!!visible}).select().single();
+      storage_path:path,tamanho:file.size||0,visivel_inquilino:!!visible};
+    const ins=await sb.from('documentos').insert(row);
     if(ins.error){ await sb.storage.from(FILE_BUCKET).remove([path]); throw ins.error; }
-    const doc=rowToDocument(ins.data); doc.url=await signedStorageUrl(path); return doc;
+    const doc=rowToDocument(row); doc.url=await signedStorageUrl(path); return doc;
   },
   async updateDocumentVisibility(id,visible){
     const { error }=await sb.from('documentos').update({visivel_inquilino:!!visible}).eq('id',id);
     if(error) throw error;
   },
   async deleteDocument(id){
-    const found=await sb.from('documentos').select('storage_path').eq('id',id).maybeSingle();
+    const found=await sb.rpc('obter_caminho_documento_operacional',{
+      p_documento_id:id
+    });
     if(found.error) throw found.error;
-    if(found.data && found.data.storage_path){
-      const rem=await sb.storage.from(FILE_BUCKET).remove([found.data.storage_path]);
+    if(found.data){
+      const rem=await sb.storage.from(FILE_BUCKET).remove([found.data]);
       if(rem.error) throw rem.error;
     }
     const del=await sb.from('documentos').delete().eq('id',id); if(del.error) throw del.error;
@@ -1536,27 +2860,41 @@ const db = {
   /* Reajustes (histórico do valor do aluguel) */
   async insertReajuste(imovelId, rj){
     const uid = await _userId();
+    const firstDay=String(rj.dataInicio||todayISO()).slice(0,7)+'-01';
     const { data, error } = await sb.from('aluguel_historico')
-      .insert({ user_id:uid, imovel_id:imovelId, valor:Number(rj.valor)||0, data_inicio:rj.dataInicio })
+      .insert({
+        user_id:uid,imovel_id:imovelId,contrato_id:rj.contractId||null,
+        valor:Number(rj.valor)||0,data_inicio:firstDay,
+        motivo:String(rj.motivo||'').trim()
+      })
       .select().single();
     if(error) throw error;
-    return { id:data.id, valor:Number(data.valor)||0, dataInicio:data.data_inicio };
+    return {
+      id:data.id,valor:Number(data.valor)||0,dataInicio:data.data_inicio,
+      contractId:data.contrato_id||'',motivo:data.motivo||'',
+      confirmadoEm:data.confirmado_em||'',confirmadoPor:data.confirmado_por||''
+    };
   },
   async updateReajuste(rj){
     const { error } = await sb.from('aluguel_historico')
-      .update({ valor:Number(rj.valor)||0, data_inicio:rj.dataInicio }).eq('id', rj.id);
+      .update({
+        valor:Number(rj.valor)||0,
+        data_inicio:String(rj.dataInicio||todayISO()).slice(0,7)+'-01',
+        contrato_id:rj.contractId||null,
+        motivo:String(rj.motivo||'').trim()
+      }).eq('id', rj.id);
     if(error) throw error;
   },
   async deleteReajuste(id){
-    const { error } = await sb.from('aluguel_historico').delete().eq('id', id);
-    if(error) throw error;
+    return this.archiveEntity('reajuste',id,'Reajuste arquivado para correção.');
   },
 
   /* Backups automáticos (retrato dos dados, sem fotos para ficar leve) */
   async makeSnapshot(){
     const uid = await _userId();
-    const base = await this.loadAll();
-    const payload = { version:6, exportedAt:new Date().toISOString(),
+    const base = await this.loadAll({includeArchived:true});
+    const payload = { version:7, exportId:_uuid(), exportedAt:new Date().toISOString(),
+      owners:base.owners||[],
       houses:base.houses, tenants:base.tenants, interests:base.interests||[], config:base.config,
       eventos:base.eventos, photos:{},documents:{} };
     const ins = await sb.from('backups').upsert({ user_id:uid, dados:payload, dia:todayISO(), criado_em:new Date().toISOString() },
@@ -1589,7 +2927,7 @@ const db = {
     const uid = await _userId();
     const files=await Promise.all([
       sb.from('fotos').select('storage_path').eq('user_id',uid),
-      sb.from('documentos').select('storage_path').eq('user_id',uid),
+      sb.rpc('listar_documentos_backup'),
       sb.from('energia').select('foto_path').eq('user_id',uid)
     ]);
     const fileError=files.find(function(r){return r.error;}); if(fileError)throw fileError.error;

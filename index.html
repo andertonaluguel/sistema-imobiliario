@@ -12,7 +12,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- Estilos -->
+<!-- Estilos. tokens.css vem primeiro: define raio, espaço, tipo e as
+     cores dos 4 temas. Todos os outros consomem esses tokens. -->
+<link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="minha-casa.css">
 <link rel="stylesheet" href="aluguel-ui.css">
@@ -31,9 +33,15 @@
 <meta name="mobile-web-app-capable" content="yes">
 </head>
 <body>
-  <div id="app"></div>
+  <!-- Primeiro alvo do Tab: pula a navegação e vai ao conteúdo. -->
+  <a class="skip-link" href="#app">Pular para o conteúdo</a>
+  <div id="app" tabindex="-1"></div>
   <div id="modalRoot"></div>
   <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+  <!-- Anuncia a troca de tela para leitor de tela. Num app de página
+       única a navegação não recarrega nada, então sem isto a pessoa
+       clica e não recebe nenhuma confirmação de que mudou de lugar. -->
+  <div id="anuncioTela" class="sr-only" role="status" aria-live="polite"></div>
   <input type="file" id="importInput" accept="application/json,.json" hidden>
   <input type="file" id="photoInput" accept="image/*" multiple hidden>
   <input type="file" id="vitrineFotoInput" accept="image/*" multiple hidden>
@@ -58,6 +66,9 @@
   <script src="features.js"></script>
   <script src="dashboard.js"></script>
   <script src="houses.js"></script>
+  <script src="maintenance.js"></script>
+  <script src="pending.js"></script>
+  <script src="owners.js"></script>
   <script src="tenants.js"></script>
   <script src="interests.js"></script>
   <script src="contracts.js"></script>
@@ -81,8 +92,13 @@
     });
     document.getElementById('photoInput').addEventListener('change', function(){
       const houseId = this.dataset.houseId;
-      if(houseId && this.files.length) handlePhotoFiles(houseId, this.files);
+      const chamadoId = this.dataset.chamadoId || '';
+      const momento = this.dataset.momento || '';
+      if(houseId && this.files.length){
+        handlePhotoFiles(houseId, this.files, chamadoId?{chamadoId:chamadoId,momento:momento}:null);
+      }
       this.value = '';
+      delete this.dataset.chamadoId; delete this.dataset.momento;
     });
     document.getElementById('vitrineFotoInput').addEventListener('change', function(){
       const imovelId = this.dataset.imovelId;

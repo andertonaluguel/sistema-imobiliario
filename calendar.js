@@ -14,7 +14,13 @@ function calHoje(){ state.calMes = currentMonthStr(); render(); }
 /* casas alugadas que vencem em determinado dia do mês */
 function vencimentosDoDia(mesStr, dia){
   return state.houses.filter(function(h){
-    return h.status==='alugada' && dueDayForMonth(mesStr, h.diaVencimento||5)===dia;
+    const contract=contractForMonth(h,mesStr);
+    if(contract){
+      return dueDayForMonth(mesStr,contractBillingDay(contract))===dia;
+    }
+    /* Compatibilidade com casas antigas ainda sem histórico contratual. */
+    return !(h.contracts||[]).length && h.status==='alugada' &&
+      dueDayForMonth(mesStr,h.diaVencimento||5)===dia;
   });
 }
 
@@ -73,22 +79,24 @@ function openCalDiaModal(iso){
   const dia = Number(iso.slice(8,10));
   const vencs = vencimentosDoDia(mesStr, dia);
   const evs = state.eventos.filter(function(e){ return e.data===iso; });
+  const canEdit=canOperateProperties();
 
   let html = '<h3 class="modal-title">'+fmtDateBR(iso)+'</h3>';
 
   if(vencs.length){
     html += '<div class="report-detail-title rdt-ico-row"><span class="rdt-ico">'+FICO.money+'</span>Vencimentos do dia</div><div class="ledger">'+
       vencs.map(function(h){
-        const st = paymentStatus(h, mesStr);
+        const contract=contractForMonth(h,mesStr);
+        const st = paymentStatus(h, mesStr,contract&&contract.id);
         const cls = st==='pago'?'brass':st==='atrasado'?'rust':'slate';
         const lbl = st==='pago'?'PAGO':st==='atrasado'?'ATRASADO':'PENDENTE';
-        const t = tenantOf(h);
+        const t = contract?contractTenant(contract):tenantOf(h);
         return '<div class="ledger-row" onclick="closeModal();openHouse(\''+h.id+'\')">'+
           '<span class="row-ico" style="color:'+payIcoColor(st)+'">'+payIcon(st)+'</span>'+
           '<div class="ledger-row-main">'+esc(h.nome)+
             (t?'<div class="ledger-row-sub">'+esc(t.nome)+'</div>':'')+'</div>'+
           '<span class="chip chip-'+cls+'">'+lbl+'</span>'+
-          '<div class="ledger-row-value num">'+fmtMoney(h.aluguelValor)+'</div></div>';
+          '<div class="ledger-row-value num">'+fmtMoney(contract?contractExpectedRent(contract,mesStr):h.aluguelValor)+'</div></div>';
       }).join('')+'</div>';
   }
 
@@ -96,23 +104,24 @@ function openCalDiaModal(iso){
   if(evs.length){
     html += '<div class="ledger">'+evs.map(function(e){
       return '<div class="ledger-row"><span class="row-ico" style="color:var(--manut)">'+FICO.bell+'</span><div class="ledger-row-main">'+esc(e.texto||'(sem texto)')+'</div>'+
-        '<button class="btn btn-danger btn-sm" onclick="deleteEvento(\''+e.id+'\',\''+iso+'\')">Excluir</button></div>';
+        (canEdit?'<button class="btn btn-danger btn-sm" onclick="deleteEvento(\''+e.id+'\',\''+iso+'\')">Excluir</button>':'')+'</div>';
     }).join('')+'</div>';
   } else {
     html += '<div class="empty-state">Nenhum lembrete neste dia.</div>';
   }
 
-  html += '<label class="field" style="margin-top:10px;"><span>Novo lembrete</span>'+
-    '<input id="f_evtexto" placeholder="Ex: vistoria, visita, ligar para o inquilino…"></label>'+
+  html += (canEdit?'<label class="field" style="margin-top:10px;"><span>Novo lembrete</span>'+
+    '<input id="f_evtexto" placeholder="Ex: vistoria, visita, ligar para o inquilino…"></label>':'')+
     '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
       '<button class="btn btn-ghost" onclick="closeModal()">Fechar</button>'+
-      '<button class="btn btn-primary" onclick="addEvento(\''+iso+'\')">Adicionar lembrete</button>'+
+      (canEdit?'<button class="btn btn-primary" onclick="addEvento(\''+iso+'\')">Adicionar lembrete</button>':'')+
     '</div></div>';
 
   openModal(html);
 }
 
 async function addEvento(iso){
+  if(!requirePropertyPermission())return;
   const texto = document.getElementById('f_evtexto').value.trim();
   if(!texto){ showToast('Escreva o lembrete.', 'error'); return; }
   try{
@@ -123,6 +132,7 @@ async function addEvento(iso){
   }catch(e){ console.error(e); showToast('Erro ao salvar o lembrete.', 'error'); }
 }
 async function deleteEvento(id, iso){
+  if(!requirePropertyPermission())return;
   try{
     await db.deleteEvent(id);
     state.eventos = state.eventos.filter(function(e){ return e.id!==id; });

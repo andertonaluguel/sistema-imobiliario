@@ -3,121 +3,351 @@
    Inspirada na hierarquia visual de Minha Casa, mas preserva a
    identidade verde/dourada do gerenciamento de imóveis.
    ============================================================ */
-.rental-shell,
-#modalRoot{
-  --rent-night:#102E27;
-  --rent-night-2:#1A473B;
-  --rent-night-3:#276153;
-  --rent-canvas:#EEF3F0;
-  --rent-card:#FFFFFF;
-  --rent-ink:#19251F;
-  --rent-muted:#63736B;
-  --rent-line:#D9E3DD;
-  --rent-lime:#E7F77B;
-  --rent-gold:#F0C76E;
-  --rent-gold-deep:#9C6C15;
-  --rent-violet:#6D5BD0;
-  --rent-danger:#B83D4F;
-  --rent-danger-soft:#FCE2E7;
-  --rent-shadow:0 12px 36px rgba(16,46,39,.09);
-  --rent-shadow-small:0 4px 15px rgba(16,46,39,.07);
-}
+/* A paleta --rent-* morava aqui. Foi para tokens.css em
+   2026-07-27, pelo mesmo motivo da --mh-*. */
 .rental-shell{
   background:
     radial-gradient(circle at 92% 0,rgba(231,247,123,.13),transparent 22%),
     linear-gradient(180deg,#F7FAF8 0%,var(--rent-canvas) 100%);
 }
 
-/* Barra de produtos */
-.rental-shell .topbar{
-  gap:14px;
-  min-height:76px;
-  padding:12px max(24px,calc((100vw - 1440px)/2));
-  color:#fff;
-  background:
-    radial-gradient(circle at 76% -90%,rgba(231,247,123,.17),transparent 31%),
-    linear-gradient(110deg,#0D2923,var(--rent-night-2));
-  box-shadow:0 1px 0 rgba(255,255,255,.08),0 10px 30px rgba(8,31,25,.14);
-}
-.rental-shell .topbar-brand{
-  min-height:44px;
-  padding:7px 14px 7px 0;
-  border-right:1px solid rgba(255,255,255,.13);
-}
-.rental-shell .topbar-brand .brand-mark{width:29px;height:29px;color:var(--rent-gold);}
-.rental-shell .topbar-brand .brand-name{font-size:20px;letter-spacing:-.35px;}
-.rent-product-switcher{display:flex;align-items:center;gap:7px;min-width:0;}
-.rent-product-switch{
-  display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:8px 13px;
-  border:1px solid rgba(255,255,255,.14);border-radius:12px;
-  color:#C6D5CE;background:rgba(255,255,255,.055);
-  font-size:11px;font-weight:700;white-space:nowrap;
-  transition:transform .15s ease,background .15s ease,border-color .15s ease;
-}
-.rent-product-switch>span{display:grid;place-items:center;min-width:18px;font-size:17px;color:var(--rent-gold);}
-.rent-product-switch:hover{transform:translateY(-1px);color:#fff;background:rgba(255,255,255,.11);}
-.rent-product-switch.active{color:var(--rent-night);border-color:var(--rent-lime);background:var(--rent-lime);box-shadow:0 6px 18px rgba(0,0,0,.16);}
-.rent-product-switch.active>span{color:var(--rent-night);}
-.rent-product-switch.commercial.active{color:#fff;border-color:#A59BE8;background:#4B3E8A;}
-.rent-product-switch.commercial.active>span{color:var(--rent-lime);}
-.rental-shell .my-home-launch{
-  min-height:40px;padding:8px 13px;border-width:1px;border-color:#F0FF96;border-radius:12px;
-  box-shadow:0 6px 18px rgba(0,0,0,.15);
-}
-.rental-shell .my-home-launch:not(.active){background:rgba(231,247,123,.12);color:var(--rent-lime);}
-.rental-shell .my-home-launch.active{color:#17152F;background:var(--rent-lime);}
-/* Espaçador fixo: empurra Buscar e o menu para a direita mesmo quando a
-   pílula do plano não aparece (Minha Casa, Vitrine). Antes o alinhamento
-   dependia do margin-left:auto da pílula, e sumia junto com ela. */
-.rental-shell .topbar-gap{flex:1 1 auto;min-width:0;}
-.rental-shell .plan-top-pill{
-  margin-left:auto;padding:8px 12px;border:1px solid rgba(255,255,255,.18);border-radius:999px;
-  color:#E8F0EC;background:rgba(255,255,255,.06);font-size:10px;
-}
-.rental-shell .plan-top-pill.is-passive{cursor:default;}
-.rental-shell .top-search-btn{margin-left:0;min-height:40px;border-radius:12px;}
-.rental-shell .menu-btn{display:grid;place-items:center;width:40px;height:40px;padding:0;border-radius:12px;}
+/* ------------------------------------------------------------
+   Casca estrutural (Parte 1): barra lateral fixa à esquerda + corpo
+   (cabeçalho enxuto + conteúdo). A barra ocupa toda a altura.
+   ------------------------------------------------------------ */
+.app-shell.main-shell{flex-direction:row;align-items:stretch;}
+.app-body{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:100vh;}
 
-/* Canvas do produto */
-.rental-shell .main{max-width:1440px;padding:30px 28px 94px;}
+/* Cabeçalho enxuto: só a busca geral (e, no celular, o atalho de apps).
+   Fica estável ao navegar — só o conteúdo central muda. */
+.rental-shell .topbar.app-topbar{
+  gap:12px;min-height:60px;padding:10px 26px;
+  color:var(--cover-text);
+  background:linear-gradient(110deg,var(--rent-night),var(--rent-night-2));
+  box-shadow:0 1px 0 color-mix(in srgb,var(--cover-text) 8%,transparent);
+}
+.rental-shell .topbar-gap{flex:1 1 auto;min-width:0;}
+.rental-shell .top-search-btn{margin-left:0;min-height:40px;border-radius:var(--r-md);}
+.topbar-apps{display:none;}
+
+/* Seletor de tema por usuário no menu do perfil (Padrão | Roxo). Usa
+   tokens, então o próprio seletor acompanha o tema ativo. */
+.menu-theme-switch{display:flex;gap:10px;margin:2px 0 8px;}
+.menu-theme-opt{flex:1;display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:10px 12px;border:2px solid var(--line);border-radius:var(--r-md);background:var(--card);color:var(--ink);font-weight:600;}
+.menu-theme-opt:hover{border-color:var(--brass);}
+.menu-theme-opt.active{border-color:var(--brass);background:var(--brass-soft);color:var(--ink);}
+.menu-theme-opt:focus-visible{outline:3px solid var(--brass);outline-offset:2px;}
+.menu-theme-swatch{display:inline-flex;gap:3px;}
+.menu-theme-swatch i{width:14px;height:14px;border-radius:var(--r-full);}
+
+/* Cadastro de imóvel em etapas (wizard). Indicador de etapas + rodapé
+   fixo; só o painel ativo aparece. */
+.wizard-steps{display:flex;gap:8px;margin:2px 0 16px;}
+.wizard-dot{flex:1;display:flex;align-items:center;gap:8px;min-width:0;padding:8px 10px;border-radius:var(--r-md);background:var(--paper);color:var(--ink-soft);font-size:var(--t-sm);font-weight:600;}
+.wizard-dot>b{display:grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:var(--r-circle);background:var(--line);color:var(--ink);font-size:var(--t-xs);}
+.wizard-dot>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wizard-dot.active{background:var(--brass-soft);color:var(--ink);}
+.wizard-dot.active>b{background:var(--brass);color:var(--card);}
+.wizard-dot.done>b{background:var(--brass-deep);color:var(--card);}
+.wizard-step{display:none;}
+.wizard-step.active{display:block;}
+.wizard-footer{position:sticky;bottom:0;margin-top:16px;padding:14px 0 2px;background:var(--card);border-top:1px solid var(--line);}
+.house-wizard[data-step="1"] .wizard-back{display:none;}
+.house-wizard[data-step="3"] .wizard-next{display:none;}
+.house-wizard:not([data-step="3"]) .wizard-submit{display:none;}
+@media(max-width:520px){ .wizard-dot>span{display:none;} .wizard-dot{justify-content:center;} }
+
+/* "Mais informações" recolhível no cadastro (campos opcionais). */
+.more-info{margin:2px 0 8px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--paper);padding:0 12px;}
+.more-info>summary{cursor:pointer;padding:11px 2px;font-weight:600;font-size:var(--t-sm);color:var(--ink-soft);list-style:none;}
+.more-info>summary::-webkit-details-marker{display:none;}
+.more-info>summary::after{content:"＋";float:right;color:var(--ink-faint);}
+.more-info[open]>summary::after{content:"－";}
+.more-info[open]{padding-bottom:10px;}
+.more-info[open]>summary{color:var(--ink);}
+.more-info>summary:focus-visible{outline:3px solid var(--brass);outline-offset:2px;}
+/* Rodapé fixo de modal (também usado pelo wizard). */
+.sticky-actions{position:sticky;bottom:0;margin-top:16px;padding:14px 0 2px;background:var(--card);border-top:1px solid var(--line);}
+/* Zona de risco / avisos com tom de alerta (usa o vermelho semântico). */
+.notice-danger{border-color:var(--rust);background:var(--rust-soft);}
+
+/* ------------------------------------------------------------
+   Central de Pendências (Parte 3). Tudo calculado; nada guardado.
+   ------------------------------------------------------------ */
+.pend-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 16px;}
+.pend-stat{display:flex;flex-direction:column;gap:2px;align-items:flex-start;min-height:70px;padding:12px 14px;
+  border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);color:var(--ink);text-align:left;}
+.pend-stat>strong{font-size:var(--t-xl);font-weight:700;}
+.pend-stat>span{color:var(--ink-soft);font-size:var(--t-sm);}
+.pend-stat:hover{border-color:var(--brass);}
+.pend-stat.is-active{border-color:var(--brass);background:var(--brass-soft);}
+.pend-stat:focus-visible{outline:3px solid var(--brass);outline-offset:2px;}
+.pend-filtros{margin-bottom:16px;}
+.pend-list{display:flex;flex-direction:column;gap:10px;}
+.pend-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:12px;
+  padding:13px 15px;border:1px solid var(--line);border-left-width:4px;border-radius:var(--r-lg);background:var(--card);}
+.pend-row.pend-atrasado{border-left-color:var(--rust);}
+.pend-row.pend-atencao{border-left-color:var(--warn);}
+.pend-row.pend-aberto{border-left-color:var(--manut);}
+.pend-row-head{display:flex;flex-direction:column;gap:4px;align-items:flex-start;}
+.pend-tipo{color:var(--ink-soft);font-size:var(--t-xs);font-weight:600;}
+.pend-prio{font-size:var(--t-xs);font-weight:700;}
+.pend-prio-alta{color:var(--rust);}
+.pend-prio-media{color:var(--warn-deep);}
+.pend-prio-baixa{color:var(--ink-faint);}
+.pend-row-main{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.pend-row-main>strong{font-size:var(--t-md);}
+.pend-alvo{color:var(--ink);font-size:var(--t-sm);font-weight:600;}
+.pend-row-main>small{color:var(--ink-soft);font-size:var(--t-xs);}
+.pend-row-side{display:flex;flex-direction:column;gap:2px;align-items:flex-end;white-space:nowrap;}
+.pend-row-side>small{color:var(--ink-soft);font-size:var(--t-xs);}
+/* Resumo no painel inicial. */
+.pend-resumo{display:flex;align-items:center;gap:14px;width:100%;min-height:66px;margin:0 0 16px;padding:12px 17px;
+  border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);color:var(--ink);text-align:left;}
+.pend-resumo:hover{border-color:var(--brass);box-shadow:var(--shadow-hover);}
+.pend-resumo:focus-visible{outline:3px solid var(--brass);outline-offset:2px;}
+.pend-resumo-num{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:var(--r-md);
+  background:var(--brass-soft);color:var(--brass-deep);font-size:var(--t-lg);font-weight:700;}
+.pend-resumo-copy{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.pend-resumo-copy>small{color:var(--ink-soft);font-size:var(--t-xs);}
+.pend-resumo-go{margin-left:auto;color:var(--ink-faint);font-size:22px;}
+/* ------------------------------------------------------------
+   Página de Manutenções (Parte 3, §14)
+   ------------------------------------------------------------ */
+.manut-summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0 0 16px;}
+.manut-stat{display:flex;flex-direction:column;gap:2px;align-items:flex-start;min-height:66px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);color:var(--ink);text-align:left;}
+.manut-stat>strong{font-size:var(--t-lg);font-weight:700;}
+.manut-stat>span{color:var(--ink-soft);font-size:var(--t-xs);line-height:1.2;}
+.manut-stat:hover{border-color:var(--brass);}
+.manut-stat.is-active{border-color:var(--brass);background:var(--brass-soft);}
+.manut-stat:focus-visible{outline:3px solid var(--brass);outline-offset:2px;}
+.manut-filtros{margin-bottom:16px;}
+.manut-list{display:flex;flex-direction:column;gap:8px;}
+.manut-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;
+  width:100%;padding:12px 15px;border:1px solid var(--line);border-left-width:4px;border-left-color:var(--line);
+  border-radius:var(--r-lg);background:var(--card);color:var(--ink);text-align:left;}
+.manut-row:hover{border-color:var(--brass);box-shadow:var(--shadow-hover);}
+.manut-row.is-late{border-left-color:var(--rust);}
+.manut-row-main{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.manut-row-main>strong{font-size:var(--t-md);}
+.manut-row-main>small{color:var(--ink-soft);font-size:var(--t-xs);}
+.manut-row-side{display:flex;flex-direction:column;gap:2px;align-items:flex-end;white-space:nowrap;}
+.manut-row-side>small{color:var(--ink-soft);font-size:var(--t-xs);}
+.manut-row-side>small.rust{color:var(--rust);font-weight:600;}
+.maint-photos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.maint-photo-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.maint-photo-head>strong{font-size:var(--t-sm);}
+.maint-photo-row{display:flex;flex-wrap:wrap;gap:6px;}
+.maint-photo-row img{width:70px;height:70px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--line);}
+.maint-history{display:flex;flex-direction:column;gap:4px;max-height:170px;overflow-y:auto;margin-bottom:12px;}
+.maint-history-row{display:flex;gap:10px;padding:6px 9px;border-radius:var(--r-sm);background:var(--paper);}
+.maint-history-row>span{flex:0 0 78px;color:var(--ink-faint);font-size:var(--t-xs);}
+.maint-history-row>small{color:var(--ink-soft);font-size:var(--t-xs);}
+@media(max-width:900px){ .manut-summary{grid-template-columns:repeat(3,minmax(0,1fr));} }
+
+@media(max-width:760px){
+  .manut-row{grid-template-columns:1fr;row-gap:6px;}
+  .manut-row-side{align-items:flex-start;}
+  .maint-photos{grid-template-columns:1fr;}
+  .pend-row{grid-template-columns:1fr auto;row-gap:8px;}
+  .pend-row-head{flex-direction:row;flex-wrap:wrap;align-items:center;grid-column:1/3;}
+  .pend-row-side{align-items:flex-start;}
+  .pend-acao{grid-column:1/3;width:100%;}
+  .pend-summary{grid-template-columns:1fr;}
+}
+
+/* Canvas do produto. O conteúdo ocupa o corpo inteiro — a barra lateral
+   virou estrutural, fora do main. */
+.rental-shell .main{max-width:1440px;padding:26px 28px 92px;}
+.rental-shell .main.rental-main{max-width:1580px;}
 .rental-app{
   position:relative;
   min-height:680px;
   padding:10px 10px 54px;
   color:var(--rent-ink);
-  border-radius:25px;
+  border-radius:var(--r-xl);
   background:
-    radial-gradient(circle at 96% 1%,rgba(240,199,110,.14),transparent 23%),
-    linear-gradient(180deg,#F8FAF8,var(--rent-canvas));
+    radial-gradient(circle at 96% 1%,color-mix(in srgb,var(--rent-gold) 14%,transparent),transparent 23%),
+    linear-gradient(180deg,color-mix(in srgb,var(--card) 82%,var(--rent-canvas)),var(--rent-canvas));
 }
 .rental-app button:focus-visible{outline:3px solid var(--rent-violet);outline-offset:2px;}
 .rental-app .page-header button:focus-visible,
 .rental-app .commercial-hero button:focus-visible{outline-color:var(--rent-lime);}
 
-/* Navegação interna, no mesmo padrão de Minha Casa */
-.rent-tabs{
-  position:relative;z-index:4;
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:5px;
-  margin:0 0 18px;padding:6px;
-  border:1px solid var(--rent-line);border-radius:16px;
-  background:rgba(255,255,255,.94);box-shadow:var(--rent-shadow-small);
+/* ------------------------------------------------------------
+   Barra lateral estrutural (.app-sidebar). Fixa, altura total.
+   Montada uma vez; não é recriada ao navegar entre páginas. A
+   preferência recolhida/aberta fica só neste aparelho.
+   ------------------------------------------------------------ */
+.app-sidebar{
+  position:sticky;top:0;align-self:flex-start;
+  display:flex;flex-direction:column;
+  flex:0 0 264px;width:264px;height:100vh;
+  padding:14px 12px;
+  color:var(--cover-text);
+  background:
+    radial-gradient(circle at 40% 100%,color-mix(in srgb,var(--rent-lime) 10%,transparent),transparent 34%),
+    linear-gradient(180deg,var(--rent-night),var(--rent-night-2));
+  border-right:1px solid color-mix(in srgb,var(--cover-text) 12%,transparent);
+  transition:flex-basis .18s var(--ease),width .18s var(--ease);
 }
-.rent-tab{
-  position:relative;display:flex;align-items:center;justify-content:center;gap:7px;
-  min-height:46px;padding:8px 10px;border:0;border-radius:11px;
-  color:var(--rent-muted);background:transparent;font-size:11px;
+.app-sidebar.is-collapsed{flex-basis:76px;width:76px;}
+.app-sidebar-logo{
+  display:flex;align-items:center;gap:10px;
+  min-height:44px;padding:4px 8px 12px;border:0;background:none;color:var(--cover-text);
+  border-bottom:1px solid color-mix(in srgb,var(--cover-text) 11%,transparent);
 }
+.app-sidebar-logo .brand-mark{width:28px;height:28px;flex:0 0 28px;color:var(--rent-gold);}
+.app-sidebar-logoname{font:700 18px var(--font-display);letter-spacing:-.3px;white-space:nowrap;}
+.app-sidebar-scroll{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column;gap:14px;padding:14px 2px;
+  scrollbar-width:thin;
+}
+.app-nav-group{display:flex;flex-direction:column;gap:4px;}
+.app-nav-kicker{
+  padding:2px 10px;color:var(--cover-muted);
+  font:700 var(--t-xs) var(--font-display);letter-spacing:.6px;text-transform:uppercase;
+}
+.app-nav-item{
+  position:relative;display:flex;align-items:center;gap:11px;
+  width:100%;min-height:44px;padding:9px 11px;
+  border:1px solid transparent;border-radius:var(--r-md);
+  color:var(--cover-muted);background:none;text-align:left;
+  font-size:var(--t-md);font-weight:600;white-space:nowrap;
+}
+.app-nav-ico{display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;font-size:17px;color:var(--rent-gold);}
+.app-nav-label{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.app-nav-item:hover{color:var(--cover-text);background:color-mix(in srgb,var(--cover-text) 9%,transparent);}
+.app-nav-item.active{color:var(--rent-night);background:var(--rent-lime);border-color:var(--rent-lime);}
+.app-nav-item.active .app-nav-ico{color:var(--rent-night);}
+.app-nav-item:focus-visible{outline:3px solid var(--rent-lime);outline-offset:1px;}
+/* Aplicativos: zona destacada, com seleção em DOURADO — distinta da
+   página ativa (verde-limão). Marca a diferença entre "trocar de app"
+   e "trocar de página". */
+.app-nav-group.is-apps{padding:6px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--rent-gold) 9%,transparent);}
+.app-nav-item.is-app:hover{color:var(--cover-text);background:color-mix(in srgb,var(--rent-gold) 18%,transparent);}
+.app-nav-item.is-app.active{color:var(--rent-night);background:var(--rent-gold);border-color:var(--rent-gold);}
+.app-nav-item.is-app.active .app-nav-ico{color:var(--rent-night);}
+.app-nav-badge{
+  margin-left:auto;min-width:20px;height:20px;padding:0 6px;
+  display:grid;place-items:center;border-radius:var(--r-full);
+  color:var(--rent-night);background:var(--rent-gold);
+  font:700 var(--t-xs) var(--font-mono);
+}
+.app-nav-item.active .app-nav-badge{background:var(--rent-night);color:var(--rent-lime);}
+.app-sidebar-foot{
+  display:flex;flex-direction:column;gap:10px;
+  padding-top:12px;border-top:1px solid color-mix(in srgb,var(--cover-text) 11%,transparent);
+}
+.app-sidebar-profile{
+  display:flex;align-items:center;gap:10px;
+  width:100%;min-height:48px;padding:7px 9px;
+  border:1px solid color-mix(in srgb,var(--cover-text) 12%,transparent);border-radius:var(--r-md);
+  color:var(--cover-text);background:color-mix(in srgb,var(--cover-text) 6%,transparent);text-align:left;
+}
+.app-sidebar-profile:hover{background:color-mix(in srgb,var(--cover-text) 12%,transparent);}
+.app-sidebar-avatar{
+  display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:var(--r-circle);
+  color:var(--rent-night);background:var(--rent-lime);font:700 var(--t-sm) var(--font-display);
+}
+.app-sidebar-profile-copy{display:flex;min-width:0;flex-direction:column;gap:1px;}
+.app-sidebar-profile-copy strong{font-size:var(--t-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.app-sidebar-profile-copy small{color:var(--cover-muted);font-size:var(--t-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.app-sidebar-toggle{
+  display:flex;align-items:center;gap:8px;justify-content:flex-start;
+  width:100%;min-height:38px;padding:7px 11px;
+  border:1px solid color-mix(in srgb,var(--cover-text) 12%,transparent);border-radius:var(--r-md);
+  color:var(--cover-muted);background:none;font-size:var(--t-sm);font-weight:600;
+}
+.app-sidebar-toggle:hover{color:var(--cover-text);background:color-mix(in srgb,var(--cover-text) 9%,transparent);}
+.app-sidebar-toggle:focus-visible{outline:3px solid var(--rent-lime);outline-offset:2px;}
+.app-sidebar-chev{display:inline-grid;place-items:center;width:20px;font-size:20px;transition:transform .18s var(--ease);}
+.rental-sidebar-occupancy{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:auto;
+  padding:12px 9px;
+  border:1px solid color-mix(in srgb,var(--cover-text) 12%,transparent);
+  border-radius:var(--r-lg);
+  background:color-mix(in srgb,var(--cover-text) 6%,transparent);
+}
+.rental-sidebar-occupancy-ring{
+  position:relative;
+  display:grid;
+  place-items:center;
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  border-radius:var(--r-circle);
+  background:conic-gradient(var(--rent-lime) var(--occupancy),color-mix(in srgb,var(--cover-text) 13%,transparent) 0);
+}
+.rental-sidebar-occupancy-ring::after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:inherit;
+  background:var(--rent-night-2);
+}
+.rental-sidebar-occupancy-ring>b{position:relative;z-index:1;font:700 var(--t-xs) var(--font-mono);}
+.rental-sidebar-occupancy-copy{display:flex;min-width:0;flex-direction:column;gap:3px;}
+.rental-sidebar-occupancy-copy strong{font-size:var(--t-xs);}
+.rental-sidebar-occupancy-copy small{color:var(--cover-muted);font-size:var(--t-xs);}
+/* Ocupação encaixada no rodapé (sem empurrar o perfil para baixo). */
+.app-sidebar-foot .rental-sidebar-occupancy{margin-top:0;}
+
+/* Recolhida: só ícones. O nome aparece no hover/foco (title nativo +
+   tooltip flutuante). */
+.app-sidebar.is-collapsed .app-sidebar-logoname,
+.app-sidebar.is-collapsed .app-nav-kicker,
+.app-sidebar.is-collapsed .app-nav-label,
+.app-sidebar.is-collapsed .app-nav-badge,
+.app-sidebar.is-collapsed .app-sidebar-profile-copy,
+.app-sidebar.is-collapsed .app-sidebar-toggle>b,
+.app-sidebar.is-collapsed .rental-sidebar-occupancy-copy{display:none;}
+.app-sidebar.is-collapsed .app-sidebar-logo{justify-content:center;padding-left:0;padding-right:0;}
+.app-sidebar.is-collapsed .app-nav-item{justify-content:center;padding-left:8px;padding-right:8px;}
+.app-sidebar.is-collapsed .app-sidebar-profile{justify-content:center;}
+.app-sidebar.is-collapsed .app-sidebar-toggle{justify-content:center;}
+.app-sidebar.is-collapsed .app-sidebar-chev{transform:rotate(180deg);}
+.app-sidebar.is-collapsed .rental-sidebar-occupancy{justify-content:center;padding:9px 6px;}
+.app-sidebar.is-collapsed .app-nav-item::after{
+  content:attr(data-label);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  padding:5px 9px;border-radius:var(--r-sm);white-space:nowrap;pointer-events:none;
+  color:var(--cover-text);background:var(--rent-night-3);box-shadow:var(--rent-shadow-small);
+  font-size:var(--t-sm);opacity:0;transition:opacity .12s var(--ease);z-index:5;
+}
+.app-sidebar.is-collapsed .app-nav-item:hover::after,
+.app-sidebar.is-collapsed .app-nav-item:focus-visible::after{opacity:1;}
+
+/* No desktop a Minha Casa usa a barra lateral: esconde a navegação
+   horizontal duplicada. No celular (sem barra) ela reaparece. */
+@media(min-width:769px){ .main-shell .mh-tabs{display:none;} }
+
+/* Celular: sem barra lateral; a navegação fica na barra inferior e no
+   menu "Mais". O corpo ocupa a largura toda. */
+@media(max-width:768px){
+  .app-shell.main-shell{flex-direction:column;}
+  .app-sidebar{display:none;}
+  .app-body{min-height:auto;}
+  .topbar-apps{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:var(--s-2) 13px;
+    border:1px solid color-mix(in srgb,var(--cover-text) 16%,transparent);border-radius:var(--r-md);
+    color:var(--cover-text);background:color-mix(in srgb,var(--cover-text) 8%,transparent);
+    font-size:var(--t-xs);font-weight:700;}
+}
+
+/* .rent-tabs / .rent-tab continuam sendo aliases do componente de
+   abas em style.css fora do menu lateral. */
 .rent-tab>span{display:grid;place-items:center;min-width:20px;font-size:16px;font-style:normal;}
-.rent-tab:hover{color:var(--rent-ink);background:#E6F0EA;}
-.rent-tab.active{color:#fff;background:var(--rent-night-2);box-shadow:0 5px 14px rgba(16,46,39,.20);}
-.rent-tab.active>span{color:var(--rent-lime);}
 
 /* Heróis de cada área */
 .rental-app>.page-header,
 .rental-app>.back-link+.page-header{
   position:relative;isolation:isolate;overflow:hidden;
-  min-height:168px;padding:29px 32px;margin-bottom:17px;
-  border:1px solid rgba(255,255,255,.12);border-radius:22px;color:#fff;
+  min-height:168px;padding:29px var(--s-6);margin-bottom:var(--s-4);
+  border:1px solid rgba(255,255,255,.12);border-radius:var(--r-xl);color:var(--cover-text);
   background:
     radial-gradient(circle at 88% 18%,rgba(231,247,123,.20),transparent 23%),
     radial-gradient(circle at 17% 135%,rgba(51,120,101,.72),transparent 46%),
@@ -127,196 +357,221 @@
 .rental-app>.page-header::after,
 .rental-app>.back-link+.page-header::after{
   content:"";position:absolute;z-index:-1;right:-38px;bottom:-80px;width:235px;height:235px;
-  border:24px solid rgba(255,255,255,.045);border-radius:50%;
+  border:24px solid rgba(255,255,255,.045);border-radius:var(--r-circle);
 }
 .rental-app .page-header .eyebrow{color:var(--rent-lime);font-weight:700;}
-.rental-app .page-header .page-title{color:#fff;font-size:clamp(30px,4.4vw,42px);line-height:1.05;}
-.rental-app .page-header .page-ico{width:42px;height:42px;padding:8px;border:2px solid var(--rent-gold);border-radius:14px;color:var(--rent-gold);}
+.rental-app .page-header .page-title{color:var(--cover-text);font-size:clamp(30px,4.4vw,42px);line-height:1.05;}
+.rental-app .page-header .page-ico{width:42px;height:42px;padding:var(--s-2);border:2px solid var(--rent-gold);border-radius:var(--r-lg);color:var(--rent-gold);}
 .rental-app .page-header .page-sub{max-width:680px;margin-top:10px;color:#D1DED8;font-size:13px;}
 .rental-app .page-date{
-  align-self:flex-start;padding:9px 12px;border:1px solid rgba(255,255,255,.17);border-radius:11px;
-  color:#fff;background:rgba(255,255,255,.075);
+  align-self:flex-start;padding:9px var(--s-3);border:1px solid rgba(255,255,255,.17);border-radius:var(--r-md);
+  color:var(--cover-text);background:rgba(255,255,255,.075);
 }
 .rental-app .page-header .btn-primary{color:var(--rent-night);border-color:var(--rent-lime);background:var(--rent-lime);box-shadow:none;}
-.rental-app .page-header .btn-ghost{color:#fff;border-color:rgba(255,255,255,.34);background:rgba(255,255,255,.07);}
+.rental-app .page-header .btn-ghost{color:var(--cover-text);border-color:rgba(255,255,255,.34);background:rgba(255,255,255,.07);}
 .rental-app>.back-link{
   display:inline-flex;align-items:center;gap:6px;margin:0 0 10px;padding:7px 10px;
-  border:1px solid var(--rent-line);border-radius:9px;color:var(--rent-night-2);background:#fff;font-weight:700;
+  border:1px solid var(--rent-line);border-radius:var(--r-sm);color:var(--rent-night-2);background:var(--card);font-weight:700;
 }
 
 /* Ações rápidas e resumos */
 .rental-app .dashboard-actions{gap:11px;margin:0 0 16px;}
 .rental-app .dashboard-actions button{
-  min-height:76px;padding:13px 15px;border-radius:15px;border-color:var(--rent-line);
+  min-height:76px;padding:13px 15px;border-radius:var(--r-lg);border-color:var(--rent-line);
   box-shadow:var(--rent-shadow-small);
 }
 .rental-app .dashboard-actions button>span{
-  width:40px;height:40px;border-radius:13px;color:#fff;background:var(--rent-night-2);font-size:20px;
+  width:40px;height:40px;border-radius:var(--r-md);color:var(--cover-text);background:var(--rent-night-2);font-size:20px;
 }
 .rental-app .dashboard-actions button:hover{border-color:#B7CAC0;box-shadow:var(--rent-shadow);transform:translateY(-2px);}
-.rental-app .stat-grid{gap:12px;margin-bottom:15px;}
+.rental-app .dashboard-actions-primary{grid-template-columns:repeat(3,minmax(0,1fr));}
+.rental-app .dashboard-actions-primary button{min-height:82px;}
+.rental-app .dashboard-actions-primary button>span{font:700 15px var(--font-mono);}
+.rental-app .stat-grid{gap:var(--s-3);margin-bottom:15px;}
 .rental-app .stat-card{
-  min-height:132px;padding:19px 20px;border-color:var(--rent-line);border-radius:17px;box-shadow:var(--rent-shadow-small);
+  min-height:132px;padding:19px 20px;border-color:var(--rent-line);border-radius:var(--r-lg);box-shadow:var(--rent-shadow-small);
 }
 .rental-app .stat-card::before{left:0;right:0;top:0;bottom:auto;width:auto;height:5px;}
 .rental-app .stat-label{font-family:var(--font-body);font-weight:700;letter-spacing:.55px;}
 .rental-app .rent-dashboard-stats .stat-card:nth-child(2){
-  color:#fff;border-color:var(--rent-night-2);
+  color:var(--cover-text);border-color:var(--rent-night-2);
   background:linear-gradient(145deg,var(--rent-night-2),var(--rent-night-3));
 }
 .rental-app .rent-dashboard-stats .stat-card:nth-child(2)::before{background:var(--rent-lime);}
 .rental-app .rent-dashboard-stats .stat-card:nth-child(2) .stat-label,
 .rental-app .rent-dashboard-stats .stat-card:nth-child(2) .stat-sub{color:#D3E1DA;}
 .rental-app .rent-dashboard-stats .stat-card:nth-child(2) .stat-value{color:var(--rent-lime);}
-.rental-app .rent-occupancy-row{display:block;margin-bottom:17px;}
+.rental-app .rent-occupancy-row{display:block;margin-bottom:var(--s-4);}
 .rental-app .rent-occupancy-row .occupancy-card{grid-template-columns:minmax(260px,.8fr) minmax(240px,1.4fr);}
+.dashboard-feed-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  align-items:start;
+  gap:var(--s-4);
+}
+.dashboard-feed-item{margin:0;}
+.dashboard-feed-item .panel-body{padding-bottom:8px;}
+.dashboard-feed-footer{
+  display:flex;
+  justify-content:flex-end;
+  padding:10px 20px 16px;
+  border-top:1px solid var(--rent-line);
+}
+.dashboard-history-list{max-height:min(62vh,620px);overflow:auto;}
+.dashboard-house-chooser .payment-choice>span{display:flex;min-width:0;flex-direction:column;gap:3px;}
+.dashboard-house-chooser .payment-choice small{color:var(--rent-muted);font-size:var(--t-xs);font-weight:400;}
+.alert-tolerancia{background:var(--warn-soft);}
+.alert-tolerancia .ledger-row-main{color:var(--warn-deep);}
 
 /* Painéis, filtros e listas */
 .rental-app .panel,
 .rental-app .commercial-panel{
-  border-color:var(--rent-line);border-radius:18px;box-shadow:var(--rent-shadow-small);
+  border-color:var(--rent-line);border-radius:var(--r-lg);box-shadow:var(--rent-shadow-small);
 }
 .rental-app .panel-toggle{min-height:60px;padding:18px 20px;}
 .rental-app .panel-toggle:hover{background:#F1F6F3;}
 .rental-app .toolbar{
-  gap:12px;margin-bottom:16px;padding:12px;
-  border:1px solid var(--rent-line);border-radius:15px;background:rgba(255,255,255,.9);box-shadow:var(--rent-shadow-small);
+  gap:var(--s-3);margin-bottom:16px;padding:var(--s-3);
+  border:1px solid var(--rent-line);border-radius:var(--r-lg);background:rgba(255,255,255,.9);box-shadow:var(--rent-shadow-small);
 }
-.rental-app .search-input{min-height:43px;border-color:var(--rent-line);border-radius:11px;background:#fff;}
-.rental-app .filter-chip{min-height:37px;border-color:var(--rent-line);background:#fff;}
+.rental-app .search-input{min-height:43px;border-color:var(--rent-line);border-radius:var(--r-md);background:var(--card);}
+.rental-app .filter-chip{min-height:37px;border-color:var(--rent-line);background:var(--card);}
 .rental-app .filter-chip.active{border-color:var(--rent-night-2);background:var(--rent-night-2);}
 .rental-app .section-header{
-  padding:12px 14px;margin-bottom:13px;border:1px solid var(--rent-line);border-radius:14px;
+  padding:var(--s-3) 14px;margin-bottom:13px;border:1px solid var(--rent-line);border-radius:var(--r-lg);
   background:rgba(255,255,255,.78);
 }
 .rental-app .tabs{
-  gap:5px;margin:0 0 18px;padding:6px;border:1px solid var(--rent-line);border-radius:15px;
-  background:#fff;box-shadow:var(--rent-shadow-small);
+  gap:5px;margin:0 0 18px;padding:6px;border:1px solid var(--rent-line);border-radius:var(--r-lg);
+  background:var(--card);box-shadow:var(--rent-shadow-small);
 }
 .rental-app .tab{
-  flex:1;min-height:42px;padding:8px 10px;margin:0;border:0;border-radius:9px;
-  text-transform:none;color:var(--rent-muted);font-size:11px;
+  flex:1;min-height:42px;padding:var(--s-2) 10px;margin:0;border:0;border-radius:var(--r-sm);
+  text-transform:none;color:var(--rent-muted);font-size:var(--t-xs);
 }
 .rental-app .tab:hover{background:#E9F1ED;color:var(--rent-ink);}
-.rental-app .tab.active{color:#fff;background:var(--rent-night-2);}
+.rental-app .tab.active{color:var(--cover-text);background:var(--rent-night-2);}
 
 /* Casas e inquilinos */
 .rental-app .house-grid{gap:14px;}
 .rental-app .house-card{
-  border-color:var(--rent-line);border-left-width:1px;border-radius:17px;padding:18px;
+  border-color:var(--rent-line);border-left-width:1px;border-radius:var(--r-lg);padding:18px;
   box-shadow:var(--rent-shadow-small);
 }
 .rental-app .house-card::before{
-  content:"";display:block;height:5px;margin:-18px -18px 15px;border-radius:17px 17px 0 0;background:#A4B2AB;
+  content:"";display:block;height:5px;margin:-18px -18px 15px;border-radius:var(--r-lg) var(--r-lg) 0 0;background:#A4B2AB;
 }
 .rental-app .house-card.tab-brass::before{background:var(--rent-gold);}
 .rental-app .house-card.tab-rust::before{background:var(--rent-danger);}
+.rental-app .house-card.tab-warn::before{background:var(--warn);}
 .rental-app .house-card.tab-manut::before{background:#4C7FA3;}
 .rental-app .house-card:hover{transform:translateY(-3px);box-shadow:var(--rent-shadow);}
 .rent-tenant-card{display:flex;flex-direction:column;gap:14px;min-height:210px;}
 .rent-tenant-head{display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:11px;}
 .rent-tenant-avatar{
-  display:grid;place-items:center;width:44px;height:44px;border-radius:14px;
+  display:grid;place-items:center;width:44px;height:44px;border-radius:var(--r-lg);
   color:var(--rent-lime);background:var(--rent-night-2);
   font:700 18px var(--font-display);
 }
-.rent-tenant-home{min-height:39px;padding:11px 12px;border-radius:11px;color:var(--rent-muted);background:#F2F6F3;font-size:11px;line-height:1.45;}
+.rent-tenant-home{min-height:39px;padding:11px var(--s-3);border-radius:var(--r-md);color:var(--rent-muted);background:#F2F6F3;font-size:var(--t-xs);line-height:1.45;}
 .rent-tenant-portal{
   display:flex;align-items:center;justify-content:space-between;gap:10px;
-  margin-top:auto;padding-top:12px;border-top:1px solid var(--rent-line);
+  margin-top:auto;padding-top:var(--s-3);border-top:1px solid var(--rent-line);
 }
-.rent-tenant-portal span{font-size:10px;font-weight:700;color:var(--rent-night-2);}
-.rent-tenant-portal small{font-size:9px;color:var(--rent-muted);}
-.rental-app .interest-card{border-color:var(--rent-line);border-radius:18px;box-shadow:var(--rent-shadow-small);}
+.rent-tenant-portal span{font-size:var(--t-xs);font-weight:700;color:var(--rent-night-2);}
+.rent-tenant-portal small{font-size:var(--t-xs);color:var(--rent-muted);}
+.rental-app .interest-card{border-color:var(--rent-line);border-radius:var(--r-lg);box-shadow:var(--rent-shadow-small);}
 .rental-app .interest-summary{border:1px solid #D7E3A2;background:#F3F9D2;}
 
 /* Financeiro e Energia */
-.rental-app .finance-row,.rental-app .energy-row{border-color:var(--rent-line);border-radius:10px;}
+.rental-app .finance-row,.rental-app .energy-row{border-color:var(--rent-line);border-radius:var(--r-md);}
 .rental-app .finance-row:hover,.rental-app .energy-row:hover{background:#F0F5F2;}
 .rental-app .energy-chart{padding-top:10px;}
 .rental-app .month-switcher{
-  padding:4px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(255,255,255,.08);
+  padding:var(--s-1);border:1px solid rgba(255,255,255,.18);border-radius:var(--r-md);background:rgba(255,255,255,.08);
 }
 .rental-app .page-header .month-switcher button,
-.rental-app .page-header .month-switcher input{color:#fff;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.08);}
+.rental-app .page-header .month-switcher input{color:var(--cover-text);border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.08);}
 .rental-app .page-header .month-switcher input{color-scheme:dark;}
-.rental-app .ageing-card{border-color:var(--rent-line);border-radius:14px;background:#F7FAF8;}
+.rental-app .ageing-card{border-color:var(--rent-line);border-radius:var(--r-lg);background:#F7FAF8;}
 
 /* Comercial: somente proprietários compradores */
 .rental-app .commercial-hero{
-  border-radius:22px;
+  border-radius:var(--r-xl);
   background:
     radial-gradient(circle at 88% 18%,rgba(231,247,123,.20),transparent 23%),
     linear-gradient(135deg,var(--rent-night),var(--rent-night-2));
 }
 .commercial-role-note{
   display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:13px;
-  padding:14px 16px;border:1px solid #CFC9E7;border-radius:14px;color:#29234D;background:#F4F1FF;
+  padding:14px 16px;border:1px solid #CFC9E7;border-radius:var(--r-lg);color:#29234D;background:#F4F1FF;
 }
 .commercial-role-note>span{
-  display:grid;place-items:center;width:36px;height:36px;border-radius:11px;
+  display:grid;place-items:center;width:36px;height:36px;border-radius:var(--r-md);
   color:var(--rent-lime);background:#39306A;font:700 17px var(--font-display);
 }
 .commercial-role-note strong{display:block;font-size:12px;}
-.commercial-role-note p{margin:3px 0 0;color:#69627E;font-size:10px;line-height:1.45;}
+.commercial-role-note p{margin:3px 0 0;color:#69627E;font-size:var(--t-xs);line-height:1.45;}
 .commercial-owner-summary{
-  margin:-4px -4px 20px;padding:18px;border-radius:16px;color:#fff;
+  margin:-4px -4px 20px;padding:18px;border-radius:var(--r-lg);color:var(--cover-text);
   background:
     radial-gradient(circle at 90% 10%,rgba(231,247,123,.18),transparent 28%),
     linear-gradient(135deg,var(--rent-night),var(--rent-night-2));
 }
-.commercial-owner-summary>span{color:var(--rent-lime);font:700 9px var(--font-mono);letter-spacing:1.1px;}
-.commercial-owner-summary .modal-title{margin:5px 0 7px;color:#fff;font-size:25px;}
+.commercial-owner-summary>span{color:var(--rent-lime);font:700 var(--t-xs) var(--font-mono);letter-spacing:1.1px;}
+.commercial-owner-summary .modal-title{margin:5px 0 7px;color:var(--cover-text);font-size:25px;}
 .commercial-owner-summary p{margin:0;color:#DBE5E0;line-height:1.5;}
-.commercial-owner-summary small{display:block;margin-top:10px;color:#B9CCC3;font-size:10px;}
+.commercial-owner-summary small{display:block;margin-top:10px;color:#B9CCC3;font-size:var(--t-xs);}
 
 /* Menu Mais no celular */
 .rent-more-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
 .rent-more-grid button{
   display:grid;grid-template-columns:38px 1fr;grid-template-rows:auto auto;column-gap:10px;
-  min-height:86px;padding:12px;border:1px solid var(--rent-line);border-radius:13px;
+  min-height:86px;padding:var(--s-3);border:1px solid var(--rent-line);border-radius:var(--r-md);
   color:var(--rent-ink);background:#F7FAF8;text-align:left;
 }
 .rent-more-grid button>span{
-  grid-row:1/3;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;
+  grid-row:1/3;display:grid;place-items:center;width:38px;height:38px;border-radius:var(--r-md);
   color:var(--rent-lime);background:var(--rent-night-2);font-size:17px;
 }
-.rent-more-grid strong{align-self:end;font-size:11px;}
-.rent-more-grid small{align-self:start;margin-top:3px;color:var(--rent-muted);font-size:9px;line-height:1.35;}
+.rent-more-grid strong{align-self:end;font-size:var(--t-xs);}
+.rent-more-grid small{align-self:start;margin-top:3px;color:var(--rent-muted);font-size:var(--t-xs);line-height:1.35;}
 
 @media(max-width:1100px){
   .rental-shell .topbar{gap:9px;padding-left:18px;padding-right:18px;}
   .rental-shell .topbar-brand{padding-right:9px;}
   .rent-product-switch,.rental-shell .my-home-launch{padding-left:10px;padding-right:10px;}
   .rental-shell .plan-top-pill{display:none;}
-  .rent-tabs{display:flex;overflow-x:auto;scrollbar-width:none;}
-  .rent-tabs::-webkit-scrollbar{display:none;}
-  .rent-tab{flex:1 0 112px;}
+  .rental-sidebar .rent-tabs{display:flex;overflow:visible;}
+  .rental-sidebar .rent-tab{flex:0 0 auto;}
 }
 
 @media(max-width:720px){
-  .rental-shell .topbar{min-height:64px;padding:8px 11px;gap:7px;flex-wrap:nowrap;}
-  .rental-shell .topbar-brand{min-height:40px;padding-right:8px;}
+  .rental-shell .topbar{min-height:64px;padding:var(--s-2) 11px;gap:7px;flex-wrap:nowrap;}
+  .rental-shell .topbar-brand{min-height:40px;padding-right:var(--s-2);}
   .rental-shell .topbar-brand .brand-name,
   .rent-product-switch.commercial b{
     position:absolute;width:1px;height:1px;padding:0;margin:-1px;
     overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
   }
   .rental-shell .topbar-brand .brand-mark{width:27px;height:27px;}
-  .rent-product-switcher{gap:4px;flex:1;}
+  .rent-product-switcher{gap:var(--s-1);flex:1;}
   .rental-shell .mode-label{display:none;}
   .rent-product-switch,.rental-shell .my-home-launch{
-    min-height:38px;padding:7px 9px;border-radius:10px;font-size:9px;
+    min-height:38px;padding:7px 9px;border-radius:var(--r-md);font-size:var(--t-xs);
   }
   .rental-shell .my-home-launch{display:inline-flex;}
   .rent-product-switch>span,.rental-shell .my-home-launch span{font-size:15px;}
   .rental-shell .top-search-btn{width:38px;height:38px;min-height:38px;}
   .rental-shell .menu-btn{width:36px;height:38px;}
   .rental-shell .main{padding:14px 9px 90px;}
-  .rental-app{padding:6px 5px 42px;border-radius:18px;}
-  .rent-tabs{display:none;}
+  .rental-shell .main.rental-main{max-width:1440px;}
+  .rental-layout,.rental-layout.is-collapsed{display:block;}
+  .rental-sidebar{display:none;}
+  .rental-app{padding:6px 5px 42px;border-radius:var(--r-lg);}
+  .rental-app>.rent-tabs{display:none;}
   .rental-app>.page-header,.rental-app>.back-link+.page-header{
-    min-height:190px;padding:23px 20px;border-radius:19px;align-items:flex-start;flex-direction:column;
+    min-height:190px;padding:23px 20px;border-radius:var(--r-xl);align-items:flex-start;flex-direction:column;
   }
   .rental-app .page-header .page-title{font-size:30px;}
   .rental-app .page-header .page-ico{width:38px;height:38px;}
@@ -325,21 +580,28 @@
   .rental-app .page-header .header-actions .btn,
   .rental-app .page-header>.btn{flex:1;width:100%;}
   .rental-app .page-date{margin-top:auto;}
-  .rental-app .dashboard-actions{grid-template-columns:1fr 1fr;gap:8px;}
+  .rental-app .dashboard-actions{grid-template-columns:1fr 1fr;gap:var(--s-2);}
+  .rental-app .dashboard-actions-primary{grid-template-columns:1fr;}
   .rental-app .dashboard-actions button{min-width:0;min-height:74px;padding:11px;}
   .rental-app .dashboard-actions button>span{width:36px;height:36px;}
   .rental-app .stat-grid{grid-template-columns:1fr 1fr;}
   .rental-app .stat-card{min-height:118px;padding:16px;}
   .rental-app .rent-occupancy-row .occupancy-card{grid-template-columns:1fr;}
-  .rental-app .toolbar{align-items:stretch;flex-direction:column;padding:10px;}
-  .rental-app .filter-chips{overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none;}
+  .rental-app .toolbar{
+    align-items:stretch;flex-direction:column;flex-wrap:nowrap;width:100%;min-width:0;padding:10px;
+  }
+  .rental-app .toolbar>.search-wrap,
+  .rental-app .toolbar>.filter-chips,
+  .rental-app .toolbar>.casa-ordem,
+  .rental-app .toolbar>.casa-visao{width:100%;min-width:0;}
+  .rental-app .filter-chips{max-width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none;}
   .rental-app .filter-chip{flex:0 0 auto;}
   .rent-tenant-card{min-height:195px;}
   .rent-tenant-head{grid-template-columns:42px 1fr auto;}
   .rent-tenant-avatar{width:40px;height:40px;}
   .rental-app .finance-row,.rental-app .energy-row{
-    display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;padding:14px;
-    border:1px solid var(--rent-line);background:#fff;
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:var(--s-2);padding:14px;
+    border:1px solid var(--rent-line);background:var(--card);
   }
   .rental-app .finance-row>div,.rental-app .energy-row>div{display:flex;}
   .rental-app .finance-row>div:first-child,.rental-app .energy-row>div:first-child{grid-column:1/3;}
@@ -348,24 +610,40 @@
   .rental-app .commercial-hero-actions{display:grid;grid-template-columns:1fr 1fr;width:100%;}
   .commercial-role-note{grid-template-columns:36px 1fr;}
   .commercial-role-note .btn{grid-column:1/3;width:100%;}
+  .dashboard-feed-grid{grid-template-columns:1fr;gap:var(--s-3);}
   .mobile-nav{
-    grid-template-columns:repeat(var(--mobile-items,5),1fr);height:72px;padding-top:6px;
+    grid-template-columns:repeat(var(--mobile-items,5),1fr);
+    height:calc(68px + env(safe-area-inset-bottom));
+    padding:5px 4px env(safe-area-inset-bottom);
     background:rgba(255,255,255,.98);box-shadow:0 -10px 30px rgba(16,46,39,.11);
   }
-  .mobile-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+  .mobile-nav-item{display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
   .mobile-nav-item i{display:grid;place-items:center;height:22px;color:var(--rent-muted);font-size:17px;font-style:normal;font-weight:700;}
-  .mobile-nav-item span{font-size:9px;}
-  .mobile-nav-item.active{color:var(--rent-night-2);background:#E9F1ED;}
+  .mobile-nav-item span{font-size:var(--t-xs);}
+  .mobile-nav-item.active{color:var(--rent-night-2);background:#E9F1ED;box-shadow:inset 0 3px 0 var(--rent-violet);}
   .mobile-nav-item.active i{color:var(--rent-violet);}
 }
 
 @media(max-width:430px){
-  .rental-shell .topbar-brand{display:none;}
-  .rent-product-switcher{min-width:0;}
-  .rent-product-switch,.rental-shell .my-home-launch{padding-left:8px;padding-right:8px;}
-  .rent-product-switch b,.rental-shell .my-home-launch b{font-size:8px;}
+  /* Antes: display:none escondia a MARCA INTEIRA, símbolo e tudo.
+     Some a referência de onde o usuário está e o atalho para o
+     início. Agora só o texto some; o símbolo fica e continua
+     clicável. */
+  .rental-shell .topbar-brand{padding-right:var(--s-2);border-right:0;}
+  .rental-shell .topbar-brand .brand-name{display:none;}
+
+  /* Com o texto das abas em 12px, quatro produtos não cabem na
+     largura do telefone. Rola na horizontal em vez de cortar. */
+  .rent-product-switcher{
+    min-width:0;flex:1;overflow-x:auto;flex-wrap:nowrap;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .rent-product-switcher::-webkit-scrollbar{display:none;}
+  .rent-product-switch,.rental-shell .my-home-launch{
+    padding-left:var(--s-2);padding-right:var(--s-2);flex:0 0 auto;
+  }
   .rental-shell .top-search-btn{margin-left:auto;}
-  .rental-app>.page-header,.rental-app>.back-link+.page-header{min-height:178px;padding:21px 17px;}
+  .rental-app>.page-header,.rental-app>.back-link+.page-header{min-height:178px;padding:21px var(--s-4);}
   .rental-app .page-header .page-title{font-size:27px;}
   .rental-app .dashboard-actions{grid-template-columns:1fr;}
   .rental-app .stat-grid{grid-template-columns:1fr;}

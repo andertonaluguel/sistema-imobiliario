@@ -47,10 +47,115 @@ function renderCommercialView(){
     renderCommercialStat(clients.filter(function(a){return a.plano==='basico';}).length,'Básicos','')+
     renderCommercialStat(clients.filter(function(a){return a.plano==='premium';}).length,'Premium','')+
     renderCommercialStat(sales.filter(function(s){return s.status==='aguardando_pagamento';}).length,'Pagamentos pendentes','warn')+'</div>'+ 
+    renderCommercialSnapshot()+renderCommercialValoresClientes()+
     renderCommercialAccounts(clients)+renderCommercialSales(sales)+renderCommercialAudit()+'</section>';
 }
 
 function renderCommercialStat(value,label,tone){return '<div class="commercial-stat '+(tone||'')+'"><strong>'+Number(value||0)+'</strong><span>'+esc(label)+'</span></div>';}
+/* variante para dinheiro: o valor já vem formatado */
+function renderCommercialStatMoney(value,label,tone,nota){
+  return '<div class="commercial-stat '+(tone||'')+'"><strong class="num">'+value+'</strong>'+
+    '<span>'+esc(label)+'</span>'+(nota?'<small>'+esc(nota)+'</small>':'')+'</div>';
+}
+
+/* ------------------------------------------------------------------
+   Retrato comercial honesto.
+
+   valorPago é apenas o valor informado no cadastro/venda inicial.
+   Como ainda não existe periodicidade nem livro de cobranças, ele não
+   pode ser chamado de MRR, faturamento acumulado ou receita do mês.
+   Esta tela mostra somente fatos que o banco realmente guarda.
+   ------------------------------------------------------------------ */
+function computeCommercialSnapshot(){
+  const contas=(state.commercialAccounts||[]).filter(function(a){return !a.isPlatformAdmin;});
+  const vendas=state.commercialInvites||[];
+
+  const pagantes=contas.filter(function(a){
+    return a.status==='ativa' && a.plano && a.plano!=='gratuito' && (Number(a.valorPago)||0)>0;
+  });
+  /* Distribuição de clientes, não distribuição de receita. */
+  const porPlano={};
+  pagantes.forEach(function(a){
+    porPlano[a.plano]=porPlano[a.plano]||{n:0};
+    porPlano[a.plano].n++;
+  });
+
+  /* Convites/vendas iniciais com confirmação explícita de pagamento. */
+  const confirmadas=vendas.filter(function(v){
+    return v.pagamentoStatus==='confirmado';
+  });
+  const valorInicialConfirmado=confirmadas.reduce(function(s,v){
+    return s+(Number(v.valorPago)||0);
+  },0);
+
+  const aguardando=vendas.filter(function(v){return v.status==='aguardando_pagamento';});
+  const valorAguardando=aguardando.reduce(function(s,v){
+    return s+(Number(v.valorPago)||0);
+  },0);
+
+  return {
+    pagantes:pagantes.length,
+    gratuitos: contas.filter(function(a){return a.plano==='gratuito';}).length,
+    porPlano:porPlano,
+    vendasConfirmadas:confirmadas.length,
+    valorInicialConfirmado:valorInicialConfirmado,
+    aguardando:aguardando.length,
+    valorAguardando:valorAguardando,
+    contas:contas
+  };
+}
+
+function renderCommercialSnapshot(){
+  const r=computeCommercialSnapshot();
+
+  const linhasPlano=Object.keys(r.porPlano).sort(function(a,b){
+    return r.porPlano[b].n-r.porPlano[a].n;
+  }).map(function(p){
+    const d=r.porPlano[p];
+    const fatia=r.pagantes?Math.round((d.n/r.pagantes)*100):0;
+    return '<div class="receita-linha">'+
+      '<span class="receita-plano">'+esc(commercialPlanLabel(p))+'</span>'+
+      '<span class="receita-barra"><span style="width:'+fatia+'%"></span></span>'+
+      '<span class="receita-valor num">'+d.n+'</span>'+
+      '<span class="receita-n">cliente'+(d.n===1?'':'s')+' · '+fatia+'%</span>'+
+    '</div>';
+  }).join('');
+
+  return '<div class="commercial-panel"><div class="commercial-panel-head">'+
+      '<div><h2>Retrato comercial</h2><p>Contagens reais e valores das vendas iniciais. Receita recorrente depende de cadastrar periodicidade e cobranças.</p></div></div>'+
+    '<div class="commercial-stats receita-stats">'+
+      renderCommercialStat(r.pagantes,'Clientes pagos ativos','accent')+
+      renderCommercialStat(r.gratuitos,'Clientes no gratuito','')+
+      renderCommercialStatMoney(fmtMoney(r.valorInicialConfirmado),'Vendas iniciais confirmadas','',r.vendasConfirmadas+' registro(s)')+
+      (r.aguardando?renderCommercialStatMoney(fmtMoney(r.valorAguardando),'Aguardando confirmação','warn',r.aguardando+' venda(s) em aberto'):'')+
+    '</div>'+
+    (linhasPlano?'<div class="receita-planos">'+linhasPlano+'</div>':
+      '<div class="empty-state">Nenhum cliente pagante ainda.</div>')+
+  '</div>';
+}
+
+/* Valor de referência informado em cada cadastro. Não é histórico de
+   faturamento e não entra no cálculo de receita recorrente. */
+function renderCommercialValoresClientes(){
+  const r=computeCommercialSnapshot();
+  const linhas=r.contas.filter(function(a){return (Number(a.valorPago)||0)>0;})
+    .sort(function(a,b){ return (Number(b.valorPago)||0)-(Number(a.valorPago)||0); });
+  if(!linhas.length) return '';
+
+  return '<div class="commercial-panel"><div class="commercial-panel-head">'+
+      '<div><h2>Valor cadastrado por cliente</h2><p>Referência da venda inicial. Não representa mensalidade nem faturamento acumulado.</p></div></div>'+
+    '<div class="commercial-table-wrap"><table class="commercial-table">'+
+      '<thead><tr><th>Cliente</th><th>Plano</th><th>Situação</th><th>Valor informado</th><th>Cliente desde</th></tr></thead><tbody>'+
+      linhas.map(function(a){
+        const v=Number(a.valorPago)||0;
+        return '<tr><td><strong>'+esc(a.empresa||a.nome)+'</strong><span>'+esc(a.email)+'</span></td>'+
+          '<td><span class="plan-pill '+esc(a.plano)+'">'+esc(commercialPlanLabel(a.plano))+'</span></td>'+
+          '<td><span class="commercial-status '+commercialStatusTone(a.status)+'">'+esc(commercialStatusLabel(a.status))+'</span></td>'+
+          '<td class="num">'+fmtMoney(v)+'</td>'+
+          '<td class="num">'+(a.criadoEm?fmtDateBR(a.criadoEm.slice(0,10)):'—')+'</td></tr>';
+      }).join('')+
+    '</tbody></table></div></div>';
+}
 
 function renderCommercialAccounts(clients){
   return '<div class="commercial-panel"><div class="commercial-panel-head"><div><h2>Contas de proprietários</h2><p>O plano e o uso pertencem ao proprietário comprador, nunca ao inquilino.</p></div><button class="btn btn-ghost btn-small" onclick="refreshCommercialDashboard()">Atualizar</button></div>'+ 

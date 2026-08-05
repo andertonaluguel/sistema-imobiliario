@@ -8,10 +8,36 @@ const monthNamesPt = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out
 /* ---------- temas de cor ---------- */
 const APP_THEME_OPTIONS = [
   {id:'original',nome:'Original',descricao:'Verde floresta e latão',cores:['#14322A','#B8863C','#F7F6F2']},
+  {id:'roxo',nome:'Roxo',descricao:'Roxo da Minha Casa e Comercial',cores:['#2B1E4B','#7C4DCC','#F8F6FC']},
   {id:'aurora',nome:'Aurora',descricao:'Violeta vibrante e lavanda',cores:['#2B1E4B','#7C4DCC','#F8F6FC']},
   {id:'oceano',nome:'Oceano',descricao:'Azul profundo e turquesa',cores:['#083B4C','#007F83','#F2F9FA']},
   {id:'citrico',nome:'Cítrico',descricao:'Verde intenso e lima',cores:['#213B20','#527A12','#F7FAF0']}
 ];
+/* O seletor visível ao usuário oferece só DOIS temas: Padrão e Roxo.
+   Os demais (aurora/oceano/citrico) seguem válidos para render — ex.: uma
+   conta antiga cujo Portal ainda usa um deles — mas não são oferecidos
+   como escolha nova. Ver DESIGN-SYSTEM.md e migracao-tema-usuario.sql. */
+const USER_THEME_CHOICES = [
+  {id:'original',nome:'Padrão',descricao:'Verde',cores:['#14322A','#B8863C']},
+  {id:'roxo',nome:'Roxo',descricao:'Roxo',cores:['#2B1E4B','#7C4DCC']}
+];
+/* Preferência de app por usuário: só Padrão (original) ou Roxo. */
+function normalizeUserTheme(theme){ return theme==='roxo' ? 'roxo' : 'original'; }
+
+/* ---------- tipos de imóvel (Etapa 1 do cadastro) ----------
+   Campo novo; persiste no banco após a migração migracao-imovel-tipo.sql
+   (o supabase.js faz feature-detect: se a coluna não existe, o cadastro
+   segue normalmente sem o tipo). */
+const IMOVEL_TIPOS = [
+  {id:'casa',nome:'Casa'},
+  {id:'apartamento',nome:'Apartamento'},
+  {id:'comercial',nome:'Comercial'},
+  {id:'quarto',nome:'Quarto'},
+  {id:'outro',nome:'Outro'}
+];
+function normalizeImovelTipo(tipo){
+  return IMOVEL_TIPOS.some(function(t){return t.id===tipo;}) ? tipo : 'casa';
+}
 function normalizeAppTheme(theme){
   return APP_THEME_OPTIONS.some(function(option){return option.id===theme;}) ? theme : 'original';
 }
@@ -42,6 +68,21 @@ function diffDaysInclusive(a, b){
   return Math.round((db-da)/86400000)+1;
 }
 function currentMonthStr(){ return todayISO().slice(0,7); }
+function newOperationId(){
+  if(globalThis.crypto&&typeof globalThis.crypto.randomUUID==='function'){
+    return globalThis.crypto.randomUUID();
+  }
+  const bytes=new Uint8Array(16);
+  if(globalThis.crypto&&typeof globalThis.crypto.getRandomValues==='function'){
+    globalThis.crypto.getRandomValues(bytes);
+  }else{
+    for(let i=0;i<bytes.length;i+=1) bytes[i]=Math.floor(Math.random()*256);
+  }
+  bytes[6]=(bytes[6]&15)|64;
+  bytes[8]=(bytes[8]&63)|128;
+  const hex=Array.from(bytes,function(value){return value.toString(16).padStart(2,'0');}).join('');
+  return hex.slice(0,8)+'-'+hex.slice(8,12)+'-'+hex.slice(12,16)+'-'+hex.slice(16,20)+'-'+hex.slice(20);
+}
 function addMonths(mesStr, delta){
   let p = mesStr.split('-').map(Number); let y=p[0], m=p[1]+delta;
   while(m<1){ m+=12; y--; } while(m>12){ m-=12; y++; }
@@ -64,8 +105,10 @@ function dueDateForMonth(mesStr, requestedDay){
 
 /* Valor vigente do aluguel em um mes, respeitando os reajustes cadastrados. */
 function aluguelValorMes(house, mesStr){
+  const contract=contractForMonth(house,mesStr);
+  if(contract) return contractExpectedRent(contract,mesStr);
   const hist = (house.aluguelHistorico||[]).filter(function(r){
-    return r && r.dataInicio && r.dataInicio.slice(0,7) <= mesStr;
+    return r && !r.contractId && r.dataInicio && r.dataInicio.slice(0,7) <= mesStr;
   }).sort(function(a,b){ return a.dataInicio.localeCompare(b.dataInicio); });
   if(hist.length) return Number(hist[hist.length-1].valor)||0;
   return Number(house.aluguelValor)||0;
@@ -151,7 +194,78 @@ function contractForEnergyMonth(house,mes,contractId){
   }
   return candidates[0]||null;
 }
+function activeMoneyRecords(list){
+  return (list||[]).filter(function(item){return !item.arquivadoEm&&!item.arquivado_em;});
+}
+function chargeForMonth(house,mes,type,contractId){
+  const list=activeMoneyRecords(house&&house.cobrancas).filter(function(charge){
+    return (charge.competencia||charge.mes)===mes&&charge.tipo===type;
+  });
+  if(!list.length) return null;
+  if(contractId){
+    const exact=list.find(function(charge){return charge.contractId===contractId;});
+    /* Um mês pode conter a saída de um contrato e a entrada de outro.
+       Com o contrato informado, usar "a primeira cobrança do mês" pode
+       transferir recebimentos do morador anterior para o novo. */
+    return exact||null;
+  }
+  const withoutContract=list.find(function(charge){return !charge.contractId;});
+  return withoutContract||list[0]||null;
+}
+function receiptsForCharge(house,charge){
+  if(!charge) return [];
+  return activeMoneyRecords(house&&house.recebimentos).filter(function(receipt){
+    return String(receipt.cobrancaId)===String(charge.id);
+  });
+}
+function chargeReceivedTotal(house,charge){
+  if(!charge) return 0;
+  const receipts=receiptsForCharge(house,charge);
+  const hasLoadedReceipt=(house&&house.recebimentos||[]).some(function(receipt){
+    return String(receipt.cobrancaId)===String(charge.id);
+  });
+  if(receipts.length||hasLoadedReceipt){
+    return receipts.reduce(function(sum,receipt){return sum+(Number(receipt.valor)||0);},0);
+  }
+  return Number(charge.totalRecebido)||0;
+}
+function receivedForCompetenceYear(house,year,type){
+  const charges=activeMoneyRecords(house&&house.cobrancas).filter(function(charge){
+    return (!type||charge.tipo===type)&&String(charge.competencia||charge.mes||'').slice(0,4)===String(year);
+  });
+  if(charges.length||activeMoneyRecords(house&&house.cobrancas).length){
+    return charges.reduce(function(sum,charge){return sum+chargeReceivedTotal(house,charge);},0);
+  }
+  if(type==='energia'){
+    return (house&&house.energias||[]).filter(function(entry){
+      return entry.pago&&String(entry.mes||'').slice(0,4)===String(year);
+    }).reduce(function(sum,entry){return sum+(Number(entry.valor)||0);},0);
+  }
+  return (house&&house.pagamentos||[]).filter(function(payment){
+    return String(payment.mes||'').slice(0,4)===String(year);
+  }).reduce(function(sum,payment){return sum+(Number(payment.valorPago)||0);},0);
+}
 function paymentForMonth(house,mes,contractId){
+  const charge=chargeForMonth(house,mes,'aluguel',contractId);
+  if(charge){
+    const receipts=receiptsForCharge(house,charge);
+    const total=chargeReceivedTotal(house,charge);
+    if(total<=0) return null;
+    const latest=receipts.slice().sort(function(a,b){
+      return String(b.dataPagamento||'').localeCompare(String(a.dataPagamento||''));
+    })[0];
+    return {
+      id:latest?latest.id:charge.id,
+      mes:mes,
+      contractId:charge.contractId||contractId||'',
+      valorPago:total,
+      dataPagamento:latest?latest.dataPagamento:(charge.ultimoPagamento||''),
+      chargeId:charge.id,
+      receipts:receipts,
+      parcial:total+0.005<(Number(charge.valorPrevisto)||0),
+      credito:Math.max(0,total-(Number(charge.valorPrevisto)||0))
+    };
+  }
   const list=(house&&house.pagamentos||[]);
   const contract=contractForMonth(house,mes,contractId);
   if(contract){
@@ -163,19 +277,137 @@ function paymentForMonth(house,mes,contractId){
   if((house&&house.contracts||[]).length) return null;
   return list.find(function(p){return p.mes===mes;})||null;
 }
+function contractRentValueAt(contract,mes){
+  if(!contract) return 0;
+  const adjustments=(contract.reajustes||[]).filter(function(item){
+    return item && item.dataInicio && item.dataInicio.slice(0,7)<=mes;
+  }).sort(function(a,b){
+    return String(a.dataInicio).localeCompare(String(b.dataInicio))
+      || String(a.confirmadoEm||'').localeCompare(String(b.confirmadoEm||''));
+  });
+  if(adjustments.length) return Number(adjustments[adjustments.length-1].valor)||0;
+  if(contract.valorInicial!=null) return Number(contract.valorInicial)||0;
+  return Number(contract.valor)||0;
+}
 function contractExpectedRent(contract,mes){
-  return contractCoversMonth(contract,mes)?(Number(contract.valor)||0):0;
+  if(!contractCoversMonth(contract,mes)) return 0;
+  return contractRentValueAt(contract,mes);
 }
 function currentRentContract(house){
   return activeContract(house)||contractForMonth(house,currentMonthStr())||null;
+}
+function contractProrataFinancialSnapshot(house,contract){
+  const expected=Math.max(0,Math.round(contractProrataValue(contract)*100)/100);
+  const charges=activeMoneyRecords(house&&house.cobrancas).filter(function(charge){
+    return charge.tipo==='ajuste'&&String(charge.contractId||'')===String(contract&&contract.id||'');
+  });
+  const charge=charges.find(function(item){
+    return item.origemTipo==='contrato_ajuste'
+      &&String(item.origemId||'')===String(contract&&contract.id||'');
+  })||charges[0]||null;
+  const receipts=charge?receiptsForCharge(house,charge):[];
+  const received=charge
+    ?Math.max(0,Math.round(chargeReceivedTotal(house,charge)*100)/100)
+    :0;
+  const remaining=Math.max(0,Math.round((expected-received)*100)/100);
+  const credit=Math.max(0,Math.round((received-expected)*100)/100);
+  let status='nao_necessario';
+  if(expected>0&&credit>0)status='credito';
+  else if(expected>0&&remaining<=0)status=settledPaymentStatus(
+    house,charge,(charge&&charge.vencimento)||(contract&&contract.inicio),
+    charge&&charge.toleranciaDias!=null?charge.toleranciaDias:DEFAULT_PAYMENT_GRACE_DAYS,null
+  );
+  else if(received>0){
+    const partialTime=openChargeTimeStatus(
+      (charge&&charge.vencimento)||(contract&&contract.inicio),
+      charge&&charge.toleranciaDias!=null?charge.toleranciaDias:DEFAULT_PAYMENT_GRACE_DAYS
+    );
+    status=partialTime==='atrasado'?'parcial_atrasado':'parcial';
+  }
+  else if(expected>0)status=openChargeTimeStatus(
+    (charge&&charge.vencimento)||(contract&&contract.inicio),
+    charge&&charge.toleranciaDias!=null?charge.toleranciaDias:DEFAULT_PAYMENT_GRACE_DAYS
+  );
+  return {charge:charge,receipts:receipts,expected:expected,received:received,remaining:remaining,credit:credit,status:status};
+}
+
+/* ---------- tolerância de pagamento ----------
+   A operação concede cinco dias corridos após o vencimento, sem multa
+   ou juros. Nesse intervalo a cobrança continua aberta, mas ainda não
+   deve ser apresentada como atraso. */
+const DEFAULT_PAYMENT_GRACE_DAYS = 5;
+function paymentGraceDays(contract, charge){
+  const value=charge&&charge.toleranciaDias!=null
+    ? Number(charge.toleranciaDias)
+    : contract&&contract.toleranciaDias!=null
+      ? Number(contract.toleranciaDias)
+      : DEFAULT_PAYMENT_GRACE_DAYS;
+  return Number.isFinite(value)?Math.max(0,Math.trunc(value)):DEFAULT_PAYMENT_GRACE_DAYS;
+}
+function dateAtEndOfDay(value){
+  const date=value instanceof Date?new Date(value.getTime()):new Date(String(value||'')+'T23:59:59');
+  if(Number.isNaN(date.getTime())) return null;
+  date.setHours(23,59,59,999);
+  return date;
+}
+function dueDateWithGrace(due, days){
+  const date=due instanceof Date?new Date(due.getTime()):dateAtEndOfDay(due);
+  if(!date||Number.isNaN(date.getTime())) return null;
+  date.setDate(date.getDate()+Math.max(0,Number(days)||0));
+  date.setHours(23,59,59,999);
+  return date;
+}
+function openChargeTimeStatus(due, graceDays, now){
+  const dueDate=dateAtEndOfDay(due);
+  if(!dueDate) return 'pendente';
+  const current=now instanceof Date?now:new Date();
+  if(current<=dueDate) return 'pendente';
+  const graceEnd=dueDateWithGrace(dueDate,graceDays);
+  return graceEnd&&current<=graceEnd?'tolerancia':'atrasado';
+}
+function settledPaymentStatus(house,charge,due,graceDays,fallbackPayment){
+  let settledOn='';
+  if(charge){
+    const expected=Math.max(0,Number(charge.valorPrevisto)||0);
+    let accumulated=0;
+    receiptsForCharge(house,charge).slice().sort(function(a,b){
+      return String(a.dataPagamento||'').localeCompare(String(b.dataPagamento||''));
+    }).some(function(receipt){
+      accumulated+=Number(receipt.valor)||0;
+      if(expected>0&&accumulated+0.005>=expected){
+        settledOn=receipt.dataPagamento||'';
+        return true;
+      }
+      return false;
+    });
+    if(!settledOn&&charge.ultimoPagamento) settledOn=charge.ultimoPagamento;
+  }
+  if(!settledOn&&fallbackPayment&&fallbackPayment.dataPagamento) settledOn=fallbackPayment.dataPagamento;
+  if(!settledOn) return 'pago';
+  const paidAt=dateAtEndOfDay(settledOn),graceEnd=dueDateWithGrace(due,graceDays);
+  return paidAt&&graceEnd&&paidAt>graceEnd?'pago_atraso':'pago';
 }
 
 /* ---------- formatação ---------- */
 function fmtMoney(n){ return (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
 function fmtDateBR(iso){ if(!iso) return '—'; const p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function maskSensitiveDocument(value){
+  const raw=String(value||'').trim();
+  if(!raw) return '—';
+  const digits=raw.replace(/\D/g,'');
+  if(digits.length<5) return '••••';
+  return '••••••'+digits.slice(-4);
+}
+/* A aspa simples entra no escape junto com a dupla.
+   O app monta manipuladores dentro do próprio HTML, no formato
+   onclick="abrir('...')". Hoje só entram ali identificadores gerados pelo
+   sistema, então não há buraco aberto — mas basta alguém interpolar um
+   nome de inquilino nessa posição para um apóstrofo fechar a string e
+   virar código. Escapar aqui fecha a armadilha antes que ela exista. */
 function esc(s){
   return String(s==null?'':s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 /* ---------- status de pagamento ---------- */
@@ -186,17 +418,31 @@ function paymentStatus(house, mesStr, contractId){
   if(!contract&&house.status === 'manutencao') return 'manutencao';
   if((house.contracts||[]).length && !contract) return 'fora_contrato';
   if(!(house.contracts||[]).length && house.status !== 'alugada') return 'vaga';
+  const charge=chargeForMonth(house,mesStr,'aluguel',contractId);
   const rec = paymentForMonth(house,mesStr,contractId);
-  if(rec) return 'pago';
+  if(charge){
+    const expected=Math.max(0,Number(charge.valorPrevisto)||0);
+    const received=chargeReceivedTotal(house,charge);
+    if(expected<=0) return 'sem_cobranca';
+    if(received>expected+0.005) return 'credito';
+    if(received+0.005>=expected){
+      const due=charge.vencimento||(contract?contractDueDate(contract,mesStr):dueDateForMonth(mesStr,house.diaVencimento||5));
+      return settledPaymentStatus(house,charge,due,paymentGraceDays(contract,charge));
+    }
+    if(received>0) return 'parcial';
+  }else if(rec){
+    const due=contract?contractDueDate(contract,mesStr):dueDateForMonth(mesStr,house.diaVencimento||5);
+    return settledPaymentStatus(house,null,due,paymentGraceDays(contract),rec);
+  }
   if(contract){
     const due=contractDueDate(contract,mesStr);
-    return (new Date()>due)?'atrasado':'pendente';
+    return openChargeTimeStatus(due,paymentGraceDays(contract));
   }
   // meses anteriores ao início do contrato vigente não geram cobrança nem atraso
   // (a casa ainda não estava alugada a este inquilino)
   if(house.contratoInicio && mesStr < house.contratoInicio.slice(0,7)) return 'pendente';
   const due = dueDateForMonth(mesStr, house.diaVencimento||5);
-  return (new Date() > due) ? 'atrasado' : 'pendente';
+  return openChargeTimeStatus(due,DEFAULT_PAYMENT_GRACE_DAYS);
 }
 
 /* ---------- energia solar (segunda receita, valor variável mês a mês) ---------- */
@@ -218,7 +464,16 @@ function energiaDoMes(h, mes, contractId){
 }
 function energiaValorMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return e ? (Number(e.valor)||0) : 0; }
 function energiaKwhMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return e ? (Number(e.kwh)||0) : 0; }
-function energiaPagaMes(h, mes, contractId){ const e = energiaDoMes(h, mes,contractId); return !!(e && e.pago); }
+function energiaPagaMes(h, mes, contractId){
+  const status=energiaStatus(h,mes,contractId);
+  return status==='pago'||status==='pago_atraso'||status==='credito';
+}
+function energiaRecebidaMes(h,mes,contractId){
+  const charge=chargeForMonth(h,mes,'energia',contractId);
+  if(charge) return chargeReceivedTotal(h,charge);
+  const e=energiaDoMes(h,mes,contractId);
+  return e&&e.pago?(Number(e.valor)||0):0;
+}
 function previousEnergyReading(h,mes){
   const previous=(h&&h.energias||[]).filter(function(e){
     return e.mes<mes && Number.isFinite(Number(e.leituraAtual));
@@ -244,11 +499,33 @@ function energiaStatus(h, mes, contractId){
   if(!(h.contracts||[]).length&&h.status !== 'alugada') return 'vaga';
   const e = energiaDoMes(h, mes,contractId);
   if(!e) return 'sem_registro';
-  if(e.pago) return 'pago';
-  if(contract) return (new Date()>energyDueDate(h,e,mes))?'atrasado':'pendente';
+  const charge=chargeForMonth(h,mes,'energia',contractId);
+  if(charge){
+    const expected=Math.max(0,Number(charge.valorPrevisto)||0);
+    const received=chargeReceivedTotal(h,charge);
+    if(received>expected+0.005) return 'credito';
+    if(expected>0&&received+0.005>=expected){
+      return settledPaymentStatus(
+        h,
+        charge,
+        charge.vencimento||energyDueDate(h,e,mes),
+        paymentGraceDays(contract,charge)
+      );
+    }
+    if(received>0) return 'parcial';
+  }else if(e.pago){
+    return settledPaymentStatus(
+      h,
+      null,
+      energyDueDate(h,e,mes),
+      paymentGraceDays(contract),
+      {dataPagamento:e.dataPagamento||''}
+    );
+  }
+  if(contract) return openChargeTimeStatus(energyDueDate(h,e,mes),paymentGraceDays(contract));
   if(h.contratoInicio && mes < h.contratoInicio.slice(0,7)) return 'pendente';
   const due = energyDueDate(h,e,mes);
-  return (new Date() > due) ? 'atrasado' : 'pendente';
+  return openChargeTimeStatus(due,DEFAULT_PAYMENT_GRACE_DAYS);
 }
 
 /* histórico de status (opera no array em memória; depois é persistido) */

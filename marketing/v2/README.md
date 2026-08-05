@@ -71,7 +71,11 @@ Sobre cartão branco os valores originais passam. Os materiais da v2 já usam as
 3. `[INSERIR LIMITES DO PLANO CORRETORA]` — casas, colaboradores e diferença para o Premium
 4. Preço e periodicidade, quando aprovados
 
-**Bloqueio técnico:** o plano Corretora não deve ser vendido antes de corrigir e testar o fluxo de contratos por colaborador. As RPCs de iniciar e encerrar contrato validam `auth.uid()` e exigem que seja o proprietário — hoje o colaborador não consegue operar contratos.
+**Bloqueio técnico — atualizado em 31/07/2026.** O bloqueio dos contratos por colaborador **não existe mais**: `iniciar_contrato_gestao` e `encerrar_contrato_gestao` passaram a usar `pode_operar_imoveis()` (`migracao-financeiro-v2.sql:2345, 2484`) e aceitam colaborador desde então. A redação anterior descrevia a primeira geração dessas RPCs (`migracao-contratos-cobrancas.sql:152`), já substituída duas vezes.
+
+O que realmente bloqueava era outra coisa, encontrada em 31/07/2026 e corrigida por `migracao-vitrine-equipe.sql`: **o colaborador não conseguia gravar nada na Vitrine**. As tabelas do módulo nasceram com `user_id ... default auth.uid()` e a policy compara com `usuario_proprietario_id(auth.uid())` — valores iguais para o dono, diferentes para a equipe. Sem isso, "catálogo com a marca da corretora operado por uma equipe" era promessa sem sustentação.
+
+**O que continua valendo:** o colaborador não gerencia a própria equipe nem altera o perfil público/slug — `salvar_perfil_publico` exige `usuario_proprietario_id(auth.uid()) = auth.uid()` (`migracao-versao-comercial-v1.sql:881`). Isso é desenho, não defeito.
 
 ---
 

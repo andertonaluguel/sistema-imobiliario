@@ -1,0 +1,25 @@
+# Roda a suíte a cada envio e em cada pull request.
+#
+# Hoje o repositório ainda não tem remoto no GitHub, então este arquivo
+# fica dormente — ele passa a valer no dia em que houver um. A trava que
+# vale agora é o netlify.toml, que roda os testes antes de publicar.
+#
+# A suíte não precisa de rede, de banco nem de dependências: só do Node.
+name: Testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Rodar a suíte
+        run: node tests/run-tests.mjs
+      - name: Conferir que a publicação monta
+        run: node build.mjs

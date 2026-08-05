@@ -2,6 +2,7 @@
 dist/
 .netlify/
 aluguel-deploy.zip
+*-deploy-*.zip
 
 # Backups e dados pessoais nunca devem entrar no repositorio
 backups/

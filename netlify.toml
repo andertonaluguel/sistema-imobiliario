@@ -4,6 +4,18 @@
 # Backups, SQL e documentação nunca entram na publicação.
 # ============================================================
 
+# A suíte roda ANTES da publicação e o `&&` garante que um teste vermelho
+# aborte o deploy. É a trava que faltava: as 978 asserções só rodavam
+# quando alguém lembrava de digitar o comando na própria máquina.
+# Elas não dependem de rede nem de banco — só de arquivos do repositório.
 [build]
   publish = "dist"
-  command = "node build.mjs"
+  command = "node tests/run-tests.mjs && node build.mjs"
+
+# Pré-visualização dos links da Vitrine no WhatsApp, Facebook e Google.
+# Roda no servidor porque esses robôs não executam JavaScript: sem isto,
+# o link colado numa conversa chega sem título e sem foto.
+# Ver netlify/edge-functions/vitrine-preview.js.
+[[edge_functions]]
+  path = "/*"
+  function = "vitrine-preview"

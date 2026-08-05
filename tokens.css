@@ -1,0 +1,249 @@
+/* ============================================================
+   tokens.css — fonte única de verdade do visual
+   ------------------------------------------------------------
+   Regra: nenhum outro CSS define valor solto de raio, espaço,
+   tipo ou cor de marca. Todos consomem os tokens daqui.
+   A trava em tests/run-tests.mjs reprova quem furar a regra.
+
+   Carregar SEMPRE primeiro, antes de style.css.
+   Ver DESIGN-SYSTEM.md para o guia de uso.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. PRIMITIVAS — não dependem de tema
+   ------------------------------------------------------------ */
+:root{
+
+  /* --- Raios: 5 degraus + 2 formas especiais ---------------
+     Antes: 34 valores distintos em 276 declarações.
+     Escolha do degrau: use o menor que ainda pareça certo.
+       xs  detalhes minúsculos (pontos, barras de gráfico)
+       sm  chips, badges, campos pequenos, ícones
+       md  botões, inputs, cartões de lista
+       lg  painéis, cartões grandes, blocos de conteúdo
+       xl  modais, folhas, superfícies que flutuam
+     circle só para elemento quadrado que vira círculo
+     full   só para pílula (altura define o arredondamento)   */
+  --r-xs:4px;
+  --r-sm:8px;
+  --r-md:12px;
+  --r-lg:16px;
+  --r-xl:22px;
+  --r-circle:50%;
+  --r-full:999px;
+
+  /* --- Espaço: escala de 4 (com o 17 que o produto já usa) -- */
+  --s-1:4px;
+  --s-2:8px;
+  --s-3:12px;
+  --s-4:17px;
+  --s-5:24px;
+  --s-6:32px;
+
+  /* --- Tipo: piso de 12px em conteúdo ----------------------
+     Abaixo de --t-xs só é aceitável em rótulo decorativo que
+     não carrega informação essencial. Ver DESIGN-SYSTEM.md.  */
+  --t-xs:12px;
+  --t-sm:13px;
+  --t-md:14px;
+  --t-lg:17px;
+  --t-xl:22px;
+
+  /* --- Tipografia ----------------------------------------- */
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'IBM Plex Sans', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+
+  /* --- Movimento ------------------------------------------ */
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --ease-soft:cubic-bezier(.2,.7,.2,1);
+  --spring:cubic-bezier(.34,1.5,.5,1);
+
+  /* --- Acessibilidade -------------------------------------
+     --toque é o alvo mínimo para o dedo. 44px é o número que
+     Apple e WCAG usam; abaixo disso o erro de toque cresce
+     bastante em tela pequena. Vale para o que é clicável —
+     ícone decorativo, selo e avatar não precisam.            */
+  --toque:44px;
+
+  /* Compatibilidade: --radius resolvia para 16px na prática
+     (o segundo bloco :root de style.css sobrescrevia os 10px
+     do primeiro). Mantido como apelido de --r-lg para não
+     quebrar quem ainda o usa. Não usar em código novo.       */
+  --radius:var(--r-lg);
+}
+
+/* ------------------------------------------------------------
+   2. CORES — tema padrão
+   ------------------------------------------------------------
+   Estes valores eram declarados em DOIS blocos :root de
+   style.css (linhas 6 e 482). O segundo vinha depois dos blocos
+   [data-theme] e, por ter a mesma especificidade, vencia em
+   TODOS os temas — o que apagava paper/line/shadow de aurora,
+   oceano e citrico. Aqui os dois blocos estão fundidos: o valor
+   final do tema padrão é idêntico ao de antes, e os temas
+   voltam a valer o que declaram.
+   ------------------------------------------------------------ */
+:root{
+  --cover:#14322A; --cover-light:#1F4339;
+  --card:#FFFFFF;
+  --ink:#1C2620; --ink-soft:#5C6B63;
+  /* --ink-faint era #93A099: contraste 2,72 sobre cartão e 2,50
+     sobre papel — reprova no WCAG AA (mínimo 4,5). Some no sol,
+     na tela do celular. Escurecido para 4,97 e 4,57, mantendo a
+     mesma matiz esverdeada. Mesma correção nos 4 temas. */
+  --ink-faint:#69726D;
+  --cover-text:#FFFFFF; --surface:var(--card);
+  --ink-muted:var(--ink-soft); --line-strong:#C7D2CC;
+  --brass:#B8863C; --brass-deep:#8C631F; --brass-soft:#F1E4C8;
+  --rust:#A23B2E; --rust-soft:#F4DCD7;
+  --overdue-card:#FBEAE7; --overdue-line:#E6B9B2;
+  --warn:#D99A0E; --warn-soft:#FBEFC2; --warn-deep:#8A6300;
+  --slate-soft:#E7E9E4;
+  --manut:#3E6B8A; --manut-soft:#DCE7ED;
+  --cover-muted:#B9CCC3;
+  --accent-on-cover:#E2BE78;
+  --accent-contrast:#14322A;
+
+  /* Vindos do segundo bloco :root — são os que valem hoje. */
+  --paper:#F4F6F3;
+  --line:#DDE4DE;
+  --shadow:0 1px 2px rgba(18,45,36,.04),0 10px 28px rgba(18,45,36,.06);
+  --shadow-hover:0 4px 10px rgba(18,45,36,.06),0 18px 42px rgba(18,45,36,.11);
+
+  /* --- Sobreposição escura (galeria em tela cheia) ----------
+     Uma foto em tela cheia precisa de fundo quase opaco e de
+     controles que se leiam sobre qualquer imagem — clara ou
+     escura. Vivem aqui, e não no vitrine.css, porque a página
+     pública fica fora de .rental-shell e não enxerga --rent-*. */
+  --scrim:rgba(8,20,16,.94);
+  --scrim-control:rgba(255,255,255,.10);
+  --scrim-control-hover:rgba(255,255,255,.22);
+  --scrim-control-line:rgba(255,255,255,.28);
+  --scrim-chip:rgba(255,255,255,.12);
+
+  /* Sombra para cima — barra fixa no rodapé do celular. */
+  --shadow-up:0 -6px 22px rgba(18,45,36,.14);
+}
+
+/* ------------------------------------------------------------
+   3. PALETAS DE MÓDULO
+   ------------------------------------------------------------
+   Estas duas moravam dentro de minha-casa.css e aluguel-ui.css.
+   Vieram para cá porque token tem de viver num lugar só — e
+   porque o modo escuro depende de poder trocá-las de fora.
+
+   Continuam com o mesmo escopo de antes (.minha-casa e
+   .rental-shell), então nada muda no visual: só o endereço.
+
+   PRÓXIMO PASSO DO MODO ESCURO: duplicar estes dois blocos sob
+   um seletor de tema escuro com os valores invertidos. Enquanto
+   isso não acontece, o app segue só em claro.
+   ------------------------------------------------------------ */
+/* .mh-modal entra junto: o modal é montado fora de .minha-casa
+   no DOM e não herdaria a paleta. */
+.minha-casa,
+.mh-modal{
+  --mh-night:#17152F;
+  --mh-night-2:#26204D;
+  --mh-night-3:#39306A;
+  --mh-cream:#FFF9EC;
+  --mh-canvas:#F2F0FA;
+  --mh-card:#FFFFFF;
+  --mh-ink:#1E1A35;
+  --mh-muted:#6B6680;
+  --mh-line:#DDD8ED;
+  --mh-lime:#E7F77B;
+  --mh-lime-deep:#B9CF2A;
+  --mh-yellow:#FFD567;
+  --mh-income:#087F69;
+  --mh-income-soft:#D9F4EB;
+  --mh-expense:#C43C55;
+  --mh-expense-soft:#FFE2E7;
+  --mh-violet:#6D5BD0;
+  --mh-violet-soft:#ECE8FF;
+  --mh-shadow:0 12px 36px rgba(29,22,67,.09);
+  --mh-shadow-small:0 4px 15px rgba(29,22,67,.07);
+}
+
+.rental-shell,
+#modalRoot{
+  --rent-night:#102E27;
+  --rent-night-2:#1A473B;
+  --rent-night-3:#276153;
+  --rent-canvas:#EEF3F0;
+  --rent-card:#FFFFFF;
+  --rent-ink:#19251F;
+  --rent-muted:#63736B;
+  --rent-line:#D9E3DD;
+  --rent-lime:#E7F77B;
+  --rent-gold:#F0C76E;
+  --rent-gold-deep:#9C6C15;
+  --rent-violet:#6D5BD0;
+  --rent-danger:#B83D4F;
+  --rent-danger-soft:#FCE2E7;
+  --rent-shadow:0 12px 36px rgba(16,46,39,.09);
+  --rent-shadow-small:0 4px 15px rgba(16,46,39,.07);
+}
+
+[data-theme="aurora"]{
+  --cover:#2B1E4B;--cover-light:#463276;--paper:#F8F6FC;--card:#FFFFFF;
+  --ink:#241B2B;--ink-soft:#665B70;--ink-faint:#776E7E;
+  --brass:#7C4DCC;--brass-deep:#5F2FA8;--brass-soft:#ECE4FF;
+  --warn:#D58B16;--warn-soft:#FFF0CF;--warn-deep:#7D4D00;
+  --slate-soft:#ECE9F0;--manut:#426FA3;--manut-soft:#E1EAF4;
+  --line:#E4DDF0;--cover-muted:#CEC1E5;--accent-on-cover:#D9C3FF;
+  --accent-contrast:#FFFFFF;
+  --shadow:0 1px 2px rgba(43,30,75,.04),0 4px 16px rgba(43,30,75,.08);
+  --shadow-hover:0 2px 6px rgba(43,30,75,.07),0 14px 34px rgba(43,30,75,.15);
+}
+
+[data-theme="oceano"]{
+  --cover:#083B4C;--cover-light:#0E566C;--paper:#F2F9FA;--card:#FFFFFF;
+  --ink:#15323A;--ink-soft:#526A70;--ink-faint:#637175;
+  --brass:#007F83;--brass-deep:#006166;--brass-soft:#D7F2F1;
+  --warn:#D98311;--warn-soft:#FFF0D5;--warn-deep:#7B4900;
+  --slate-soft:#E1ECEE;--manut:#286B9B;--manut-soft:#DCEAF4;
+  --line:#D7E6E8;--cover-muted:#B6D2D8;--accent-on-cover:#7BE0DE;
+  --accent-contrast:#FFFFFF;
+  --shadow:0 1px 2px rgba(8,59,76,.04),0 4px 16px rgba(8,59,76,.08);
+  --shadow-hover:0 2px 6px rgba(8,59,76,.07),0 14px 34px rgba(8,59,76,.15);
+}
+
+[data-theme="citrico"]{
+  --cover:#213B20;--cover-light:#345D31;--paper:#F7FAF0;--card:#FFFFFF;
+  --ink:#213021;--ink-soft:#596B58;--ink-faint:#687366;
+  --brass:#527A12;--brass-deep:#3E5C0B;--brass-soft:#E5F2C7;
+  --warn:#D68B05;--warn-soft:#FFF0CC;--warn-deep:#795000;
+  --slate-soft:#E7ECE0;--manut:#3C728C;--manut-soft:#DFEBF0;
+  --line:#DDE6CF;--cover-muted:#C3D6B8;--accent-on-cover:#B9E75F;
+  --accent-contrast:#FFFFFF;
+  --shadow:0 1px 2px rgba(33,59,32,.04),0 4px 16px rgba(33,59,32,.08);
+  --shadow-hover:0 2px 6px rgba(33,59,32,.07),0 14px 34px rgba(33,59,32,.15);
+}
+
+/* ------------------------------------------------------------
+   TEMA ROXO (Parte 2). "Tudo roxo": além dos tokens semânticos
+   (base, igual ao violeta já validado no contraste), recolore também
+   a casca dos Aluguéis (--rent-*), que por padrão é verde. A Minha
+   Casa e o Comercial já são roxos. As cores semânticas (vermelho,
+   verde de sucesso, amarelo) não mudam. Ver USER_THEME_CHOICES. */
+[data-theme="roxo"]{
+  --cover:#2B1E4B;--cover-light:#463276;--paper:#F8F6FC;--card:#FFFFFF;
+  --ink:#241B2B;--ink-soft:#665B70;--ink-faint:#776E7E;
+  --brass:#7C4DCC;--brass-deep:#5F2FA8;--brass-soft:#ECE4FF;
+  --warn:#D58B16;--warn-soft:#FFF0CF;--warn-deep:#7D4D00;
+  --slate-soft:#ECE9F0;--manut:#426FA3;--manut-soft:#E1EAF4;
+  --line:#E4DDF0;--cover-muted:#CEC1E5;--accent-on-cover:#D9C3FF;
+  --accent-contrast:#FFFFFF;
+  --shadow:0 1px 2px rgba(43,30,75,.04),0 4px 16px rgba(43,30,75,.08);
+  --shadow-hover:0 2px 6px rgba(43,30,75,.07),0 14px 34px rgba(43,30,75,.15);
+}
+[data-theme="roxo"] .rental-shell,
+[data-theme="roxo"] #modalRoot{
+  --rent-night:#201A40;--rent-night-2:#2C2456;--rent-night-3:#3B3170;
+  --rent-canvas:#F1EEF9;--rent-card:#FFFFFF;--rent-ink:#211B38;--rent-muted:#6A6486;
+  --rent-line:#E2DCF1;--rent-lime:#C6B4FF;--rent-gold:#E7B4EF;--rent-gold-deep:#7A3E9C;
+  --rent-violet:#8A6DEA;--rent-danger:#B83D4F;--rent-danger-soft:#FCE2E7;
+  --rent-shadow:0 12px 36px rgba(32,26,64,.12);--rent-shadow-small:0 4px 15px rgba(32,26,64,.09);
+}

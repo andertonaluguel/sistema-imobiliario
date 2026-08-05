@@ -43,7 +43,11 @@ function matchingHousesForInterest(item){
 function matchingInterestsForHouse(house){
   const priority={quente:0,visita:1,conversando:2,novo:3};
   return state.interests.filter(function(i){return activeInterest(i)&&interestMatchesHouse(i,house);})
-    .sort(function(a,b){return (priority[a.status]||9)-(priority[b.status]||9)||a.nome.localeCompare(b.nome);});
+    .sort(function(a,b){
+      const pa=priority[a.status]===undefined?9:priority[a.status];
+      const pb=priority[b.status]===undefined?9:priority[b.status];
+      return pa-pb||a.nome.localeCompare(b.nome);
+    });
 }
 
 function renderHouseLeadMatches(house){
@@ -84,15 +88,16 @@ function interestPreferenceLabels(item){
 
 function renderInterestCard(item){
   const matches=matchingHousesForInterest(item),prefs=interestPreferenceLabels(item);
+  const canEdit=canOperateProperties();
   return '<article class="interest-card status-'+esc(item.status)+'">'+
-    '<div class="interest-card-head"><div><span class="chip chip-'+interestStatusTone(item.status)+'">'+esc(interestStatusLabel(item.status))+'</span><h3>'+esc(item.nome)+'</h3>'+(item.telefone?'<a href="javascript:void(0)" onclick="openInterestWhatsapp(\''+item.id+'\')">'+esc(item.telefone)+'</a>':'<span class="muted">Telefone não informado</span>')+'</div>'+ 
-      '<button class="icon-action" onclick="openEditInterestModal(\''+item.id+'\')" aria-label="Editar">Editar</button></div>'+ 
+    '<div class="interest-card-head"><div><span class="chip chip-'+interestStatusTone(item.status)+'">'+esc(interestStatusLabel(item.status))+'</span><h3>'+esc(item.nome)+'</h3>'+(item.telefone?'<span>'+esc(item.telefone)+'</span>':'<span class="muted">Telefone não informado</span>')+'</div>'+
+      '<button class="icon-action" onclick="openEditInterestModal(\''+item.id+'\')" aria-label="'+(canEdit?'Editar':'Ver')+'">'+(canEdit?'Editar':'Ver')+'</button></div>'+
     '<div class="interest-preferences">'+(prefs.length?prefs.map(function(x){return '<span><i class="feature-icon">'+x.icon+'</i>'+esc(x.label)+'</span>';}).join(''):'<span class="feature-empty">Sem preferências informadas</span>')+'</div>'+ 
     (item.observacoes?'<p class="interest-notes">'+esc(item.observacoes)+'</p>':'')+
     '<div class="interest-matches"><span>CASAS VAGAS COMPATÍVEIS</span><strong>'+matches.length+'</strong></div>'+ 
     (matches.length?'<div class="interest-house-list">'+matches.map(function(h){return '<button onclick="openHouse(\''+h.id+'\')">'+esc(h.nome)+' <b>'+fmtMoney(h.aluguelValor)+'</b></button>';}).join('')+'</div>':'<p class="muted">Nenhuma combinação no momento.</p>')+
-    '<div class="interest-actions">'+(item.telefone?'<button class="btn btn-ghost btn-sm" onclick="openInterestWhatsapp(\''+item.id+'\')">WhatsApp</button>':'')+
-      (activeInterest(item)?'<button class="btn btn-primary btn-sm" onclick="openConvertInterestModal(\''+item.id+'\')">Transformar em inquilino</button>':'')+'</div>'+ 
+    (canEdit?'<div class="interest-actions">'+(item.telefone?'<button class="btn btn-ghost btn-sm" onclick="openInterestWhatsapp(\''+item.id+'\')">WhatsApp</button>':'')+
+      (activeInterest(item)?'<button class="btn btn-primary btn-sm" onclick="openConvertInterestModal(\''+item.id+'\')">Transformar em inquilino</button>':'')+'</div>':'')+
   '</article>';
 }
 
@@ -106,7 +111,7 @@ function renderInterestsView(){
   const activeCount=state.interests.filter(activeInterest).length;
   return '<div class="page-header"><div><div class="eyebrow">FUTUROS INQUILINOS</div>'+pageTitleWithIcon(tenantIconSvg(),'Interessados em alugar')+
       '<p class="page-sub">Guarde contatos e encontre rapidamente as casas vagas que combinam com cada pessoa.</p></div>'+ 
-      '<button class="btn btn-primary btn-sm" onclick="openAddInterestModal()">+ Novo interessado</button></div>'+ 
+      (canOperateProperties()?'<button class="btn btn-primary btn-sm" onclick="openAddInterestModal()">+ Novo interessado</button>':'')+'</div>'+
     '<div class="interest-summary"><strong>'+activeCount+'</strong><span>interessado'+(activeCount===1?'':'s')+' em acompanhamento</span></div>'+ 
     '<div class="toolbar"><div class="search-wrap"><span class="search-ico">'+FICO.search+'</span><input class="search-input" placeholder="Buscar nome, telefone ou observação…" value="'+esc(state.interestSearch||'')+'" onchange="setInterestSearch(this.value)"></div>'+ 
       '<div class="filter-chips"><button class="filter-chip'+(filter==='ativos'?' active':'')+'" onclick="setInterestFilter(\'ativos\')">Em andamento</button>'+INTEREST_STATUSES.map(function(s){return '<button class="filter-chip'+(filter===s[0]?' active':'')+'" onclick="setInterestFilter(\''+s[0]+'\')">'+esc(s[1])+'</button>';}).join('')+'<button class="filter-chip'+(filter==='todos'?' active':'')+'" onclick="setInterestFilter(\'todos\')">Todos</button></div></div>'+ 
@@ -138,41 +143,85 @@ function readInterestForm(){
     precisaGaragem:document.getElementById('f_interest_garage').checked,precisaQuintal:document.getElementById('f_interest_yard').checked,
     precisaAreaServico:document.getElementById('f_interest_laundry').checked,observacoes:document.getElementById('f_interest_notes').value.trim()};
 }
-function openAddInterestModal(){
-  openModal('<h3 class="modal-title">Novo interessado</h3><p class="modal-text">Cadastre o que essa pessoa procura. O aplicativo mostrará as casas compatíveis automaticamente.</p>'+interestFormHtml({status:'novo'})+
-    '<div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveNewInterest()">Cadastrar</button></div></div>');
+/* `prefill` chega preenchido quando o cadastro nasce de um contato do site
+   (ver converterLeadEmInteressado, em vitrine.js). `origemLeadId` liga os
+   dois depois de salvar, para o mesmo contato não ser cadastrado de novo. */
+function openAddInterestModal(prefill,origemLeadId){
+  if(!requirePropertyPermission())return;
+  const base=Object.assign({status:'novo'},prefill||{});
+  const veioDoSite=!!origemLeadId;
+  openModal('<h3 class="modal-title">Novo interessado</h3>'+
+    '<p class="modal-text">'+(veioDoSite
+      ? 'Contato recebido pelo site. Complete o que essa pessoa procura para o aplicativo mostrar as casas compatíveis.'
+      : 'Cadastre o que essa pessoa procura. O aplicativo mostrará as casas compatíveis automaticamente.')+'</p>'+
+    interestFormHtml(base)+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="saveNewInterest('+
+        (veioDoSite?'\''+origemLeadId+'\'':'')+')">Cadastrar</button>'+
+    '</div></div>');
 }
-async function saveNewInterest(){
+async function saveNewInterest(origemLeadId){
+  if(!requirePropertyPermission())return;
   const item=readInterestForm(); if(!item.nome){showToast('Informe o nome do interessado.','error');return;}
-  try{const saved=await db.insertInterest(item);state.interests.unshift(saved);closeModal();render();showToast('Interessado cadastrado.','success');}
+  try{
+    const saved=await db.insertInterest(item);
+    state.interests.unshift(saved);
+    /* O vínculo com o lead é acessório: se ele falhar, o interessado já
+       está cadastrado e não se perde nada. Por isso não derruba o fluxo. */
+    if(origemLeadId){
+      try{
+        await db.setVitrineLeadInteressado(origemLeadId,saved.id);
+        const lead=(state.vitrine.leads||[]).find(function(x){return x.id===origemLeadId;});
+        if(lead){ lead.interessadoId=saved.id; if(lead.status==='novo') lead.status='contatado'; }
+      }catch(vinculo){ console.warn('Lead não pôde ser marcado como convertido:',vinculo); }
+    }
+    closeModal();render();showToast('Interessado cadastrado.','success');
+  }
   catch(e){console.error(e);showToast('Não foi possível cadastrar o interessado.','error');}
 }
 function openEditInterestModal(id){
+  const canEdit=canOperateProperties();
   const item=state.interests.find(function(x){return x.id===id;});if(!item)return;
+  if(!canEdit){
+    const matches=matchingHousesForInterest(item);
+    openModal('<h3 class="modal-title">Consultar interessado</h3>'+
+      '<p class="modal-text">Sua função permite somente consultar este cadastro.</p>'+
+      '<div class="notice-box"><strong>'+esc(item.nome)+'</strong><br>'+esc(item.telefone||'Telefone não informado')+
+      '<br>'+esc(interestStatusLabel(item.status))+(item.observacoes?'<br>'+esc(item.observacoes):'')+'</div>'+
+      '<p class="modal-text">'+matches.length+' casa(s) vaga(s) compatível(is).</p>'+
+      '<div class="modal-actions"><span></span><button class="btn btn-primary" onclick="closeModal()">Fechar</button></div>');
+    return;
+  }
   openModal('<h3 class="modal-title">Editar interessado</h3>'+interestFormHtml(item)+
     '<div class="modal-actions"><button class="btn btn-danger" onclick="confirmDeleteInterest(\''+id+'\')">Excluir</button><div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveInterestEdit(\''+id+'\')">Salvar</button></div></div>');
 }
 async function saveInterestEdit(id){
+  if(!requirePropertyPermission())return;
   const original=state.interests.find(function(x){return x.id===id;}),next=Object.assign({},original,readInterestForm());
   if(!next.nome){showToast('Informe o nome do interessado.','error');return;}
   try{await db.updateInterest(next);Object.assign(original,next);closeModal();render();showToast('Interessado atualizado.','success');}
   catch(e){console.error(e);showToast('Não foi possível salvar.','error');}
 }
 function confirmDeleteInterest(id){
+  if(!requirePropertyPermission())return;
   const item=state.interests.find(function(x){return x.id===id;});if(!item)return;
   openModal('<h3 class="modal-title">Excluir '+esc(item.nome)+'?</h3><p class="modal-text">O cadastro e as observações serão removidos. Isso não pode ser desfeito.</p><div class="modal-actions"><span></span><div class="modal-actions-right"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="deleteInterest(\''+id+'\')">Excluir</button></div></div>');
 }
 async function deleteInterest(id){
+  if(!requirePropertyPermission())return;
   try{await db.deleteInterest(id);state.interests=state.interests.filter(function(x){return x.id!==id;});closeModal();render();showToast('Interessado excluído.','success');}
   catch(e){console.error(e);showToast('Não foi possível excluir.','error');}
 }
 function openInterestWhatsapp(id){
+  if(!requirePropertyPermission())return;
   const item=state.interests.find(function(x){return x.id===id;});if(!item||!item.telefone)return;
   let phone=item.telefone.replace(/\D/g,'');if(phone.length<=11)phone='55'+phone;
   window.open('https://wa.me/'+phone,'_blank');
 }
 
 function openConvertInterestModal(id){
+  if(!requirePropertyPermission())return;
   const item=state.interests.find(function(x){return x.id===id;}),vacant=state.houses.filter(function(h){return h.status==='vaga';});
   if(!item)return;
   if(!vacant.length){showToast('Não há casa vaga para iniciar o contrato.','error');return;}
@@ -185,11 +234,13 @@ function openConvertInterestModal(id){
   updateContractFormPreview();
 }
 function syncInterestContractDefaults(){
+  if(!requirePropertyPermission())return;
   const select=document.getElementById('f_interest_house'),h=select&&state.houses.find(function(x){return x.id===select.value;});if(!h)return;
   document.getElementById('f_contract_valor').value=Number(h.aluguelValor)||0;
   document.getElementById('f_contract_dia').value=h.diaVencimento||5;updateContractFormPreview();
 }
 async function saveConvertInterest(id){
+  if(!requirePropertyPermission())return;
   const item=state.interests.find(function(x){return x.id===id;}),houseId=document.getElementById('f_interest_house').value,draft=readContractForm();
   if(!item)return;
   const validation=validateContractDraft(state.houses.find(function(h){return h.id===houseId;}),draft,'');

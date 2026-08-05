@@ -199,14 +199,12 @@
     positionPill();
     positionTab();
 
-    if(viewChanged){
-      var dir = (navOrder[state.view] || 0) - (navOrder[prevView] || 0);
-      entrance(dir > 0 ? 1 : dir < 0 ? -1 : 0);
-      // o gráfico e os stat-cards vivem no Painel e no Financeiro
-      if(state.view === 'dashboard' || state.view === 'financeiro'){ countUp(); growBars(); }
-      if(state.view === 'houseDetail'){ tabPanelEnter(); }
-    } else if(tabChanged){
-      tabPanelEnter();
+    /* Parte 1 — fim do piscar ao navegar: a troca de página (e de aba do
+       detalhe) é imediata, sem entrada deslizante/esmaecida do conteúdo.
+       Continuam animados: janelas, toasts, ripple e o retorno dos botões
+       (CSS/local) e a abertura das seções recolhíveis (logo abaixo). */
+    if(viewChanged || tabChanged){
+      /* intencionalmente vazio: nada a animar na troca de página/aba */
     }
 
     // abertura animada das seções recolhíveis (não no primeiro paint, para não piscar)

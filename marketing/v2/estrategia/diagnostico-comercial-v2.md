@@ -2,9 +2,16 @@
 
 **Produto:** Aluguel — plataforma de gestão de locações
 **Versão analisada:** Aluguéis 1.3 (`config.js:14`)
-**Data:** 26 de julho de 2026
+**Data:** 26 de julho de 2026 · **revisto em 31 de julho de 2026**
 **Substitui:** `../../estrategia/diagnostico-comercial.md` (versão 1.0, 22/07/2026)
 **Status:** fonte de verdade para todos os materiais da versão 2
+
+> **Revisão de 31/07/2026.** As seções 9 e 10 foram conferidas linha a linha
+> contra o código. Três itens listados como pendentes já estavam resolvidos
+> — inclusive o bloqueio de contratos por colaborador, que impedia vender o
+> plano Corretora. Um bloqueio real e não documentado apareceu no lugar (a
+> escrita da Vitrine pela equipe) e foi corrigido. A galeria pública saiu de
+> "em desenvolvimento" para "funciona hoje".
 
 > A versão 1.0 continua correta na disciplina de claims e no ICP do pequeno proprietário. Esta versão 2.0 acrescenta o que mudou: a interface foi redesenhada, o aplicativo virou multi-produto e entra um terceiro público comercial — a pequena corretora. Nada aqui promete recurso que o código não sustente.
 
@@ -175,7 +182,7 @@ Fonte: `config.js:16-22` e `migracao-versao-comercial-v1.sql:245-251`.
 - Premium é **até 100 casas**, nunca "ilimitado".
 - Não anunciar recurso exclusivo por plano enquanto o bloqueio não estiver implementado e testado. Hoje o código diferencia apenas quantidade de casas e armazenamento.
 - Preço, periodicidade, reajuste, cancelamento e reembolso seguem como `[INSERIR PREÇO]`, `[INSERIR PERIODICIDADE]` e `[INSERIR CONDIÇÃO DE CANCELAMENTO]` até aprovação.
-- **O plano Corretora não pode ser vendido antes da correção descrita na seção 9.**
+- **O plano Corretora depende da correção descrita na seção 9** — a da escrita da Vitrine por colaborador, aplicada em 31/07/2026. Antes de vender, confirmar que `migracao-vitrine-equipe.sql` rodou no banco daquele cliente.
 
 ### Forma de contratação recomendada
 
@@ -257,11 +264,19 @@ Tabela integral herdada da versão 1.0, seção 9. Repetida aqui a parte que mai
 
 | Item | Situação | Impacto comercial |
 |---|---|---|
-| **Contratos por colaborador** | As RPCs de iniciar e encerrar contrato validam `auth.uid()` e exigem que seja o proprietário. O colaborador não consegue operar contratos. | **Bloqueia o plano Corretora e a promessa de equipe.** Corrigir e testar ponta a ponta antes de vender |
-| Ordenação do status "quente" | `priority.quente = 0` vira 9 pelo uso de `\|\|` (`interests.js:43-46`) | Interessados prioritários aparecem no fim da lista. Corrigir antes de demonstrar o funil |
-| Calendário em meses históricos | A seleção usa status e vencimento atuais da casa (`calendar.js:14-18`) | Não usar meses passados em demonstração |
-| Conversão de interessado | Chamadas separadas; o contrato pode ser criado sem atualizar o lead em caso de falha (`interests.js:192-209`) | Demonstrar com atenção; não prometer atomicidade |
+| ~~**Contratos por colaborador**~~ | **Resolvido — revisto em 31/07/2026.** As RPCs vigentes `iniciar_contrato_gestao` (`migracao-financeiro-v2.sql:2345`) e `encerrar_contrato_gestao` (`:2484`) usam `pode_operar_imoveis()` e aceitam colaborador. A linha anterior descrevia a 1ª geração das RPCs (`migracao-contratos-cobrancas.sql:152`), já substituída duas vezes | Não bloqueia mais |
+| **Escrita da Vitrine por colaborador** | **Achado em 31/07/2026.** As tabelas do módulo nasciam com `user_id ... default auth.uid()` e a policy compara com `usuario_proprietario_id(auth.uid())`: iguais para o dono, diferentes para a equipe. Todo insert do colaborador falhava por policy e por FK; em `vitrine_cidades` gravava e sumia para o dono | Era **este** o bloqueio real do plano Corretora. Corrigido por `migracao-vitrine-equipe.sql` e pelos writers de `supabase.js` |
+| **Perfil público por colaborador** | `salvar_perfil_publico` exige `usuario_proprietario_id(auth.uid()) = auth.uid()` (`migracao-versao-comercial-v1.sql:881`) | Desenho, não defeito: slug e marca são do dono da conta. Comunicar assim |
+| ~~Ordenação do status "quente"~~ | **Resolvido — conferido em 31/07/2026.** O código trata a ausência de status explicitamente (`priority[a.status]===undefined?9:…`, `interests.js:44-48`). O `\|\|` que zerava a prioridade não existe mais | Pode demonstrar o funil |
+| ~~Calendário em meses históricos~~ | **Resolvido — conferido em 31/07/2026.** `vencimentosDoDia` resolve o contrato daquele mês (`contractForMonth`, `calendar.js:15-24`) e o teste `run-tests.mjs` trava esse comportamento | Mês passado pode entrar na demonstração |
+| Conversão de interessado | **Mitigado, não atômico.** Se o contrato falhar, o inquilino recém-criado é apagado; se o contrato der certo e a atualização do lead falhar, a tela avisa em vez de mentir (`interests.js:216-236`) | Pode demonstrar. Continua valendo não prometer atomicidade |
+| Backup e restauração | **Corrigido em 31/07/2026.** A restauração reinseria os imóveis com lista explícita de colunas e apagava `imoveis.tipo` e `inquilinos.rg` em silêncio. Rode de novo `migracao-backup-v7.sql` em cada banco | Nenhum cliente deve restaurar backup num banco que ainda não recebeu a revisão |
 | Premium | Limite técnico de 100 casas (`config.js:18-22`) | Nunca dizer "ilimitado" |
+
+**Como esta tabela foi conferida:** cada linha foi reaberta no código em
+31/07/2026. Duas descreviam defeitos que já não existiam — documento de
+risco desatualizado faz deixar de vender o que já funciona, e é tão caro
+quanto documento nenhum. Refazer esta conferência a cada rodada.
 
 ---
 
@@ -273,23 +288,33 @@ Estágios declarados. Nenhuma data é prometida sem aprovação.
 
 Painel, carteira de imóveis, ficha por abas, inquilinos, contratos, pagamentos, recibos em PDF, energia por leitura, despesas, reajustes, interessados, agenda, fotos, documentos, portal do inquilino, catálogo público, equipe, backup, consulta offline e PWA.
 
-### Em desenvolvimento — **Galeria de casas disponíveis**
+### Funciona hoje — **Vitrine, o site da corretora** *(revisto em 31/07/2026)*
 
-Evolução do catálogo público que já existe (`features.js:86-115`, `houses.js:470-510`). Escopo proposto:
+O que era "galeria em desenvolvimento" virou módulo em produção, com entrada
+por cidade e as duas finalidades:
 
-- Grade de fotos com filtro por valor, quartos e bairro.
-- Página individual por imóvel, com galeria e características.
-- Link e QR Code por casa, para anúncio, placa e status de WhatsApp.
-- Formulário de interesse que entra direto no funil de Interessados.
-- Publicação automática quando a casa fica Vaga; saída automática quando é alugada.
-- Para a corretora: galeria com logo e cores próprias.
+- Entrada por cidade, abas Alugar e Comprar, sete filtros e quatro ordenações.
+- Página do imóvel com galeria em tela cheia, mapa, custo mensal e parecidos.
+- Link próprio por anúncio que chega no WhatsApp com foto grande e preço.
+- Formulário de interesse com consentimento, e contador de visitas por anúncio.
+- Rodapé com CRECI e página de privacidade.
+- Terreno como tipo, com frente, fundo, topografia e murado.
+
+O que ainda **não** existe e não pode ser prometido: publicação automática
+quando a casa fica vaga (a Vitrine tem cadastro próprio, separado da gestão,
+de propósito — ver seção 3), lead virando Interessado sozinho, QR Code por
+casa, e galeria com logo e cores da corretora.
 
 ### Planejado
 
+- Ponte entre a gestão e a Vitrine: publicar o imóvel administrado com um
+  clique, e o lead do site virando Interessado.
+- Relatório do proprietário-cliente, para a corretora prestar contas — por
+  link com prazo, sem exigir login de quem só quer ver o extrato.
 - Minha Casa liberada para contas de cliente.
-- Plano Corretora, após a correção de contratos por colaborador.
+- Plano Corretora, agora que a escrita da Vitrine pela equipe foi corrigida.
 - Lembretes de vencimento dentro do aplicativo.
-- Relatório do proprietário-cliente, para a corretora prestar contas.
+- Logo e cores próprios da corretora no site público.
 
 ### Em estudo — sem compromisso
 
@@ -327,7 +352,7 @@ Todo material novo passa por estas verificações:
 - [ ] Chama a compatibilidade de interessados de "critérios objetivos", nunca de IA.
 - [ ] Premium é até 100 casas.
 - [ ] Minha Casa e Comercial aparecem só como roadmap, nunca como recurso incluído.
-- [ ] O plano Corretora não é vendido antes da correção de contratos por colaborador.
+- [ ] O plano Corretora só é vendido para banco que já recebeu `migracao-vitrine-equipe.sql` — sem ela, o corretor não grava nada na Vitrine.
 - [ ] Lima e ouro claro não são usados como cor de texto sobre fundo claro.
 - [ ] Sobre o canvas, o texto secundário usa `#5A6A62` e o destaque usa `#8A5F12`.
 - [ ] Há um único CTA primário dominante por peça.

@@ -1,0 +1,15 @@
+{
+  "name": "aluguel",
+  "version": "1.3.0",
+  "private": true,
+  "description": "Aluguel — gestão de locações. Aplicativo web sem dependências: os scripts abaixo só usam o Node.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node tests/run-tests.mjs",
+    "build": "node build.mjs",
+    "publicar": "npm test && npm run build"
+  }
+}

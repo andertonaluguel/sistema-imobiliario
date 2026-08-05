@@ -109,7 +109,12 @@ Depois publique no Netlify como você já faz.
 
 1. **Endereço público** — menu ⋯ → Configurações do app → *Anúncios públicos* →
    preencha o endereço público e o WhatsApp. É o que forma o link da sua vitrine.
-2. **Aba Vitrine → Anunciantes → + Anunciante** — o dono do imóvel. Sem login, é cadastro seu.
+2. **Proprietários → + Novo proprietário** — o dono do imóvel. Sem login, é cadastro
+   seu, e é o **mesmo** dos imóveis administrados: quem você cadastra aqui aparece na
+   gestão, e vice-versa. A aba *Proprietários* da Vitrine mostra a mesma lista com os
+   anúncios e as taxas de cada um.
+   *(Até 31/07/2026 este cadastro se chamava "Anunciante" e era separado. Os dois foram
+   unificados; anunciantes antigos sem proprietário aparecem num aviso na aba.)*
 3. **Aba Vitrine → + Novo anúncio** — imóvel, valores, endereço e descrição.
    - A coordenada põe o pino no mapa. Pegue no Google Maps: clique com o botão direito
      sobre o imóvel e copie os dois números.

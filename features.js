@@ -12,41 +12,19 @@ function copyTextValue(value,successMessage){
   return Promise.resolve();
 }
 
-/* ---------- equipe ---------- */
-function renderTeamRows(){
-  if(!state.team.length)return '<div class="empty-state compact"><span>Nenhum funcionário cadastrado.</span></div>';
-  return '<div class="team-list">'+state.team.map(function(member){
-    const status=member.aceito?(member.ativo?'Ativo':'Bloqueado'):'Convite pendente';
-    return '<div class="team-row"><div><strong>'+esc(member.nome)+'</strong><span>'+esc(member.email)+'</span></div>'+ 
-      '<span class="tag '+(member.aceito&&member.ativo?'tag-green':'')+'">'+status+'</span>'+ 
-      (member.aceito?'<button class="btn btn-ghost btn-sm" onclick="toggleTeamMember(\''+member.userId+'\','+(!member.ativo)+')">'+(member.ativo?'Bloquear':'Reativar')+'</button>':
-        '<button class="btn btn-ghost btn-sm" onclick="cancelTeamInvite(\''+member.conviteId+'\')">Cancelar</button>')+'</div>';
-  }).join('')+'</div>';
-}
-function openTeamModal(){
-  if(!state.isPrimaryOwner)return;
-  openModal('<h3 class="modal-title">Funcionários</h3><p class="modal-text">Cada funcionário cria o próprio login com o e-mail informado e acessa as mesmas casas desta conta. Limite técnico: 10 acessos e convites.</p>'+ 
-    '<div class="field-row"><label class="field"><span>Nome</span><input id="team_name" placeholder="Nome do funcionário"></label>'+ 
-    '<label class="field"><span>E-mail</span><input id="team_email" type="email" placeholder="funcionario@email.com"></label></div>'+ 
-    '<button class="btn btn-primary" onclick="inviteTeamMember()">Adicionar funcionário</button>'+renderTeamRows()+
-    '<div class="team-instructions"><strong>Como o funcionário entra</strong><span>1. Cadastre o e-mail acima.</span><span>2. Envie o endereço do aplicativo.</span><span>3. Ele escolhe “Administrador” e toca em “Criar conta” usando exatamente o mesmo e-mail.</span></div>'+ 
-    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Fechar</button><button class="btn btn-ghost" onclick="copyTextValue(location.origin+location.pathname,\'Link do app copiado.\')">Copiar link do app</button></div>');
-}
-async function inviteTeamMember(){
-  const nome=((document.getElementById('team_name')||{}).value||'').trim();
-  const email=((document.getElementById('team_email')||{}).value||'').trim().toLowerCase();
-  if(!nome||!email||email.indexOf('@')<1){showToast('Informe nome e e-mail válidos.','error');return;}
-  try{await db.inviteTeamMember(nome,email);state.team=await db.listTeam();openTeamModal();showToast('Funcionário preparado. Envie o link do app.','success');}
-  catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível adicionar.','error');}
-}
-async function toggleTeamMember(userId,active){
-  try{await db.updateTeamMember(userId,active);state.team=await db.listTeam();openTeamModal();showToast(active?'Funcionário reativado.':'Acesso bloqueado.','success');}
-  catch(e){console.error(e);showToast('Não foi possível alterar o acesso.','error');}
-}
-async function cancelTeamInvite(inviteId){
-  try{await db.cancelTeamInvite(inviteId);state.team=await db.listTeam();openTeamModal();showToast('Convite cancelado.','success');}
-  catch(e){console.error(e);showToast('Não foi possível cancelar.','error');}
-}
+/* ---------- equipe ----------
+   A tela de equipe mora em app.js:760-836, com os quatro papéis
+   (administrador, financeiro, operacional, leitura).
+
+   Aqui existia uma segunda versão dela, anterior aos papéis: convidava
+   funcionário sem função nenhuma. Ela só não valia porque o app.js é
+   carregado depois no index.html e sobrescrevia cada função — ou seja, o
+   controle de permissão da equipe dependia da ORDEM DAS TAGS DE SCRIPT.
+   Trocar duas linhas do HTML, ou um dia empacotar os arquivos, faria o
+   app voltar em silêncio para a versão sem papéis.
+
+   O banco continuaria protegendo (o papel é validado por gatilho no
+   PostgreSQL), mas a tela mentiria. Removida em 31/07/2026. */
 
 /* ---------- PIX Copia e Cola (BR Code estatico) ---------- */
 function pixField(id,value){value=String(value==null?'':value);return id+String(value.length).padStart(2,'0')+value;}

@@ -1,0 +1,693 @@
+{
+  "version": 3,
+  "exportedAt": "2026-07-20T12:00:00.000Z",
+  "houses": [
+    {
+      "id": "00000000-0000-4000-8000-000000000200",
+      "nome": "Casa do Centro",
+      "endereco": "Rua Direita, 120 — Centro, Lajedo/PE",
+      "status": "alugada",
+      "aluguelValor": 750,
+      "diaVencimento": 1,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000100",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000100"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001000",
+          "mes": "2026-01",
+          "valorPago": 750,
+          "dataPagamento": "2026-01-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001001",
+          "mes": "2026-02",
+          "valorPago": 750,
+          "dataPagamento": "2026-02-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001002",
+          "mes": "2026-03",
+          "valorPago": 750,
+          "dataPagamento": "2026-03-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001003",
+          "mes": "2026-04",
+          "valorPago": 750,
+          "dataPagamento": "2026-04-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001004",
+          "mes": "2026-05",
+          "valorPago": 750,
+          "dataPagamento": "2026-05-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001005",
+          "mes": "2026-06",
+          "valorPago": 750,
+          "dataPagamento": "2026-06-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001006",
+          "mes": "2026-07",
+          "valorPago": 750,
+          "dataPagamento": "2026-07-01"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000201",
+      "nome": "Casa da Praça",
+      "endereco": "Praça Miguel Arraes, 45 — Centro, Lajedo/PE",
+      "status": "alugada",
+      "aluguelValor": 900,
+      "diaVencimento": 30,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000101",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000101"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001100",
+          "mes": "2026-01",
+          "valorPago": 900,
+          "dataPagamento": "2026-01-28"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001101",
+          "mes": "2026-02",
+          "valorPago": 900,
+          "dataPagamento": "2026-02-28"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001102",
+          "mes": "2026-03",
+          "valorPago": 900,
+          "dataPagamento": "2026-03-28"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001103",
+          "mes": "2026-04",
+          "valorPago": 900,
+          "dataPagamento": "2026-04-28"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001104",
+          "mes": "2026-05",
+          "valorPago": 900,
+          "dataPagamento": "2026-05-28"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001105",
+          "mes": "2026-06",
+          "valorPago": 900,
+          "dataPagamento": "2026-06-28"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001106",
+          "mes": "2026-07",
+          "valorPago": 900,
+          "dataPagamento": "2026-07-28"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000202",
+      "nome": "Casa do Alto",
+      "endereco": "Rua Sao Jose, 88 — Alto da Conceicao, Lajedo/PE",
+      "status": "alugada",
+      "aluguelValor": 680,
+      "diaVencimento": 10,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000102",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000102"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001200",
+          "mes": "2026-01",
+          "valorPago": 680,
+          "dataPagamento": "2026-01-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001201",
+          "mes": "2026-02",
+          "valorPago": 680,
+          "dataPagamento": "2026-02-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001202",
+          "mes": "2026-03",
+          "valorPago": 680,
+          "dataPagamento": "2026-03-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001203",
+          "mes": "2026-04",
+          "valorPago": 680,
+          "dataPagamento": "2026-04-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001204",
+          "mes": "2026-05",
+          "valorPago": 680,
+          "dataPagamento": "2026-05-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001205",
+          "mes": "2026-06",
+          "valorPago": 680,
+          "dataPagamento": "2026-06-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001206",
+          "mes": "2026-07",
+          "valorPago": 680,
+          "dataPagamento": "2026-07-10"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000203",
+      "nome": "Casa Nova",
+      "endereco": "Rua das Flores, 15 — Jardim, Jupi/PE",
+      "status": "alugada",
+      "aluguelValor": 820,
+      "diaVencimento": 4,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000103",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000103"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001300",
+          "mes": "2026-01",
+          "valorPago": 820,
+          "dataPagamento": "2026-01-04"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001301",
+          "mes": "2026-02",
+          "valorPago": 820,
+          "dataPagamento": "2026-02-04"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001302",
+          "mes": "2026-03",
+          "valorPago": 820,
+          "dataPagamento": "2026-03-04"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001303",
+          "mes": "2026-04",
+          "valorPago": 820,
+          "dataPagamento": "2026-04-04"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001304",
+          "mes": "2026-05",
+          "valorPago": 820,
+          "dataPagamento": "2026-05-04"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001305",
+          "mes": "2026-06",
+          "valorPago": 820,
+          "dataPagamento": "2026-06-04"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001306",
+          "mes": "2026-07",
+          "valorPago": 820,
+          "dataPagamento": "2026-07-04"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000204",
+      "nome": "Kitnet da Rodoviaria",
+      "endereco": "Av. Getulio Vargas, 300 — Jupi/PE",
+      "status": "alugada",
+      "aluguelValor": 450,
+      "diaVencimento": 11,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000104",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000104"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001400",
+          "mes": "2026-01",
+          "valorPago": 450,
+          "dataPagamento": "2026-01-11"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001401",
+          "mes": "2026-02",
+          "valorPago": 450,
+          "dataPagamento": "2026-02-11"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001402",
+          "mes": "2026-03",
+          "valorPago": 450,
+          "dataPagamento": "2026-03-11"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001403",
+          "mes": "2026-04",
+          "valorPago": 450,
+          "dataPagamento": "2026-04-11"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001404",
+          "mes": "2026-05",
+          "valorPago": 450,
+          "dataPagamento": "2026-05-11"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001405",
+          "mes": "2026-06",
+          "valorPago": 450,
+          "dataPagamento": "2026-06-11"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001406",
+          "mes": "2026-07",
+          "valorPago": 450,
+          "dataPagamento": "2026-07-11"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000205",
+      "nome": "Casa do Riacho",
+      "endereco": "Rua do Riacho, 7 — Calcado/PE",
+      "status": "alugada",
+      "aluguelValor": 600,
+      "diaVencimento": 3,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000105",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000105"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001500",
+          "mes": "2026-01",
+          "valorPago": 600,
+          "dataPagamento": "2026-01-03"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001501",
+          "mes": "2026-02",
+          "valorPago": 600,
+          "dataPagamento": "2026-02-03"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001502",
+          "mes": "2026-03",
+          "valorPago": 600,
+          "dataPagamento": "2026-03-03"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001503",
+          "mes": "2026-04",
+          "valorPago": 600,
+          "dataPagamento": "2026-04-03"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001504",
+          "mes": "2026-05",
+          "valorPago": 600,
+          "dataPagamento": "2026-05-03"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001505",
+          "mes": "2026-06",
+          "valorPago": 600,
+          "dataPagamento": "2026-06-03"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001506",
+          "mes": "2026-07",
+          "valorPago": 600,
+          "dataPagamento": "2026-07-03"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000206",
+      "nome": "Casa Grande",
+      "endereco": "Rua Coronel Bezerra, 210 — Sao Bento do Una/PE",
+      "status": "alugada",
+      "aluguelValor": 1100,
+      "diaVencimento": 20,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000106",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000106"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001600",
+          "mes": "2026-01",
+          "valorPago": 1100,
+          "dataPagamento": "2026-01-20"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001601",
+          "mes": "2026-02",
+          "valorPago": 1100,
+          "dataPagamento": "2026-02-20"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001602",
+          "mes": "2026-03",
+          "valorPago": 1100,
+          "dataPagamento": "2026-03-20"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001603",
+          "mes": "2026-04",
+          "valorPago": 1100,
+          "dataPagamento": "2026-04-20"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001604",
+          "mes": "2026-05",
+          "valorPago": 1100,
+          "dataPagamento": "2026-05-20"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001605",
+          "mes": "2026-06",
+          "valorPago": 1100,
+          "dataPagamento": "2026-06-20"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001606",
+          "mes": "2026-07",
+          "valorPago": 1100,
+          "dataPagamento": "2026-07-20"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000207",
+      "nome": "Casa Amarela",
+      "endereco": "Rua Nova, 32 — Sao Bento do Una/PE",
+      "status": "alugada",
+      "aluguelValor": 700,
+      "diaVencimento": 1,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000107",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000107"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001700",
+          "mes": "2026-01",
+          "valorPago": 700,
+          "dataPagamento": "2026-01-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001701",
+          "mes": "2026-02",
+          "valorPago": 700,
+          "dataPagamento": "2026-02-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001702",
+          "mes": "2026-03",
+          "valorPago": 700,
+          "dataPagamento": "2026-03-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001703",
+          "mes": "2026-04",
+          "valorPago": 700,
+          "dataPagamento": "2026-04-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001704",
+          "mes": "2026-05",
+          "valorPago": 700,
+          "dataPagamento": "2026-05-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001705",
+          "mes": "2026-06",
+          "valorPago": 700,
+          "dataPagamento": "2026-06-01"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001706",
+          "mes": "2026-07",
+          "valorPago": 700,
+          "dataPagamento": "2026-07-01"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000208",
+      "nome": "Casa da Feira",
+      "endereco": "Rua da Feira, 5 — Ibirajuba/PE",
+      "status": "alugada",
+      "aluguelValor": 520,
+      "diaVencimento": 10,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": "00000000-0000-4000-8000-000000000108",
+      "contratoInicio": "2026-01-01",
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "alugada",
+          "tenantId": "00000000-0000-4000-8000-000000000108"
+        }
+      ],
+      "pagamentos": [
+        {
+          "id": "00000000-0000-4000-8000-000000001800",
+          "mes": "2026-01",
+          "valorPago": 520,
+          "dataPagamento": "2026-01-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001801",
+          "mes": "2026-02",
+          "valorPago": 520,
+          "dataPagamento": "2026-02-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001802",
+          "mes": "2026-03",
+          "valorPago": 520,
+          "dataPagamento": "2026-03-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001803",
+          "mes": "2026-04",
+          "valorPago": 520,
+          "dataPagamento": "2026-04-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001804",
+          "mes": "2026-05",
+          "valorPago": 520,
+          "dataPagamento": "2026-05-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001805",
+          "mes": "2026-06",
+          "valorPago": 520,
+          "dataPagamento": "2026-06-10"
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000001806",
+          "mes": "2026-07",
+          "valorPago": 520,
+          "dataPagamento": "2026-07-10"
+        }
+      ],
+      "despesas": [],
+      "aluguelHistorico": []
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000209",
+      "nome": "Casa Vaga do Centro",
+      "endereco": "Rua Direita, 118 — Centro, Lajedo/PE",
+      "status": "vaga",
+      "aluguelValor": 780,
+      "diaVencimento": 5,
+      "ultimaVistoria": "2026-01-15",
+      "tenantId": null,
+      "contratoInicio": null,
+      "contratoFim": null,
+      "statusHistorico": [
+        {
+          "data": "2026-01-01",
+          "status": "vaga",
+          "tenantId": null
+        }
+      ],
+      "pagamentos": [],
+      "despesas": [],
+      "aluguelHistorico": []
+    }
+  ],
+  "tenants": [
+    {
+      "id": "00000000-0000-4000-8000-000000000100",
+      "nome": "Mariana Souza",
+      "telefone": "(87) 99101-2020",
+      "email": "mariana.souza@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000101",
+      "nome": "Ricardo Alves",
+      "telefone": "(87) 99102-3030",
+      "email": "ricardo.alves@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000102",
+      "nome": "Patricia Lima",
+      "telefone": "(87) 99103-4040",
+      "email": "patricia.lima@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000103",
+      "nome": "Fernando Rocha",
+      "telefone": "(87) 99104-5050",
+      "email": "fernando.rocha@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000104",
+      "nome": "Juliana Mendes",
+      "telefone": "(87) 99105-6060",
+      "email": "juliana.mendes@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000105",
+      "nome": "Bruno Carvalho",
+      "telefone": "(87) 99106-7070",
+      "email": "bruno.carvalho@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000106",
+      "nome": "Carolina Dias",
+      "telefone": "(87) 99107-8080",
+      "email": "carolina.dias@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000107",
+      "nome": "Eduardo Pinto",
+      "telefone": "(87) 99108-9090",
+      "email": "eduardo.pinto@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000108",
+      "nome": "Leticia Barros",
+      "telefone": "(87) 99109-1010",
+      "email": "leticia.barros@exemplo.com",
+      "documento": "",
+      "emergenciaNome": ""
+    }
+  ],
+  "photos": {},
+  "config": {
+    "locadorNome": "",
+    "locadorDocumento": ""
+  },
+  "eventos": []
+}

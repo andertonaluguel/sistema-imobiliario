@@ -27,6 +27,11 @@
     month:currentMonth(),
     privateValues:loadPrivacy(),
     modalContext:null,
+    /* Formas de pagamento DESATIVADAS nos novos lançamentos (escopo da
+       conta). Guardamos as desativadas, não as ativas: o padrão é tudo
+       ligado, e um registro antigo nunca perde a forma que usou. */
+    disabledPayments:[],
+    organizeCatTab:'saida',
     data:emptyData(),
     history:{
       query:'',
@@ -444,6 +449,14 @@
       homeState.data=normalizePayload(raw);
       homeState.loaded=true;
       homeState.error='';
+      /* Preferências operacionais. Falha aqui não impede usar a Minha
+         Casa: sem elas, todas as formas de pagamento seguem ativas. */
+      if(api.loadMyHomePaymentPrefs){
+        try{
+          var prefs=await api.loadMyHomePaymentPrefs();
+          homeState.disabledPayments=Array.isArray(prefs)?prefs:[];
+        }catch(prefError){ homeState.disabledPayments=[]; }
+      }
     }catch(error){
       console.error('Minha Casa: erro ao carregar',error);
       homeState.error=readableError(error);
@@ -539,7 +552,7 @@
       tabs.map(function(item){
         var active=homeState.tab===item[0];
         var badge=item[0]==='pending'&&pending?'<span class="mh-tab-badge">'+pending+'</span>':'';
-        return '<button class="mh-tab'+(active?' active':'')+'" role="tab" aria-selected="'+active+'" onclick="MinhaCasaUI.selectTab(\''+item[0]+'\')">'+
+        return '<button class="mh-tab'+(active?' active':'')+'" role="tab" aria-selected="'+active+'" tabindex="'+(active?'0':'-1')+'" onclick="MinhaCasaUI.selectTab(\''+item[0]+'\')">'+
           '<span aria-hidden="true">'+item[2]+'</span><b>'+item[1]+'</b>'+badge+'</button>';
       }).join('')+
     '</nav>';
@@ -572,6 +585,90 @@
     '</div>';
   }
 
+  /* ------------------------------------------------------------------
+     Fatura do cartão.
+
+     Hoje as parcelas aparecem soltas no meio do mês, misturadas com
+     tudo. Isso responde "o que gastei", mas não responde "quanto vou
+     pagar de fatura em março" — que é a pergunta que faz a pessoa
+     dormir ou não.
+
+     Cada parcela já é uma linha própria, com data um mês à frente da
+     anterior (ver migracao-minha-casa-pagamentos.sql). Então basta
+     agrupar por mês. O mês corrente e os 5 seguintes: além disso
+     vira adivinhação, porque compras novas entram no meio.
+     ------------------------------------------------------------------ */
+  var FATURA_MESES_FRENTE=5;
+
+  function computeFatura(){
+    var todas=homeState.data.transactions||[];
+    var noCredito=todas.filter(function(item){
+      return item.type==='saida' && item.paymentMethod==='credito';
+    });
+    if(!noCredito.length) return null;
+
+    var base=homeState.month||currentMonthStr();
+    var meses=[];
+    for(var i=0;i<=FATURA_MESES_FRENTE;i++) meses.push(addMonths(base,i));
+
+    var porMes=meses.map(function(mes){
+      var doMes=noCredito.filter(function(item){ return String(item.date).slice(0,7)===mes; });
+      var total=doMes.reduce(function(s,item){ return s+(Number(item.amount)||0); },0);
+      /* parcela de compra parcelada vs. compra à vista no crédito:
+         são coisas diferentes para quem planeja */
+      var parceladas=doMes.filter(isInstallmentPurchase);
+      return {
+        mes:mes, total:total, itens:doMes,
+        nParcelas:parceladas.length,
+        parcelado:parceladas.reduce(function(s,item){ return s+(Number(item.amount)||0); },0)
+      };
+    });
+
+    /* o que ainda falta pagar das compras parceladas em aberto —
+       o comprometimento futuro, que é o número que assusta */
+    var hoje=currentMonthStr();
+    var comprometido=noCredito.filter(function(item){
+      return isInstallmentPurchase(item) && String(item.date).slice(0,7)>hoje;
+    }).reduce(function(s,item){ return s+(Number(item.amount)||0); },0);
+
+    var maior=Math.max.apply(null,porMes.map(function(m){ return m.total; }).concat([0]));
+    return { meses:porMes, comprometido:comprometido, maior:maior };
+  }
+
+  function renderFatura(){
+    var f=computeFatura();
+    if(!f) return '';
+    /* nada lançado em nenhum dos meses: não ocupa espaço à toa */
+    if(!f.meses.some(function(m){ return m.total>0; })) return '';
+
+    var barras=f.meses.map(function(m){
+      var alt=f.maior?Math.max(2,Math.round((m.total/f.maior)*100)):2;
+      var ehAtual=m.mes===homeState.month;
+      return '<div class="mh-fatura-col'+(ehAtual?' is-atual':'')+'" '+
+        'title="'+esc(formatMonth(m.mes))+': '+esc(formatMoney(m.total))+
+        (m.nParcelas?' · '+m.nParcelas+' parcela(s)':'')+'">'+
+        '<span class="mh-fatura-valor">'+esc(formatMoney(m.total))+'</span>'+
+        '<span class="mh-fatura-barra" style="height:'+alt+'%"></span>'+
+        '<span class="mh-fatura-mes">'+esc(formatMonth(m.mes))+'</span>'+
+      '</div>';
+    }).join('');
+
+    var atual=f.meses[0];
+    return '<div class="mh-panel mh-fatura">'+
+      '<div class="mh-panel-heading"><div>'+
+        '<h3>Fatura do cartão</h3>'+
+        '<span>O que já está lançado no crédito, mês a mês</span>'+
+      '</div><strong class="mh-panel-total">'+esc(formatMoney(atual.total))+'</strong></div>'+
+      '<div class="mh-fatura-chart" role="img" aria-label="Fatura por mês: '+
+        esc(f.meses.map(function(m){ return formatMonth(m.mes)+' '+formatMoney(m.total); }).join(', '))+'">'+
+        barras+'</div>'+
+      (f.comprometido>0
+        ? '<p class="mh-fatura-nota">Ainda faltam <strong>'+esc(formatMoney(f.comprometido))+
+          '</strong> de parcelas já compradas, distribuídas nos próximos meses.</p>'
+        : '')+
+    '</div>';
+  }
+
   function renderDashboard(){
     var rows=monthTransactions(homeState.month);
     var summary=summarize(rows);
@@ -596,6 +693,7 @@
         '<button class="mh-quick mh-quick-income" onclick="MinhaCasaUI.openTransaction(\'entrada\')"><span>+</span><b>Registrar entrada</b><small>dinheiro recebido</small></button>'+
       '</div>'+
       (homeState.data.suggestions.length?renderPendingBanner():'')+
+      renderFatura()+
       '<div class="mh-dashboard-grid">'+
         renderBreakdown('Onde o dinheiro foi gasto','Por categoria',categories,summary.expense,'category')+
         renderBreakdown('Quem fez os gastos','Por pessoa',members,summary.expense,'member')+
@@ -825,6 +923,8 @@
   function renderOrganize(){
     var members=homeState.data.members;
     var categories=homeState.data.categories;
+    var catTab=homeState.organizeCatTab==='entrada'?'entrada':'saida';
+    var catsForTab=categories.filter(function(c){return c.type===catTab||c.type==='ambos';});
     return '<section class="mh-organize" aria-labelledby="mh-organize-title">'+
       '<div class="mh-section-heading"><div><span class="mh-kicker">DO SEU JEITO</span><h2 id="mh-organize-title">Organizar</h2>'+
       '<p>Crie livremente as pessoas e categorias usadas pela família.</p></div></div>'+
@@ -832,9 +932,13 @@
         '<section class="mh-panel"><div class="mh-panel-heading"><div><h3>Membros da família</h3><span>Quem gastou ou recebeu</span></div>'+
         '<button class="mh-small-add" onclick="MinhaCasaUI.openMember()">+ Pessoa</button></div>'+
         (members.length?'<div class="mh-setup-list">'+members.map(renderMemberRow).join('')+'</div>':emptyBlock('Nenhuma pessoa cadastrada.','Adicione a primeira pessoa da casa.'))+'</section>'+
-        '<section class="mh-panel"><div class="mh-panel-heading"><div><h3>Categorias</h3><span>Como o dinheiro é organizado</span></div>'+
-        '<button class="mh-small-add" onclick="MinhaCasaUI.openCategory()">+ Categoria</button></div>'+
-        (categories.length?'<div class="mh-setup-list">'+categories.map(renderCategoryRow).join('')+'</div>':emptyBlock('Nenhuma categoria cadastrada.','Adicione categorias para entradas e saídas.'))+'</section>'+
+        '<section class="mh-panel"><div class="mh-panel-heading"><div><h3>Categorias</h3><span>Entradas e saídas, separadas</span></div></div>'+
+        '<div class="mh-cat-switch" role="group" aria-label="Tipo de categoria">'+
+          '<button class="mh-cat-toggle'+(catTab==='entrada'?' is-active':'')+'" aria-pressed="'+(catTab==='entrada')+'" onclick="MinhaCasaUI.selectOrganizeCatTab(\'entrada\')">Categorias de entrada</button>'+
+          '<button class="mh-cat-toggle'+(catTab==='saida'?' is-active':'')+'" aria-pressed="'+(catTab==='saida')+'" onclick="MinhaCasaUI.selectOrganizeCatTab(\'saida\')">Categorias de saída</button>'+
+        '</div>'+
+        '<button class="mh-small-add" onclick="MinhaCasaUI.openCategory(\'\',\''+catTab+'\')">+ '+(catTab==='entrada'?'Categoria de entrada':'Categoria de saída')+'</button>'+
+        (catsForTab.length?'<div class="mh-setup-list">'+catsForTab.map(renderCategoryRow).join('')+'</div>':emptyBlock('Nenhuma categoria de '+(catTab==='entrada'?'entrada':'saída')+' ainda.','Crie a primeira com o botão acima.'))+'</section>'+
       '</div>'+
       '<section class="mh-panel mh-start-note"><div><span aria-hidden="true">◎</span><div><h3>Quer informar o que já possui?</h3>'+
       '<p>Registre uma entrada com a categoria “Valor inicial”. O controle continua sendo apenas de entradas e saídas, sem contas bancárias.</p></div></div>'+
@@ -929,8 +1033,10 @@
         '<label class="mh-kind-expense"><input type="radio" name="mh_tx_type" value="saida"'+(!isIncome?' checked':'')+' onchange="MinhaCasaUI.updateModalCategoryOptions()"><span><b>− Saída</b><small>dinheiro gasto</small></span></label>'+
       '</div>'+
       '<label class="mh-field mh-amount-field"><span>Valor</span><div><b>R$</b><input id="mh_tx_amount" inputmode="decimal" autocomplete="off" placeholder="0,00" value="'+esc(item.amount?item.amount.toFixed(2).replace('.',','):'')+'"></div></label>'+
-      '<div class="mh-choice-block"><span>Categoria</span><div id="mh_tx_category_choices" class="mh-choice-grid">'+categoryChoices(item.categoryId,item.type)+'</div></div>'+
-      '<div class="mh-choice-block"><span>Quem gastou ou recebeu</span><div class="mh-choice-grid mh-member-choice-grid">'+memberChoices(item.memberId)+'</div>'+
+      '<div class="mh-choice-block">'+blockHeading('Categoria','MinhaCasaUI.openCategoryOptions()')+
+        '<div id="mh_tx_category_choices" class="mh-choice-grid">'+categoryChoices(item.categoryId,item.type)+'</div></div>'+
+      '<div class="mh-choice-block">'+blockHeading('Quem gastou ou recebeu','MinhaCasaUI.openMemberOptions()')+
+        '<div class="mh-choice-grid mh-member-choice-grid">'+memberChoices(item.memberId)+'</div>'+
       '</div>'+
       paymentBlockHtml(item)+
       ((!activeCategories().length||!activeMembers().length)?'<p class="mh-form-warning">Crie pelo menos uma categoria e uma pessoa em Organizar antes de salvar.</p>':'')+
@@ -945,12 +1051,129 @@
   /* Bloco de pagamento. Ao editar uma parcela, o parcelamento fica
      travado: mudar de 10x para 4x no meio bagunçaria as parcelas já
      lançadas. Para isso, exclua a compra e lance de novo. */
+  /* Título do bloco com a ação "Editar opções" ao lado. Fica FORA da
+     grade de escolhas de propósito: um cartão "Editar" no meio dos
+     cartões selecionáveis é clicado por engano quem queria escolher. */
+  function blockHeading(titulo,acaoJs){
+    return '<div class="mh-block-head"><span>'+esc(titulo)+'</span>'+
+      '<button type="button" class="mh-text-btn" onclick="'+acaoJs+'">Editar opções</button></div>';
+  }
+
+  /* ---------- Editar opções (o que aparece nos novos lançamentos) ----------
+     Desativar nunca apaga dado nem código: some apenas dos lançamentos
+     NOVOS. Registro antigo continua exibindo a opção que usou, e ela
+     volta para todos assim que for reativada. */
+  function optionRow(emoji,nome,detalhe,ativo,acaoJs,travado){
+    return '<div class="mh-opt-row'+(ativo?'':' is-off')+'">'+
+      '<span class="mh-opt-ico" aria-hidden="true">'+esc(emoji||'•')+'</span>'+
+      '<div class="mh-opt-copy"><strong>'+esc(nome)+'</strong>'+(detalhe?'<small>'+esc(detalhe)+'</small>':'')+'</div>'+
+      '<button type="button" class="mh-text-btn'+(travado?' is-disabled':'')+'"'+
+        (travado?' disabled aria-disabled="true" title="Pelo menos uma forma de pagamento precisa continuar ativa"':' onclick="'+acaoJs+'"')+
+        ' aria-pressed="'+(ativo?'true':'false')+'">'+(ativo?'Desativar':'Ativar')+'</button>'+
+    '</div>';
+  }
+  function openPaymentOptions(){
+    var off=homeState.disabledPayments||[];
+    var ativas=PAYMENT_METHODS.filter(function(m){return off.indexOf(m.id)<0;});
+    dialog('<h3 class="modal-title">Formas de pagamento</h3>'+
+      '<p class="modal-text">Escolha o que aparece ao criar um lançamento. Desativar não apaga nada: lançamentos antigos continuam mostrando a forma que usaram, e a opção volta se você reativar. Vale para toda a conta.</p>'+
+      '<div class="mh-opt-list">'+PAYMENT_METHODS.map(function(m){
+        var ativo=off.indexOf(m.id)<0;
+        /* Trava de consistência: não dá para desligar a última ativa. */
+        var travado=ativo&&ativas.length<=1;
+        return optionRow(m.emoji,m.label,ativo?'Disponível nos novos lançamentos':'Desativada',
+          ativo,"MinhaCasaUI.togglePayment('"+m.id+"')",travado);
+      }).join('')+'</div>'+
+      '<div class="modal-actions"><span></span><button class="mh-btn mh-btn-primary" onclick="closeModal()">Concluir</button></div>');
+  }
+  async function togglePayment(id){
+    var off=(homeState.disabledPayments||[]).slice();
+    var i=off.indexOf(id);
+    if(i>=0) off.splice(i,1);
+    else{
+      if(PAYMENT_METHODS.length-off.length<=1){
+        toast('Pelo menos uma forma de pagamento precisa continuar ativa.','error');
+        return;
+      }
+      off.push(id);
+    }
+    var anterior=homeState.disabledPayments;
+    homeState.disabledPayments=off;
+    openPaymentOptions();
+    var api=getApi();
+    if(api&&api.saveMyHomePaymentPrefs){
+      try{ await api.saveMyHomePaymentPrefs(off); }
+      catch(e){
+        homeState.disabledPayments=anterior;
+        openPaymentOptions();
+        toast(readableError(e)||'Não foi possível salvar as formas de pagamento.','error');
+      }
+    }
+  }
+  function openCategoryOptions(){
+    var cats=homeState.data.categories;
+    dialog('<h3 class="modal-title">Categorias nos lançamentos</h3>'+
+      '<p class="modal-text">Desative o que não quer ver ao criar um lançamento. Nada é apagado: os registros antigos continuam com sua categoria, e ela volta se for reativada.</p>'+
+      (cats.length
+        ? '<div class="mh-opt-list">'+cats.map(function(c){
+            var tipo=c.type==='entrada'?'Entrada':c.type==='saida'?'Saída':'Entrada e saída';
+            return optionRow(c.emoji,c.name,tipo+(c.active?'':' · desativada'),c.active,
+              "MinhaCasaUI.toggleCategoryActive('"+c.id+"')",false);
+          }).join('')+'</div>'
+        : '<p class="mh-choice-empty">Nenhuma categoria cadastrada.</p>')+
+      '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal();MinhaCasaUI.selectTab(\'organize\')">Abrir Organizar</button>'+
+      '<button class="mh-btn mh-btn-primary" onclick="closeModal()">Concluir</button></div>');
+  }
+  function openMemberOptions(){
+    var members=homeState.data.members;
+    dialog('<h3 class="modal-title">Pessoas nos lançamentos</h3>'+
+      '<p class="modal-text">Desative quem não deve aparecer ao criar um lançamento. O histórico não muda: registros antigos continuam com a pessoa que os fez.</p>'+
+      (members.length
+        ? '<div class="mh-opt-list">'+members.map(function(m){
+            return optionRow(m.emoji,m.name,m.active?'Disponível nos novos lançamentos':'Desativada',
+              m.active,"MinhaCasaUI.toggleMemberActive('"+m.id+"')",false);
+          }).join('')+'</div>'
+        : '<p class="mh-choice-empty">Nenhuma pessoa cadastrada.</p>')+
+      '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal();MinhaCasaUI.selectTab(\'organize\')">Abrir Organizar</button>'+
+      '<button class="mh-btn mh-btn-primary" onclick="closeModal()">Concluir</button></div>');
+  }
+  /* Reaproveita o "Disponível nos novos lançamentos" que já existia:
+     é o mesmo campo `active`, gravado pelas mesmas funções. */
+  async function toggleCategoryActive(id){
+    var item=homeState.data.categories.find(function(row){return String(row.id)===String(id);});
+    if(!item) return;
+    var ok=await runMutation('saveMyHomeCategory',[{
+      id:item.id,name:item.name,emoji:item.emoji,color:item.color,
+      type:item.type,active:!item.active
+    }],item.active?'Categoria desativada.':'Categoria reativada.',{close:false});
+    if(ok!==false) openCategoryOptions();
+  }
+  async function toggleMemberActive(id){
+    var item=homeState.data.members.find(function(row){return String(row.id)===String(id);});
+    if(!item) return;
+    var ok=await runMutation('saveMyHomeMember',[{
+      id:item.id,name:item.name,emoji:item.emoji,color:item.color,
+      active:!item.active
+    }],item.active?'Pessoa desativada.':'Pessoa reativada.',{close:false});
+    if(ok!==false) openMemberOptions();
+  }
+
+  /* Formas oferecidas agora: as ativas + a que o registro já usa. A
+     segunda parte é o que garante que editar um lançamento antigo não
+     troque silenciosamente a forma dele por outra. */
+  function availablePaymentMethods(selected){
+    var off=homeState.disabledPayments||[];
+    return PAYMENT_METHODS.filter(function(m){
+      return off.indexOf(m.id)<0 || m.id===selected;
+    });
+  }
   function paymentBlockHtml(item){
     var atual=normalizePaymentMethod(item.paymentMethod);
     var editandoParcela=isInstallmentPurchase(item);
     var parcelas=Math.max(1,Number(item.installments)||1);
-    return '<div class="mh-choice-block"><span>Forma de pagamento</span>'+
-      '<div class="mh-choice-grid mh-pay-grid">'+PAYMENT_METHODS.map(function(m){
+    return '<div class="mh-choice-block">'+
+      blockHeading('Forma de pagamento','MinhaCasaUI.openPaymentOptions()')+
+      '<div class="mh-choice-grid mh-pay-grid">'+availablePaymentMethods(atual).map(function(m){
         return '<label class="mh-choice'+(m.id===atual?' is-selected':'')+'">'+
           '<input type="radio" name="mh_tx_payment" value="'+m.id+'"'+(m.id===atual?' checked':'')+
           ' onchange="MinhaCasaUI.updatePaymentOptions()">'+
@@ -1217,14 +1440,110 @@
     await runMutation('deleteMyHomeRecurring',[id],'Conta fixa excluída.');
   }
 
+  /* ---------- Bandeja de emojis (membros e categorias) ----------
+     Grupos curados + busca por palavra-chave + recentes (por aparelho) +
+     teclado. Escreve num input escondido (mesmo id lido no salvar). */
+  var MH_EMOJI_GROUPS={
+    'Sugeridos':[['🏠','casa lar'],['🍽️','comida'],['🚗','carro'],['🩺','saude'],['💼','trabalho'],['💰','dinheiro'],['🛒','mercado'],['⚡','energia luz'],['📱','celular'],['🎓','escola educacao'],['🐶','pet'],['🎁','presente']],
+    'Casa':[['🏠','casa'],['🏡','lar'],['🛋️','sofa sala'],['🛏️','cama quarto'],['🚿','banho chuveiro'],['🧹','limpeza'],['🧺','lavanderia roupa'],['🔧','conserto reparo'],['🚪','porta'],['🪟','janela'],['💡','luz lampada'],['🔌','tomada energia'],['🧴','produto'],['🪑','cadeira'],['🧯','seguranca']],
+    'Alimentação':[['🍽️','comida refeicao'],['🍔','lanche'],['🍕','pizza'],['🥗','salada'],['🛒','mercado compras'],['🍎','fruta'],['🥦','verdura'],['🍞','padaria pao'],['☕','cafe'],['🍺','bebida'],['🥩','carne'],['🐟','peixe'],['🍫','doce'],['🧀','queijo'],['🍚','arroz']],
+    'Transporte':[['🚗','carro'],['🚙','suv'],['🏍️','moto'],['🚕','taxi'],['🚌','onibus'],['🚆','trem metro'],['✈️','aviao viagem'],['⛽','gasolina combustivel'],['🛞','pneu'],['🅿️','estacionamento'],['🚲','bicicleta'],['🛵','scooter'],['🚧','pedagio obra']],
+    'Saúde':[['🩺','saude medico'],['💊','remedio'],['🏥','hospital'],['🦷','dentista'],['👓','oculos'],['💉','vacina'],['🩹','curativo'],['🧘','bem estar'],['🏃','exercicio'],['❤️','coracao'],['🩸','exame'],['🧬','laboratorio']],
+    'Trabalho':[['💼','trabalho'],['💻','computador'],['📁','arquivo'],['📊','relatorio'],['🖨️','impressora'],['📞','telefone'],['✏️','lapis'],['📅','agenda'],['🏢','empresa'],['🧾','nota recibo'],['🔧','ferramenta'],['📈','vendas']],
+    'Pessoas':[['👤','pessoa'],['👩','mulher'],['👨','homem'],['🧑','pessoa'],['👧','menina'],['👦','menino'],['👵','idosa'],['👴','idoso'],['👶','bebe'],['🧒','crianca'],['👪','familia'],['🐶','cachorro'],['🐱','gato']],
+    'Dinheiro':[['💰','dinheiro'],['💵','nota'],['💳','cartao'],['🪙','moeda'],['🧾','recibo'],['🏦','banco'],['📈','lucro'],['📉','perda'],['💸','gasto despesa'],['🤑','rico']]
+  };
+  function loadRecentEmojis(){
+    try{ var v=JSON.parse(localStorage.getItem('mh-emoji-recent')||'[]'); return Array.isArray(v)?v.slice(0,16):[]; }catch(e){ return []; }
+  }
+  function pushRecentEmoji(e){
+    try{ var list=loadRecentEmojis().filter(function(x){return x!==e;}); list.unshift(e); localStorage.setItem('mh-emoji-recent',JSON.stringify(list.slice(0,16))); }catch(err){}
+  }
+  function emojiButtons(group){
+    var list = group==='Recentes' ? loadRecentEmojis().map(function(e){return [e,''];}) : (MH_EMOJI_GROUPS[group]||[]);
+    if(!list.length) return '<p class="mh-choice-empty">Nada aqui ainda.</p>';
+    return list.map(function(pair){
+      return '<button type="button" class="mh-emoji" data-e="'+esc(pair[0])+'" onclick="MinhaCasaUI.emojiPick(this)" aria-label="Emoji '+esc(pair[0])+'">'+esc(pair[0])+'</button>';
+    }).join('');
+  }
+  function emojiTrayHtml(inputId, current, def){
+    current=current||def;
+    var recent=loadRecentEmojis();
+    var groups=Object.keys(MH_EMOJI_GROUPS);
+    var first=recent.length?'Recentes':groups[0];
+    return '<div class="mh-emoji-tray" data-target="'+esc(inputId)+'">'+
+      '<input type="hidden" id="'+esc(inputId)+'" value="'+esc(current)+'">'+
+      '<div class="mh-emoji-head"><span class="mh-emoji-current" aria-live="polite" aria-label="Emoji escolhido">'+esc(current)+'</span>'+
+        '<input class="mh-emoji-search" type="search" placeholder="Buscar emoji…" aria-label="Buscar emoji" oninput="MinhaCasaUI.emojiSearch(this)">'+
+        '<button type="button" class="mh-emoji-reset" title="Voltar ao padrão" aria-label="Voltar ao emoji padrão" data-def="'+esc(def)+'" onclick="MinhaCasaUI.emojiReset(this)">↺</button>'+
+      '</div>'+
+      '<div class="mh-emoji-groups" aria-label="Grupos de emoji">'+
+        (recent.length?'<button type="button" class="mh-emoji-group is-active" onclick="MinhaCasaUI.emojiGroup(this,\'Recentes\')">Recentes</button>':'')+
+        groups.map(function(g,i){return '<button type="button" class="mh-emoji-group'+(!recent.length&&i===0?' is-active':'')+'" onclick="MinhaCasaUI.emojiGroup(this,\''+g+'\')">'+esc(g)+'</button>';}).join('')+
+      '</div>'+
+      '<div class="mh-emoji-grid" role="listbox" aria-label="Emojis" onkeydown="MinhaCasaUI.emojiKey(event)">'+emojiButtons(first)+'</div>'+
+    '</div>';
+  }
+  function emojiPick(btn){
+    var tray=btn.closest('.mh-emoji-tray'); if(!tray) return;
+    var e=btn.getAttribute('data-e');
+    var input=tray.querySelector('input[type="hidden"]'); if(input) input.value=e;
+    var cur=tray.querySelector('.mh-emoji-current'); if(cur) cur.textContent=e;
+    pushRecentEmoji(e);
+    tray.querySelectorAll('.mh-emoji').forEach(function(b){b.classList.toggle('is-picked',b===btn);});
+  }
+  function emojiGroup(btn,group){
+    var tray=btn.closest('.mh-emoji-tray'); if(!tray) return;
+    tray.querySelectorAll('.mh-emoji-group').forEach(function(b){b.classList.toggle('is-active',b===btn);});
+    var search=tray.querySelector('.mh-emoji-search'); if(search) search.value='';
+    var grid=tray.querySelector('.mh-emoji-grid'); if(grid) grid.innerHTML=emojiButtons(group);
+  }
+  function emojiSearch(input){
+    var tray=input.closest('.mh-emoji-tray'); if(!tray) return;
+    var grid=tray.querySelector('.mh-emoji-grid'); if(!grid) return;
+    var q=(input.value||'').trim().toLowerCase();
+    if(!q){ var active=tray.querySelector('.mh-emoji-group.is-active'); grid.innerHTML=emojiButtons(active?active.textContent.trim():Object.keys(MH_EMOJI_GROUPS)[0]); return; }
+    var seen={},results=[];
+    Object.keys(MH_EMOJI_GROUPS).forEach(function(g){
+      MH_EMOJI_GROUPS[g].forEach(function(pair){
+        if(seen[pair[0]]) return;
+        if(pair[0].indexOf(q)>=0 || (pair[1]||'').indexOf(q)>=0){ seen[pair[0]]=1; results.push(pair); }
+      });
+    });
+    grid.innerHTML=results.length?results.map(function(pair){return '<button type="button" class="mh-emoji" data-e="'+esc(pair[0])+'" onclick="MinhaCasaUI.emojiPick(this)" aria-label="Emoji '+esc(pair[0])+'">'+esc(pair[0])+'</button>';}).join(''):'<p class="mh-choice-empty">Nada encontrado.</p>';
+  }
+  function emojiReset(btn){
+    var tray=btn.closest('.mh-emoji-tray'); if(!tray) return;
+    var def=btn.getAttribute('data-def')||'🏷️';
+    var input=tray.querySelector('input[type="hidden"]'); if(input) input.value=def;
+    var cur=tray.querySelector('.mh-emoji-current'); if(cur) cur.textContent=def;
+  }
+  function emojiKey(ev){
+    if(['ArrowRight','ArrowLeft','ArrowUp','ArrowDown','Home','End'].indexOf(ev.key)<0) return;
+    var grid=ev.currentTarget, btns=Array.prototype.slice.call(grid.querySelectorAll('.mh-emoji'));
+    if(!btns.length) return;
+    var i=btns.indexOf(document.activeElement); if(i<0){ btns[0].focus(); ev.preventDefault(); return; }
+    var cols=Math.max(1,Math.round(grid.clientWidth/((btns[0].offsetWidth||44)+4)));
+    var dest=i;
+    if(ev.key==='ArrowRight') dest=Math.min(btns.length-1,i+1);
+    else if(ev.key==='ArrowLeft') dest=Math.max(0,i-1);
+    else if(ev.key==='ArrowDown') dest=Math.min(btns.length-1,i+cols);
+    else if(ev.key==='ArrowUp') dest=Math.max(0,i-cols);
+    else if(ev.key==='Home') dest=0;
+    else dest=btns.length-1;
+    btns[dest].focus(); ev.preventDefault();
+  }
+  /* Aba de tipo (entrada/saída) na tela Organizar. */
+  function selectOrganizeCatTab(t){ homeState.organizeCatTab=(t==='entrada'?'entrada':'saida'); requestRender(); }
+
   function openMember(id){
     var item=id?homeState.data.members.find(function(row){return String(row.id)===String(id);}):null;
     var initial=item||{id:'',name:'',emoji:'👤',color:'#6D5BD0',active:true};
     homeState.modalContext={kind:'member',id:item?item.id:'',mode:item?'edit':'create'};
     dialog('<h3 class="modal-title">'+(item?'Editar pessoa':'Nova pessoa')+'</h3>'+
-      '<div class="mh-form-grid mh-form-grid-small"><label class="mh-field"><span>Emoji</span><input id="mh_member_emoji" maxlength="8" value="'+esc(initial.emoji)+'" aria-label="Emoji da pessoa"></label>'+
+      '<span class="mh-field-label">Avatar (emoji)</span>'+emojiTrayHtml('mh_member_emoji',initial.emoji,'👤')+
+      '<div class="mh-form-grid mh-form-grid-small"><label class="mh-field"><span>Nome</span><input id="mh_member_name" maxlength="80" value="'+esc(initial.name)+'" placeholder="Ex.: Anderton"></label>'+
       '<label class="mh-field"><span>Cor</span><input id="mh_member_color" type="color" value="'+normalizeColor(initial.color,'#6D5BD0')+'"></label></div>'+
-      '<label class="mh-field"><span>Nome</span><input id="mh_member_name" maxlength="80" value="'+esc(initial.name)+'" placeholder="Ex.: Anderton"></label>'+
       '<label class="mh-toggle"><input id="mh_member_active" type="checkbox"'+(initial.active?' checked':'')+'><span></span><b>Disponível nos novos lançamentos</b></label>'+
       '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
       '<button class="mh-btn mh-btn-primary" onclick="MinhaCasaUI.saveMember()">Salvar pessoa</button></div>');
@@ -1265,16 +1584,22 @@
     await runMutation('deleteMyHomeMember',[id],'Pessoa excluída.');
   }
 
-  function openCategory(id){
+  function openCategory(id, presetType){
     var item=id?homeState.data.categories.find(function(row){return String(row.id)===String(id);}):null;
-    var initial=item||{id:'',name:'',emoji:'🏷️',color:'#D69E2E',type:'saida',active:true};
+    var initial=item||{id:'',name:'',emoji:'🏷️',color:'#D69E2E',type:normalizeType(presetType||'saida','saida'),active:true};
     homeState.modalContext={kind:'category',id:item?item.id:'',mode:item?'edit':'create'};
-    dialog('<h3 class="modal-title">'+(item?'Editar categoria':'Nova categoria')+'</h3>'+
-      '<div class="mh-form-grid mh-form-grid-small"><label class="mh-field"><span>Emoji</span><input id="mh_category_emoji" maxlength="8" value="'+esc(initial.emoji)+'" aria-label="Emoji da categoria"></label>'+
+    /* Criada por uma aba já sabe o tipo: não pede para escolher de novo. */
+    var lockType=!item && (presetType==='entrada'||presetType==='saida');
+    var typeField=lockType
+      ? '<input type="hidden" id="mh_category_type" value="'+esc(initial.type)+'"><label class="mh-field"><span>Tipo</span><div class="mh-fixed-type">'+(initial.type==='entrada'?'Categoria de entrada':'Categoria de saída')+'</div></label>'
+      : '<label class="mh-field"><span>Usada em</span><select id="mh_category_type">'+
+          option('saida','Saídas',initial.type)+option('entrada','Entradas',initial.type)+option('ambos','Entradas e saídas',initial.type)+'</select></label>';
+    var title=item?'Editar categoria':(presetType==='entrada'?'Nova categoria de entrada':presetType==='saida'?'Nova categoria de saída':'Nova categoria');
+    dialog('<h3 class="modal-title">'+title+'</h3>'+
+      '<span class="mh-field-label">Ícone (emoji)</span>'+emojiTrayHtml('mh_category_emoji',initial.emoji,'🏷️')+
+      '<div class="mh-form-grid mh-form-grid-small"><label class="mh-field"><span>Nome</span><input id="mh_category_name" maxlength="80" value="'+esc(initial.name)+'" placeholder="Ex.: Mercado"></label>'+
       '<label class="mh-field"><span>Cor</span><input id="mh_category_color" type="color" value="'+normalizeColor(initial.color,'#D69E2E')+'"></label></div>'+
-      '<label class="mh-field"><span>Nome</span><input id="mh_category_name" maxlength="80" value="'+esc(initial.name)+'" placeholder="Ex.: Mercado"></label>'+
-      '<label class="mh-field"><span>Usada em</span><select id="mh_category_type">'+
-        option('saida','Saídas',initial.type)+option('entrada','Entradas',initial.type)+option('ambos','Entradas e saídas',initial.type)+'</select></label>'+
+      typeField+
       '<label class="mh-toggle"><input id="mh_category_active" type="checkbox"'+(initial.active?' checked':'')+'><span></span><b>Disponível nos novos lançamentos</b></label>'+
       '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
       '<button class="mh-btn mh-btn-primary" onclick="MinhaCasaUI.saveCategory()">Salvar categoria</button></div>');
@@ -1386,6 +1711,10 @@
     reset:reset,
     activate:activate,
     selectTab:selectTab,
+    /* Usados pela barra lateral estrutural para destacar a aba ativa e
+       o número de pendências, sem duplicar a navegação horizontal. */
+    currentTab:function(){return homeState.tab;},
+    pendingCount:function(){return (homeState.data&&homeState.data.suggestions)?homeState.data.suggestions.length:0;},
     changeMonth:changeMonth,
     setMonth:setMonth,
     togglePrivacy:togglePrivacy,
@@ -1414,6 +1743,21 @@
     askDeleteMember:askDeleteMember,
     deleteMember:deleteMember,
     openCategory:openCategory,
+    selectOrganizeCatTab:selectOrganizeCatTab,
+    openPaymentOptions:openPaymentOptions,
+    togglePayment:togglePayment,
+    openCategoryOptions:openCategoryOptions,
+    openMemberOptions:openMemberOptions,
+    toggleCategoryActive:toggleCategoryActive,
+    toggleMemberActive:toggleMemberActive,
+    _availablePaymentMethods:availablePaymentMethods,
+    /* usado pelos testes, como o _normalizePayload */
+    _setDisabledPayments:function(list){homeState.disabledPayments=Array.isArray(list)?list:[];},
+    emojiPick:emojiPick,
+    emojiGroup:emojiGroup,
+    emojiSearch:emojiSearch,
+    emojiReset:emojiReset,
+    emojiKey:emojiKey,
     saveCategory:saveCategory,
     openCategoryMenu:openCategoryMenu,
     askDeleteCategory:askDeleteCategory,

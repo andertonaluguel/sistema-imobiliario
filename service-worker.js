@@ -10,9 +10,9 @@
    ============================================================ */
 const CACHE = 'aluguel-v4';
 const ASSETS = [
-  './', './index.html', './style.css', './minha-casa.css', './aluguel-ui.css', './vitrine.css', './motion.css',
+  './', './index.html', './tokens.css', './style.css', './minha-casa.css', './aluguel-ui.css', './vitrine.css', './motion.css',
   './config.js', './utils.js', './supabase.js', './offline.js', './auth.js', './commercial.js', './minha-casa.js', './vitrine.js', './features.js', './dashboard.js',
-  './houses.js', './tenants.js', './interests.js', './contracts.js', './finance.js', './photos.js', './documents.js',
+  './houses.js', './maintenance.js', './pending.js', './owners.js', './tenants.js', './interests.js', './contracts.js', './finance.js', './photos.js', './documents.js',
   './energy.js', './portal.js', './reports.js',
   './calendar.js', './backup.js', './app.js', './motion.js',
   './manifest.json', './icon-192.png', './icon-512.png',

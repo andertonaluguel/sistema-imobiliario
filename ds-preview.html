@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design System — conferência visual</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Carrega os arquivos reais do app. Se algo aqui parecer errado,
+     está errado no app também. -->
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="minha-casa.css">
+<link rel="stylesheet" href="aluguel-ui.css">
+<link rel="stylesheet" href="vitrine.css">
+<link rel="stylesheet" href="motion.css">
+
+<style>
+  /* Estilos só desta página de conferência. Não vai para produção. */
+  .dsp-wrap{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
+  .dsp-h{font-family:var(--font-display);font-size:var(--t-xl);margin:36px 0 6px;}
+  .dsp-sub{color:var(--ink-soft);font-size:var(--t-sm);margin:0 0 18px;line-height:1.5;}
+  .dsp-bar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:var(--s-2);
+    align-items:center;padding:var(--s-3);margin-bottom:var(--s-4);
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+    box-shadow:var(--shadow);}
+  .dsp-bar b{font-family:var(--font-display);font-size:var(--t-sm);margin-right:var(--s-2);}
+  .dsp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--s-3);}
+  .dsp-swatch{padding:var(--s-3);border:1px solid var(--line);background:var(--card);
+    text-align:center;font-family:var(--font-mono);font-size:var(--t-xs);}
+  .dsp-chip-row{display:flex;flex-wrap:wrap;gap:var(--s-2);align-items:center;}
+  .dsp-color{height:56px;border-radius:var(--r-sm);border:1px solid var(--line);margin-bottom:6px;}
+  .dsp-note{padding:var(--s-3) var(--s-4);border-left:3px solid var(--brass);
+    background:var(--brass-soft);border-radius:0 var(--r-sm) var(--r-sm) 0;
+    font-size:var(--t-sm);line-height:1.55;margin:var(--s-3) 0;}
+</style>
+</head>
+<body>
+<div class="dsp-wrap">
+
+  <h1 style="font-family:var(--font-display);margin:0 0 4px">Conferência visual do design system</h1>
+  <p class="dsp-sub">
+    Esta página carrega os CSS reais do app. Troque o tema abaixo: papel,
+    linha e sombra precisam mudar junto com a cor de capa — antes da
+    correção eles ficavam presos no tema padrão.
+  </p>
+
+  <div class="dsp-bar">
+    <b>Tema:</b>
+    <button class="btn btn-ghost btn-sm" onclick="setTema('original')">original</button>
+    <button class="btn btn-ghost btn-sm" onclick="setTema('aurora')">aurora</button>
+    <button class="btn btn-ghost btn-sm" onclick="setTema('oceano')">oceano</button>
+    <button class="btn btn-ghost btn-sm" onclick="setTema('citrico')">citrico</button>
+    <span style="margin-left:auto;font-family:var(--font-mono);font-size:var(--t-xs);color:var(--ink-soft)">
+      atual: <b id="dsp-atual">original</b>
+    </span>
+  </div>
+
+  <h2 class="dsp-h">Escala de raio</h2>
+  <p class="dsp-sub">Sete valores. Antes eram 34.</p>
+  <div class="dsp-grid" id="dsp-raios"></div>
+
+  <h2 class="dsp-h">Cores do tema</h2>
+  <p class="dsp-sub">Todas mudam quando o tema muda. Se alguma ficar parada, há hex cru em algum lugar.</p>
+  <div class="dsp-grid" id="dsp-cores"></div>
+
+  <h2 class="dsp-h">Componentes reais</h2>
+  <p class="dsp-sub">Classes de produção, sem estilo extra desta página.</p>
+
+  <div class="panel">
+    <div class="panel-title">Botões — <code style="font-family:var(--font-mono);font-size:var(--t-xs);color:var(--ink-soft)">.btn</code></div>
+    <p style="color:var(--ink-soft);font-size:var(--t-sm);line-height:1.55;margin:0 0 var(--s-3)">
+      As duas linhas têm de ficar com a mesma altura e o mesmo arredondamento.
+      A de baixo usa os apelidos <code>.mh-btn-*</code> da Minha Casa.
+    </p>
+    <div class="dsp-chip-row">
+      <button class="btn btn-primary">Primário</button>
+      <button class="btn">Padrão</button>
+      <button class="btn btn-ghost">Fantasma</button>
+      <button class="btn btn-danger">Excluir</button>
+      <button class="btn btn-sm">Pequeno</button>
+    </div>
+    <div class="dsp-chip-row" style="margin-top:var(--s-2)">
+      <button class="mh-btn mh-btn-primary">Primário</button>
+      <button class="mh-btn mh-btn-outline">Contorno</button>
+      <button class="mh-btn mh-btn-quiet">Discreto</button>
+      <button class="mh-btn mh-btn-accept">Aceitar</button>
+    </div>
+    <div class="dsp-chip-row" style="margin-top:var(--s-3)">
+      <span class="chip">CHIP</span>
+      <span class="chip tab-brass">LATÃO</span>
+      <span class="chip tab-rust">ATRASO</span>
+      <span class="chip tab-manut">MANUTENÇÃO</span>
+      <span class="filter-chip">filtro</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Abas — sublinhado <code style="font-family:var(--font-mono);font-size:var(--t-xs);color:var(--ink-soft)">.tabs</code></div>
+    <div class="tabs">
+      <button class="tab active">Resumo</button>
+      <button class="tab">Contratos</button>
+      <button class="tab">Financeiro</button>
+      <button class="tab">Fotos</button>
+    </div>
+    <div class="panel-title" style="margin-top:var(--s-4)">Abas — pílula <code style="font-family:var(--font-mono);font-size:var(--t-xs);color:var(--ink-soft)">.tabs-pill</code></div>
+    <div class="tabs-pill">
+      <button class="tab-pill active">Resumo</button>
+      <button class="tab-pill">Contratos</button>
+      <button class="tab-pill">Financeiro</button>
+      <button class="tab-pill">Fotos</button>
+    </div>
+    <p style="color:var(--ink-soft);font-size:var(--t-xs);line-height:1.55;margin:var(--s-2) 0 0">
+      Abaixo, os apelidos <code>.rent-tabs</code> e <code>.mh-tabs</code> —
+      têm de sair idênticos ao de cima.
+    </p>
+    <div class="rent-tabs" style="margin-top:var(--s-2)">
+      <button class="rent-tab active">Resumo</button>
+      <button class="rent-tab">Contratos</button>
+      <button class="rent-tab">Financeiro</button>
+      <button class="rent-tab">Fotos</button>
+    </div>
+  </div>
+
+  <div class="panel panel-flush">
+    <div class="commercial-panel-head">
+      <h2>Painel sem respiro</h2>
+    </div>
+    <div style="padding:var(--s-4) 22px;color:var(--ink-soft);font-size:var(--t-sm);line-height:1.55">
+      Variante <code>.panel-flush</code>: a faixa de cabeçalho encosta nas
+      bordas. Substituiu o <code>.vitrine-panel</code> e o <code>.commercial-panel</code>.
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Estado vazio — <code style="font-family:var(--font-mono);font-size:var(--t-xs);color:var(--ink-soft)">.empty-state</code></div>
+    <div class="empty-state">
+      <span class="empty-ico">—</span>
+      Nada por aqui ainda.
+    </div>
+  </div>
+
+  <h2 class="dsp-h">Contraste</h2>
+  <p class="dsp-sub">Todos precisam ficar acima de 4,5 (mínimo WCAG AA). Troque de tema e confira de novo.</p>
+  <div class="panel">
+    <div id="dsp-contraste"></div>
+  </div>
+
+  <h2 class="dsp-h">Alvo de toque</h2>
+  <p class="dsp-sub">Num aparelho de toque, tudo abaixo deve medir 44px de altura. No computador, 40px.</p>
+  <div class="panel">
+    <div class="dsp-chip-row" id="dsp-toque">
+      <button class="btn btn-primary">Salvar</button>
+      <button class="btn btn-ghost">Cancelar</button>
+      <button class="tab-pill active">Aba</button>
+    </div>
+    <p style="margin:var(--s-3) 0 0;font-family:var(--font-mono);font-size:var(--t-xs);color:var(--ink-soft)" id="dsp-toque-medida"></p>
+  </div>
+
+  <div class="dsp-note">
+    <b>Fase 2 e primeira rodada de acessibilidade aplicadas.</b>
+    Falta o tema escuro em si: a base está pronta (todo token num
+    lugar só), mas ainda há 372 cores cruas a converter.
+    Ver <code>DESIGN-SYSTEM.md</code>.
+  </div>
+
+</div>
+
+<script>
+const RAIOS = [
+  ['--r-xs','4px','ponto, barra de gráfico'],
+  ['--r-sm','8px','chip, badge, ícone'],
+  ['--r-md','12px','botão, input, cartão'],
+  ['--r-lg','16px','painel, bloco'],
+  ['--r-xl','22px','modal, folha'],
+  ['--r-circle','50%','vira círculo'],
+  ['--r-full','999px','pílula']
+];
+const CORES = ['--paper','--card','--ink','--ink-soft','--line','--cover','--cover-light','--brass','--brass-soft','--warn','--rust','--manut'];
+
+document.getElementById('dsp-raios').innerHTML = RAIOS.map(([t,v,uso]) => `
+  <div class="dsp-swatch" style="border-radius:var(${t})">
+    <div style="font-weight:600">${t}</div>
+    <div style="color:var(--ink-soft)">${v}</div>
+    <div style="margin-top:6px;font-family:var(--font-body);font-size:11px;color:var(--ink-faint)">${uso}</div>
+  </div>`).join('');
+
+document.getElementById('dsp-cores').innerHTML = CORES.map((t) => `
+  <div>
+    <div class="dsp-color" style="background:var(${t})"></div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);text-align:center">${t}</div>
+  </div>`).join('');
+
+function lum(hex){
+  const c = hex.replace('#','').trim();
+  const n = c.length===3 ? c.split('').map(x=>x+x).join('') : c;
+  const v = [0,2,4].map(i=>{
+    const x = parseInt(n.substr(i,2),16)/255;
+    return x<=0.03928 ? x/12.92 : Math.pow((x+0.055)/1.055,2.4);
+  });
+  return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2];
+}
+function razao(a,b){
+  const l1=lum(a), l2=lum(b);
+  const [c,e] = l1>l2 ? [l1,l2] : [l2,l1];
+  return (c+0.05)/(e+0.05);
+}
+function corDe(token){
+  const v = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+  if(v.startsWith('#')) return v;
+  const d = document.createElement('div');
+  d.style.color = v; document.body.appendChild(d);
+  const rgb = getComputedStyle(d).color.match(/\d+/g);
+  d.remove();
+  return '#'+rgb.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join('');
+}
+function medirContraste(){
+  const pares = [['--ink','--card'],['--ink','--paper'],['--ink-soft','--card'],
+                 ['--ink-soft','--paper'],['--ink-faint','--card'],['--ink-faint','--paper']];
+  document.getElementById('dsp-contraste').innerHTML = pares.map(([fg,bg])=>{
+    const r = razao(corDe(fg), corDe(bg));
+    const passa = r >= 4.5;
+    return '<div style="display:flex;align-items:center;gap:var(--s-3);padding:var(--s-2) 0;border-bottom:1px solid var(--line)">'
+      +'<span style="flex:1;font-family:var(--font-mono);font-size:var(--t-xs)">'+fg+' sobre '+bg+'</span>'
+      +'<span style="font-family:var(--font-mono);font-size:var(--t-sm);font-weight:700">'+r.toFixed(2)+'</span>'
+      +'<span style="min-width:74px;text-align:right;font-size:var(--t-xs);font-weight:700;color:'
+      +(passa?'var(--cover)':'var(--rust)')+'">'+(passa?'passa':'REPROVA')+'</span></div>';
+  }).join('');
+}
+function medirToque(){
+  const alvos = document.querySelectorAll('#dsp-toque button');
+  const alturas = Array.from(alvos).map(b=>Math.round(b.getBoundingClientRect().height));
+  const toque = window.matchMedia('(pointer:coarse)').matches;
+  document.getElementById('dsp-toque-medida').textContent =
+    'aparelho de ' + (toque ? 'toque' : 'ponteiro preciso')
+    + ' · alturas medidas: ' + alturas.join('px, ') + 'px'
+    + ' · esperado: ' + (toque ? '44px' : '40px');
+}
+function setTema(t){
+  if(t === 'original') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('dsp-atual').textContent = t;
+  medirContraste();
+}
+medirContraste();
+medirToque();
+</script>
+</body>
+</html>

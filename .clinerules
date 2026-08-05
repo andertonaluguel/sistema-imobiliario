@@ -1,0 +1,10 @@
+Leia AGENTS.md na raiz do projeto antes de qualquer tarefa e siga as regras dele.
+
+Pontos que quebram a publicação em silêncio, resumidos aqui porque são os mais
+frequentes — os detalhes estão no AGENTS.md:
+
+1. Arquivo novo carregado pelo app precisa entrar no array `publicFiles` de build.mjs,
+   senão não é publicado e nenhum erro aparece.
+2. Use tokens de tokens.css. Os contadores do lint de design system são tetos que só
+   podem cair — se o teste acusar aumento, corrija usando o token, não eleve o teto.
+3. Rode `npm test` antes de considerar qualquer mudança pronta.

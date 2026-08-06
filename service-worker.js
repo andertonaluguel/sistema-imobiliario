@@ -10,9 +10,9 @@
    ============================================================ */
 const CACHE = 'aluguel-v4';
 const ASSETS = [
-  './', './index.html', './tokens.css', './style.css', './minha-casa.css', './aluguel-ui.css', './vitrine.css', './motion.css',
+  './', './index.html', './tokens.css', './style.css', './minha-casa.css', './aluguel-ui.css', './vitrine.css', './crm.css', './motion.css',
   './config.js', './utils.js', './supabase.js', './offline.js', './auth.js', './commercial.js', './minha-casa.js', './vitrine.js', './features.js', './dashboard.js',
-  './houses.js', './maintenance.js', './pending.js', './owners.js', './tenants.js', './interests.js', './contracts.js', './finance.js', './photos.js', './documents.js',
+  './houses.js', './maintenance.js', './pending.js', './owners.js', './tenants.js', './interests.js', './crm.js', './contracts.js', './finance.js', './photos.js', './documents.js',
   './energy.js', './portal.js', './reports.js',
   './calendar.js', './backup.js', './app.js', './motion.js',
   './manifest.json', './icon-192.png', './icon-512.png',
@@ -54,7 +54,18 @@ self.addEventListener('fetch', function(e){
     return;
   }
 
-  // Demais arquivos -> cache imediato + atualização em segundo plano
+  // Código e estilos -> rede primeiro. Uma página HTML nova com JavaScript
+  // antigo pode não reconhecer rotas recém-publicadas; a atualização precisa
+  // ser atômica já na primeira abertura depois de um deploy.
+  if(/\.(?:js|css|json)$/.test(url.pathname)){
+    e.respondWith(
+      fetch(req).then(function(r){ cachePut(req,r.clone());return r; })
+        .catch(function(){ return caches.match(req); })
+    );
+    return;
+  }
+
+  // Imagens e demais arquivos -> cache imediato + atualização em segundo plano
   e.respondWith(
     caches.match(req).then(function(cached){
       var net = fetch(req).then(function(r){ cachePut(req, r.clone()); return r; }).catch(function(){ return cached; });

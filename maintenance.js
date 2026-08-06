@@ -660,9 +660,13 @@ async function saveMaintenanceCall(houseId,callId,confirmacao){
   let createdExpenseId='',persistedCall=null,resolvedExpense=null,retryCall=null;
   try{
     const item={
-      id:existing?existing.id:(expenseData?newOperationId():''),
+      /* Todo chamado nasce com ID no cliente. Isso torna a inclusao
+         idempotente quando uma resposta de rede se perde. */
+      id:existing?existing.id:newOperationId(),
       houseId:houseId,
-      tenantId:existing?existing.tenantId:(h.tenantId||''),
+      /* Chamado aberto pela equipe pertence a conta e ao imovel. O eventual
+         inquilino e resolvido pelo servidor somente no portal. */
+      tenantId:existing?existing.tenantId:'',
       titulo:title,descricao:description,categoria:category,
       prioridade:priority,status:status,
       abertoPor:existing?existing.abertoPor:'proprietario',

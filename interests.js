@@ -6,11 +6,13 @@
 
 const INTEREST_STATUSES = [
   ['novo','Novo contato'],
-  ['conversando','Conversando'],
-  ['visita','Visita marcada'],
-  ['quente','Muito interessado'],
+  ['qualificacao','Em qualificação'],
+  ['contatado','Contatado'],
+  ['visita_agendada','Visita agendada'],
+  ['visita_realizada','Visita realizada'],
+  ['proposta','Proposta'],
   ['fechado','Fechado'],
-  ['desistiu','Desistiu']
+  ['perdido','Perdido']
 ];
 
 function interestStatusLabel(status){
@@ -18,12 +20,12 @@ function interestStatusLabel(status){
   return found?found[1]:'Novo contato';
 }
 function interestStatusTone(status){
-  if(status==='quente'||status==='fechado') return 'brass';
-  if(status==='desistiu') return 'slate';
-  if(status==='visita') return 'warn';
+  if(status==='proposta'||status==='fechado') return 'brass';
+  if(status==='perdido') return 'slate';
+  if(status==='visita_agendada'||status==='visita_realizada') return 'warn';
   return 'neutral';
 }
-function activeInterest(item){ return item.status!=='fechado'&&item.status!=='desistiu'; }
+function activeInterest(item){ return item.status!=='fechado'&&item.status!=='perdido'; }
 
 function interestMatchesHouse(item,house){
   if(!item||!house||house.status!=='vaga') return false;
@@ -41,7 +43,7 @@ function matchingHousesForInterest(item){
   return state.houses.filter(function(h){return interestMatchesHouse(item,h);});
 }
 function matchingInterestsForHouse(house){
-  const priority={quente:0,visita:1,conversando:2,novo:3};
+  const priority={proposta:0,visita_realizada:1,visita_agendada:2,contatado:3,qualificacao:4,novo:5};
   return state.interests.filter(function(i){return activeInterest(i)&&interestMatchesHouse(i,house);})
     .sort(function(a,b){
       const pa=priority[a.status]===undefined?9:priority[a.status];
@@ -122,7 +124,16 @@ function interestFormHtml(item){
   const i=item||{};
   return '<label class="field"><span>Nome *</span><input id="f_interest_name" value="'+esc(i.nome||'')+'" placeholder="Nome do interessado"></label>'+ 
     '<div class="field-row"><label class="field"><span>Telefone/WhatsApp</span><input id="f_interest_phone" value="'+esc(i.telefone||'')+'"></label>'+ 
-      '<label class="field"><span>Situação</span><select id="f_interest_status">'+INTEREST_STATUSES.map(function(s){return '<option value="'+s[0]+'"'+((i.status||'novo')===s[0]?' selected':'')+'>'+esc(s[1])+'</option>';}).join('')+'</select></label></div>'+ 
+      '<label class="field"><span>E-mail</span><input id="f_interest_email" type="email" value="'+esc(i.email||'')+'"></label></div>'+ 
+    '<div class="field-row"><label class="field"><span>Etapa do funil</span><select id="f_interest_status">'+INTEREST_STATUSES.map(function(s){return '<option value="'+s[0]+'"'+((i.status||'novo')===s[0]?' selected':'')+'>'+esc(s[1])+'</option>';}).join('')+'</select></label>'+ 
+      '<label class="field"><span>Finalidade</span><select id="f_interest_finalidade"><option value="alugar"'+((i.finalidade||'alugar')==='alugar'?' selected':'')+'>Alugar</option><option value="vender"'+(i.finalidade==='vender'?' selected':'')+'>Comprar</option></select></label></div>'+ 
+    '<div class="field-row"><label class="field"><span>Origem</span><select id="f_interest_origem">'+[['manual','Cadastro manual'],['formulario','Formulário'],['whatsapp','WhatsApp'],['visita','Visita'],['busca_salva','Busca salva'],['indicacao','Indicação'],['portal','Portal'],['outro','Outro']].map(function(o){return '<option value="'+o[0]+'"'+((i.origem||'manual')===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label>'+ 
+      '<label class="field"><span>Campanha</span><input id="f_interest_campaign" value="'+esc(i.campanha||'')+'" placeholder="Ex.: Instagram agosto"></label></div>'+ 
+    '<div class="field-row"><label class="field"><span>Responsável</span><select id="f_interest_responsavel"><option value="">Sem responsável</option>'+interestResponsibleOptions(i.responsavelId).join('')+'</select></label>'+ 
+      '<label class="field"><span>Primeira resposta</span><input id="f_interest_first_response" type="datetime-local" value="'+esc(interestDateTimeLocal(i.primeiraRespostaEm))+'"></label></div>'+ 
+    '<div class="field-row"><label class="field"><span>Próxima ação</span><input id="f_interest_next_action" value="'+esc(i.proximaAcao||'')+'" placeholder="Ex.: confirmar renda"></label>'+ 
+      '<label class="field"><span>Prazo</span><input id="f_interest_next_at" type="datetime-local" value="'+esc(interestDateTimeLocal(i.proximaAcaoEm))+'"></label></div>'+ 
+    '<label class="field"><span>Motivo de perda</span><input id="f_interest_loss" value="'+esc(i.motivoPerda||'')+'" placeholder="Preencha somente ao marcar como perdido"></label>'+ 
     '<div class="form-section-title">O que essa pessoa procura</div>'+ 
     '<div class="field-row"><label class="field"><span>Valor máximo (R$)</span><input id="f_interest_value" type="number" min="0" step="0.01" value="'+(Number(i.valorMaximo)||0)+'"></label>'+ 
       '<label class="field"><span>Mínimo de quartos</span><input id="f_interest_rooms" type="number" min="0" step="1" value="'+(Number(i.quartosMin)||0)+'"></label>'+ 
@@ -135,9 +146,22 @@ function interestFormHtml(item){
       '<label><input id="f_interest_garage" type="checkbox"'+(i.precisaGaragem?' checked':'')+'><span class="room-check-icon">'+FICO.garage+'</span><span>Garagem</span></label></div>'+ 
     '<label class="field"><span>Observações</span><textarea id="f_interest_notes" rows="4" placeholder="Preferências, perfil, detalhes da conversa…">'+esc(i.observacoes||'')+'</textarea></label>';
 }
+function interestDateTimeLocal(value){if(!value)return '';const d=new Date(value);if(Number.isNaN(d.getTime()))return '';const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);return local.toISOString().slice(0,16);}
+function interestResponsibleOptions(current){
+  const ownerId=(state.ownerProfile&&state.ownerProfile.user_id)||'',seen=new Set(),out=[];
+  if(ownerId){seen.add(ownerId);out.push('<option value="'+esc(ownerId)+'"'+(current===ownerId?' selected':'')+'>Responsável principal</option>');}
+  (state.team||[]).filter(function(m){return m.ativo!==false&&!seen.has(m.userId);}).forEach(function(m){seen.add(m.userId);out.push('<option value="'+esc(m.userId)+'"'+(current===m.userId?' selected':'')+'>'+esc(m.nome||m.email||'Equipe')+'</option>');});
+  if(current&&!seen.has(current))out.push('<option value="'+esc(current)+'" selected>Responsável atual</option>');
+  return out;
+}
 function readInterestForm(){
   return {nome:document.getElementById('f_interest_name').value.trim(),telefone:document.getElementById('f_interest_phone').value.trim(),
-    status:document.getElementById('f_interest_status').value,valorMaximo:Number(document.getElementById('f_interest_value').value)||0,
+    email:document.getElementById('f_interest_email').value.trim(),status:document.getElementById('f_interest_status').value,
+    finalidade:document.getElementById('f_interest_finalidade').value,origem:document.getElementById('f_interest_origem').value,
+    campanha:document.getElementById('f_interest_campaign').value.trim(),responsavelId:document.getElementById('f_interest_responsavel').value,
+    primeiraRespostaEm:document.getElementById('f_interest_first_response').value||'',proximaAcao:document.getElementById('f_interest_next_action').value.trim(),
+    proximaAcaoEm:document.getElementById('f_interest_next_at').value||'',motivoPerda:document.getElementById('f_interest_loss').value.trim(),
+    valorMaximo:Number(document.getElementById('f_interest_value').value)||0,
     quartosMin:Math.max(0,parseInt(document.getElementById('f_interest_rooms').value,10)||0),banheirosMin:Math.max(0,parseInt(document.getElementById('f_interest_baths').value,10)||0),
     precisaSala:document.getElementById('f_interest_living').checked,precisaCozinha:document.getElementById('f_interest_kitchen').checked,
     precisaGaragem:document.getElementById('f_interest_garage').checked,precisaQuintal:document.getElementById('f_interest_yard').checked,
@@ -165,8 +189,9 @@ async function saveNewInterest(origemLeadId){
   if(!requirePropertyPermission())return;
   const item=readInterestForm(); if(!item.nome){showToast('Informe o nome do interessado.','error');return;}
   try{
-    const saved=await db.insertInterest(item);
-    state.interests.unshift(saved);
+    const saved=await db.insertInterest(item,origemLeadId||null);
+    const existente=state.interests.find(function(x){return x.id===saved.id;});
+    if(existente)Object.assign(existente,saved);else state.interests.unshift(saved);
     /* O vínculo com o lead é acessório: se ele falhar, o interessado já
        está cadastrado e não se perde nada. Por isso não derruba o fluxo. */
     if(origemLeadId){
@@ -176,9 +201,10 @@ async function saveNewInterest(origemLeadId){
         if(lead){ lead.interessadoId=saved.id; if(lead.status==='novo') lead.status='contatado'; }
       }catch(vinculo){ console.warn('Lead não pôde ser marcado como convertido:',vinculo); }
     }
+    if(state.view==='vitrine'&&typeof loadVitrineData==='function')await loadVitrineData(true);
     closeModal();render();showToast('Interessado cadastrado.','success');
   }
-  catch(e){console.error(e);showToast('Não foi possível cadastrar o interessado.','error');}
+  catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível cadastrar o interessado.','error');}
 }
 function openEditInterestModal(id){
   const canEdit=canOperateProperties();
@@ -200,8 +226,8 @@ async function saveInterestEdit(id){
   if(!requirePropertyPermission())return;
   const original=state.interests.find(function(x){return x.id===id;}),next=Object.assign({},original,readInterestForm());
   if(!next.nome){showToast('Informe o nome do interessado.','error');return;}
-  try{await db.updateInterest(next);Object.assign(original,next);closeModal();render();showToast('Interessado atualizado.','success');}
-  catch(e){console.error(e);showToast('Não foi possível salvar.','error');}
+  try{const saved=await db.updateInterest(next);Object.assign(original,saved||next);if(state.view==='vitrine'&&typeof loadVitrineData==='function')await loadVitrineData(true);closeModal();render();showToast('Interessado atualizado.','success');}
+  catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível salvar.','error');}
 }
 function confirmDeleteInterest(id){
   if(!requirePropertyPermission())return;
@@ -210,7 +236,7 @@ function confirmDeleteInterest(id){
 }
 async function deleteInterest(id){
   if(!requirePropertyPermission())return;
-  try{await db.deleteInterest(id);state.interests=state.interests.filter(function(x){return x.id!==id;});closeModal();render();showToast('Interessado excluído.','success');}
+  try{await db.deleteInterest(id);state.interests=state.interests.filter(function(x){return x.id!==id;});if(state.view==='vitrine'&&typeof loadVitrineData==='function')await loadVitrineData(true);closeModal();render();showToast('Interessado excluído.','success');}
   catch(e){console.error(e);showToast('Não foi possível excluir.','error');}
 }
 function openInterestWhatsapp(id){

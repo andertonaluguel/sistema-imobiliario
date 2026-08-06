@@ -2,10 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<base href="/">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#14322A">
 <title>Aluguel — Gestão de Casas</title>
+<meta name="description" content="Gestão de imóveis, contratos, pagamentos e atendimento em um só lugar.">
+<meta name="robots" content="noindex,nofollow">
 
 <!-- Fontes -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,6 +22,7 @@
 <link rel="stylesheet" href="minha-casa.css">
 <link rel="stylesheet" href="aluguel-ui.css">
 <link rel="stylesheet" href="vitrine.css">
+<link rel="stylesheet" href="crm.css">
 <link rel="stylesheet" href="motion.css">
 <!-- Mapa da Vitrine. Usa o cdnjs, que o CSP já confia para o jsPDF,
      em vez de abrir um domínio novo. -->
@@ -45,6 +49,7 @@
   <input type="file" id="importInput" accept="application/json,.json" hidden>
   <input type="file" id="photoInput" accept="image/*" multiple hidden>
   <input type="file" id="vitrineFotoInput" accept="image/*" multiple hidden>
+  <input type="file" id="vitrineLogoInput" accept="image/jpeg,image/png,image/webp" hidden>
 
   <!-- Biblioteca do Supabase (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
@@ -71,6 +76,7 @@
   <script src="owners.js"></script>
   <script src="tenants.js"></script>
   <script src="interests.js"></script>
+  <script src="crm.js"></script>
   <script src="contracts.js"></script>
   <script src="finance.js"></script>
   <script src="photos.js"></script>
@@ -104,6 +110,12 @@
       const imovelId = this.dataset.imovelId;
       if(imovelId && this.files.length) handleVitrineFotoFiles(imovelId, this.files);
       this.value = '';
+    });
+    document.getElementById('vitrineLogoInput').addEventListener('change', function(){
+      if(this.files && this.files[0] && typeof handleVitrineLogoFile==='function'){
+        handleVitrineLogoFile(this.files[0]);
+      }
+      this.value='';
     });
 
     // Registra o service worker (PWA instalável e cache da interface)

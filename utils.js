@@ -551,23 +551,39 @@ function showToast(msg, type){
 }
 
 /* ---------- modal ---------- */
+let modalPreviousFocus=null;
 function openModal(html){
   const root = document.getElementById('modalRoot');
+  modalPreviousFocus=document.activeElement&&document.activeElement!==document.body?document.activeElement:null;
   root.innerHTML = '<div class="modal-overlay">'+
     '<div class="modal-box" role="dialog" aria-modal="true">'+
     '<button class="modal-x" onclick="closeModal()" aria-label="Fechar">&times;</button>'+
     html+'</div></div>';
   document.addEventListener('keydown', escListener);
   setTimeout(function(){
-    const firstField = root.querySelector('input,select');
-    if(firstField) firstField.focus();
+    const dialog=root.querySelector('[role="dialog"]'),title=root.querySelector('.modal-title');
+    if(dialog&&title){title.id='modalTitle';dialog.setAttribute('aria-labelledby','modalTitle');}
+    const firstField = root.querySelector('input:not([type="hidden"]),select,textarea,button:not(.modal-x)');
+    if(firstField) firstField.focus();else if(dialog){dialog.setAttribute('tabindex','-1');dialog.focus();}
   }, 10);
 }
 function closeModal(){
   document.getElementById('modalRoot').innerHTML = '';
   document.removeEventListener('keydown', escListener);
+  if(modalPreviousFocus&&document.contains(modalPreviousFocus)){modalPreviousFocus.focus();}
+  modalPreviousFocus=null;
 }
-function escListener(e){ if(e.key==='Escape') closeModal(); }
+function escListener(e){
+  if(e.key==='Escape'){closeModal();return;}
+  if(e.key!=='Tab')return;
+  const root=document.getElementById('modalRoot'),dialog=root&&root.querySelector('[role="dialog"]');if(!dialog)return;
+  const focusable=Array.from(dialog.querySelectorAll('button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])'))
+    .filter(function(el){return el.offsetParent!==null;});
+  if(!focusable.length){e.preventDefault();dialog.focus();return;}
+  const first=focusable[0],last=focusable[focusable.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+}
 
 /* ---------- tempo de permanência do inquilino na casa ----------
    Usa o statusHistorico (desde quando a casa está alugada para este

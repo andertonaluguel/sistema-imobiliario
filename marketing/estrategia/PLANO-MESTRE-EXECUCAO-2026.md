@@ -2,8 +2,11 @@
 
 **Criado em:** 1º de agosto de 2026  
 **Origem:** Auditoria Mestra, auditoria/passagem de bastão iniciada no Claude e decisões aprovadas pelo proprietário do produto.  
-**Situação:** plano aprovado em nível estratégico; nenhuma fase técnica está automaticamente autorizada para execução.  
+**Situação:** plano aprovado em nível estratégico; nenhuma fase técnica está automaticamente autorizada para execução.
+
 **Documento de diagnóstico:** `ESTUDO-COMPARATIVO-PLATAFORMAS-IMOBILIARIAS-2026.md`.
+
+**Atualização de 05/08/2026:** a sequência operacional consolidada, incorporando o encerramento pendente da Fase 0 e a auditoria do Imova, está em `PLANO-EXECUCAO-INTEGRADO-VITRINE-2026.md`. Este Plano Mestre permanece como referência estratégica; em caso de diferença de ordem ou recorte, o plano integrado mais recente governa a próxima execução.
 
 ---
 

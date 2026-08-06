@@ -1,0 +1,91 @@
+{
+  "version": 8,
+  "exportId": "80000000-0000-4800-8800-000000000001",
+  "exportedAt": "2026-08-05T15:00:00.000Z",
+  "owners": [
+    {
+      "id": "80000000-0000-4800-8800-000000000010",
+      "nome": "Proprietária Exemplo"
+    }
+  ],
+  "houses": [],
+  "tenants": [],
+  "vitrine": {
+    "cidades": [
+      {
+        "id": "80000000-0000-4800-8800-000000000020",
+        "nome": "Lajedo",
+        "uf": "PE",
+        "slug": "lajedo",
+        "ordem": 1,
+        "ativa": true
+      }
+    ],
+    "anunciantes": [
+      {
+        "id": "80000000-0000-4800-8800-000000000030",
+        "nome": "Proprietária Exemplo",
+        "proprietario_cliente_id": "80000000-0000-4800-8800-000000000010"
+      }
+    ],
+    "imoveis": [
+      {
+        "id": "80000000-0000-4800-8800-000000000040",
+        "anunciante_id": "80000000-0000-4800-8800-000000000030",
+        "cidade_id": "80000000-0000-4800-8800-000000000020",
+        "codigo": "A-801",
+        "titulo": "Apartamento de exemplo",
+        "tipo": "apartamento",
+        "finalidade": "alugar",
+        "aluguel": 1500,
+        "quartos": 2,
+        "suites": 1,
+        "banheiros": 2,
+        "vagas": 1,
+        "area_m2": 74.5,
+        "area_util_m2": 74.5,
+        "area_total_m2": 91,
+        "andar": 3,
+        "total_andares": 8,
+        "ano_construcao": 2022,
+        "disponivel_em": "2026-09-01",
+        "endereco_publico_modo": "aproximado",
+        "latitude_publica": -8.65,
+        "longitude_publica": -36.32,
+        "garantias_aceitas": ["caucao", "seguro_fianca"],
+        "indice_reajuste": "IPCA",
+        "custos_inclusos": ["agua"],
+        "aceita_estudante": null,
+        "aceita_pessoa_juridica": true,
+        "situacao_ocupacao": "vago",
+        "observacao_privada": "Chave somente com a corretora",
+        "status": "rascunho"
+      }
+    ],
+    "comodidades_catalogo": [
+      {
+        "id": "80000000-0000-4800-8800-000000000050",
+        "codigo": "elevador",
+        "rotulo": "Elevador",
+        "grupo": "condominio",
+        "ordem": 10,
+        "ativo": true,
+        "tipos_aplicaveis": ["apartamento"]
+      }
+    ],
+    "imovel_comodidades": [
+      {
+        "imovel_id": "80000000-0000-4800-8800-000000000040",
+        "comodidade_id": "80000000-0000-4800-8800-000000000050"
+      }
+    ],
+    "documentacao": [
+      {
+        "imovel_id": "80000000-0000-4800-8800-000000000040",
+        "tipo": "matricula",
+        "estado": "sim",
+        "observacao_privada": "Conferida em cartório"
+      }
+    ]
+  }
+}

@@ -150,7 +150,16 @@ begin
       (30,'migracao-backup-v7.sql (revisao 31/07/2026)','corpo_funcao','importar_backup_atomico_v7','tipo=excluded.tipo'),
       (31,'migracao-controle-versao.sql',          'tabela','migracoes_aplicadas',null),
       (32,'migracao-proprietario-cliente.sql',     'tabela','proprietarios_clientes',null),
-      (33,'migracao-backup-v7.sql (proprietarios no backup)','corpo_funcao','importar_backup_atomico_v7','import_v7_owners')
+      (33,'migracao-backup-v7.sql (proprietarios no backup)','corpo_funcao','importar_backup_atomico_v7','import_v7_owners'),
+      (34,'migracao-vitrine-detalhes.sql',         'coluna','vitrine_imoveis','suites'),
+      (35,'migracao-correcao-manutencao-limpeza.sql','funcao','apagar_dados_operacionais_conta',null),
+      (36,'migracao-vitrine-fundacao.sql',         'tabela','vitrine_comodidades_catalogo',null),
+      (37,'migracao-vitrine-seo-marca.sql',        'funcao','listar_vitrine_sitemap_publico',null),
+      (38,'migracao-vitrine-retencao-agenda.sql',  'tabela','vitrine_visitas',null),
+      (39,'migracao-crm-qualidade.sql',             'tabela','crm_eventos',null),
+      (40,'migracao-vitrine-responsavel.sql',       'tabela','vitrine_avaliacoes',null),
+      (41,'migracao-vitrine-parceiros.sql',         'tabela','vitrine_parceiros',null),
+      (42,'migracao-vitrine-chacara.sql',           'corpo_restricao','vitrine_imovel_tipo_check','chacara')
     ) as t(ord, nome, tipo, alvo, alvo2)
     order by ord
   loop
@@ -165,6 +174,15 @@ begin
       v_ok := exists(
         select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
         where n.nspname='public' and p.proname=r.alvo
+      );
+    elsif r.tipo='corpo_restricao' then
+      -- Migração que só amplia um CHECK não cria tabela, coluna nem
+      -- função: a evidência é o texto da própria restrição.
+      --   alvo = nome da constraint, alvo2 = trecho que ela passou a ter
+      v_ok := exists(
+        select 1 from pg_constraint c
+        where c.conname=r.alvo
+          and pg_get_constraintdef(c.oid) like '%'||r.alvo2||'%'
       );
     else
       v_ok := exists(
@@ -226,7 +244,12 @@ begin
     ('migracao-minha-casa-formas-pagamento.sql', to_regclass('public.minha_casa_preferencias')),
     ('migracao-vitrine-corretora.sql',        to_regclass('public.vitrine_cidades')),
     ('migracao-controle-versao.sql',          to_regclass('public.migracoes_aplicadas')),
-    ('migracao-proprietario-cliente.sql',     to_regclass('public.proprietarios_clientes'))
+    ('migracao-proprietario-cliente.sql',     to_regclass('public.proprietarios_clientes')),
+    ('migracao-vitrine-fundacao.sql',         to_regclass('public.vitrine_comodidades_catalogo')),
+    ('migracao-vitrine-retencao-agenda.sql',  to_regclass('public.vitrine_visitas')),
+    ('migracao-crm-qualidade.sql',             to_regclass('public.crm_eventos')),
+    ('migracao-vitrine-responsavel.sql',      to_regclass('public.vitrine_avaliacoes')),
+    ('migracao-vitrine-parceiros.sql',        to_regclass('public.vitrine_parceiros'))
   ) as x(nome, achado)
   where x.achado is not null
   on conflict(arquivo) do nothing;

@@ -1,7 +1,7 @@
 # Apresentação para aprovação — Fase 0: regularização de produção
 
 **Data:** 1º de agosto de 2026  
-**Estado:** migrações, validações estruturais, testes, build e deploy concluídos; fumaça autenticada com escrita executada em contas temporárias, com duas falhas funcionais abertas.  
+**Estado:** **CONCLUÍDA** em 05/08/2026; migrações, validações, testes, build, deploy e fumaça autenticada de escrita aprovados.
 **Ambientes regularizados:** banco Supabase de produção e site Netlify de produção.  
 **Regra:** este documento registra as execuções autorizadas e realizadas; não autoriza restauração de dados nem outras alterações de produção sem decisão específica.
 
@@ -18,7 +18,7 @@ Aprovar ou rejeitar a execução controlada da Fase 0, composta por:
 5. validar banco, permissões e backup — **validação estrutural concluída**;
 6. rodar testes e build — **concluído**;
 7. escolher e executar uma forma de deploy — **concluído via Netlify CLI**;
-8. realizar teste de fumaça — **partes pública, autenticada de leitura e escrita controlada concluídas; duas falhas registradas**;
+8. realizar teste de fumaça — **partes pública, autenticada de leitura e escrita controlada concluídas; falhas corrigidas e repetição aprovada**;
 9. registrar o resultado — **atualizado neste documento**.
 
 Nenhuma funcionalidade nova faz parte desta fase.
@@ -613,3 +613,67 @@ Todas as migrações, a validação estrutural, os testes, o build, o deploy e a
 3. **Depois das correções, autoriza criar novas contas temporárias, repetir esses dois cenários e removê-las novamente?**
 
 Nenhuma correção de código ou nova alteração de produção será iniciada sem essa aprovação.
+
+### Autorização e andamento em 05/08/2026
+
+O responsável confirmou o início das duas correções. A implementação local
+foi preparada em `migracao-correcao-manutencao-limpeza.sql`, `supabase.js`,
+`maintenance.js` e `app.js`, com cobertura em `tests/run-tests.mjs`.
+
+O portão de produção permanece fechado: a migração ainda precisa ser revisada,
+aplicada em ambiente controlado, validada com nova conta temporária e somente
+então publicada e repetida em produção.
+
+### Conclusão da correção em 05/08/2026
+
+O portão foi concluído e a Etapa 0A está aprovada em produção.
+
+- causa da manutenção: a função de trigger compartilhada acessava campos que
+  não existem em todas as tabelas (`contrato_id`, entre outros) antes de
+  separar a validação pelo nome da tabela;
+- causa da limpeza: a coleta de caminhos do Storage tinha referências ambíguas
+  e usava nomes de coluna incorretos para fotos de vistoria e chamados;
+- correção aplicada pela migração 35,
+  `migracao-correcao-manutencao-limpeza.sql`;
+- RPC de criação de chamado e RPC de exclusão operacional disponíveis somente
+  para usuários autenticados;
+- testes transacionais aprovados sem persistir dados de teste;
+- teste real aprovado como proprietário e como colaborador operacional;
+- `Apagar tudo` aprovado pela interface, preservando perfil, assinatura e
+  licença da conta;
+- auditoria final: 0 imóveis, 0 chamados e 0 colaboradores na conta temporária;
+  os 10 imóveis e a conta proprietária reais permaneceram intactos;
+- as duas contas temporárias foram removidas;
+- testes automatizados e build aprovados;
+- produção publicada no deploy `6a73c25a33345e07b3f73c7e`;
+- smoke público aprovado em `https://aluguel-casas-anderton.netlify.app`.
+
+O próximo portão passa a ser a Etapa 0B: completar a fumaça ampla já descrita
+neste documento e encerrar formalmente a Fase 0 antes de iniciar a fundação de
+dados da nova Vitrine.
+
+### Encerramento formal da Etapa 0B — 05/08/2026
+
+A repetição ampla foi aprovada no site de produção:
+
+- proprietário temporário criou imóvel, inquilino e contrato mínimo;
+- proprietário e colaborador operacional salvaram chamados;
+- manutenção foi concluída, arquivada e restaurada;
+- exportação externa foi gerada pela interface;
+- restauração incompatível foi bloqueada antes de alterar os dados e o imóvel
+  permaneceu preservado;
+- `Apagar tudo` removeu imóvel, inquilino, contrato, chamados e colaborador;
+- perfil e assinatura da conta permaneceram ativos até a remoção deliberada;
+- auditoria preservou os 10 imóveis e o único proprietário reais;
+- as duas contas temporárias foram removidas e o Auth voltou aos 3 usuários
+  originais;
+- suíte automatizada aprovada;
+- build `8f1d65916d79`, com 51 arquivos, aprovado em estágio isolado;
+- escolha de acesso, landing page, lista pública e ficha pública da Vitrine
+  aprovadas no deploy de produção `6a73c25a33345e07b3f73c7e`.
+
+Não houve mudança funcional de código durante a 0B, portanto não foi criado um
+deploy redundante. O deploy ativo e o rollback identificados na 0A permanecem
+válidos. Com todos os portões de saída atendidos, a **Fase 0 está concluída** e
+a Etapa 1 — fundação de dados da Vitrine — está liberada para planejamento e
+aprovação específica.

@@ -890,31 +890,36 @@ begin
     end if;
   end if;
 
-  if tg_table_name = 'vistorias'
-     and new.contrato_id is not null
-     and not exists (
-       select 1 from public.contratos c
-        where c.id = new.contrato_id
-          and c.imovel_id = new.imovel_id
-          and c.user_id = v_dono
-     ) then
-    raise exception 'Contrato nao pertence a este imovel.';
+  /* Campos exclusivos de cada tabela ficam em blocos separados. Em um
+     trigger RECORD, referenciar NEW.contrato_id no chamado falha antes de o
+     PostgreSQL conseguir aproveitar o primeiro lado do AND. */
+  if tg_table_name = 'vistorias' then
+    if new.contrato_id is not null
+       and not exists (
+         select 1 from public.contratos c
+          where c.id = new.contrato_id
+            and c.imovel_id = new.imovel_id
+            and c.user_id = v_dono
+       ) then
+      raise exception 'Contrato nao pertence a este imovel.';
+    end if;
   end if;
 
-  if tg_table_name='chamados'
-     and new.inquilino_id is not null
-     and not exists (
-       select 1
-         from public.inquilinos i
-         join public.contratos c
-           on c.tenant_id=i.id
-          and c.user_id=i.user_id
-        where i.id=new.inquilino_id
-          and i.user_id=v_dono
-          and c.imovel_id=new.imovel_id
-     ) then
-    raise exception
-      'Inquilino nao pertence a esta conta e a este imovel.';
+  if tg_table_name='chamados' then
+    if new.inquilino_id is not null
+       and not exists (
+         select 1
+           from public.inquilinos i
+           join public.contratos c
+             on c.tenant_id=i.id
+            and c.user_id=i.user_id
+          where i.id=new.inquilino_id
+            and i.user_id=v_dono
+            and c.imovel_id=new.imovel_id
+       ) then
+      raise exception
+        'Inquilino nao pertence a esta conta e a este imovel.';
+    end if;
   end if;
 
   if tg_table_name='chamados' then
@@ -959,17 +964,18 @@ begin
     end if;
   end if;
 
-  if tg_table_name='chamados'
-     and new.despesa_id is not null
-     and not exists (
-       select 1
-         from public.despesas d
-        where d.id=new.despesa_id
-          and d.user_id=v_dono
-          and d.imovel_id=new.imovel_id
-     ) then
-    raise exception
-      'Despesa nao pertence a esta conta e a este imovel.';
+  if tg_table_name='chamados' then
+    if new.despesa_id is not null
+       and not exists (
+         select 1
+           from public.despesas d
+          where d.id=new.despesa_id
+            and d.user_id=v_dono
+            and d.imovel_id=new.imovel_id
+       ) then
+      raise exception
+        'Despesa nao pertence a esta conta e a este imovel.';
+    end if;
   end if;
 
   return new;

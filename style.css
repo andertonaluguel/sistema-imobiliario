@@ -42,19 +42,12 @@ a{color:inherit;}
 }
 .skip-link:focus{top:var(--s-2);}
 
-/* Alvo de toque. Só em dispositivo de toque — no desktop, com
-   ponteiro preciso, 40px é confortável e mais denso.
-   Vale para o que é clicável; ícone, selo e avatar ficam fora. */
-@media (pointer:coarse){
-  .btn,.mh-btn,.tab,.tab-pill,.rent-tab,.mh-tab,
-  .mobile-nav-item,.portal-nav-item,.menu-btn,.top-search-btn,
-  .filter-chip,.panel-toggle,.house-edit-tabs button,
-  .month-switcher>button,.mh-month-switcher>button,
-  .vitrine-row-actions .btn,.rent-more-grid button{
-    min-height:var(--toque);
-  }
-  .menu-btn,.top-search-btn{min-width:var(--toque);}
-}
+/* Alvo de toque: o bloco vive no FIM deste arquivo, não aqui.
+   Ele estava neste ponto e não fazia efeito nenhum. `@media` não soma
+   especificidade: `.btn{min-height:40px}`, declarado mais adiante com a
+   mesma especificidade, ganhava por vir depois. A política estava escrita,
+   documentada e morta — no celular o botão continuava com 40px, o .btn-sm
+   com 32 e o filter-chip com 37. Procure por "alvo de toque" no fim. */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}
 }
@@ -1276,10 +1269,31 @@ body{min-width:320px;background:
    nascem com width/height fixos, então min-width tem de vir junto do
    min-height — só a altura levanta o alvo pela metade.
    Escopo em (pointer:coarse): no computador, com mouse, nada muda. */
+/* ---------- alvo de toque ------------------------------------------------
+   Só em dispositivo de toque — no computador, com ponteiro preciso, 40px é
+   confortável e mais denso. Vale para o que se clica; ícone, selo e avatar
+   ficam de fora.
+
+   PRECISA CONTINUAR NO FIM DO ARQUIVO. `@media` não soma especificidade,
+   então este bloco só vence `.btn{min-height:40px}` e `.btn-sm{min-height:32px}`
+   porque vem depois deles. Foi por estar no começo que a política nunca
+   pegou. Regra nova de altura de controle vai ACIMA daqui.
+
+   Os quatro primeiros nascem com width E height fixos: aí min-width tem de
+   vir junto, senão o alvo cresce só na vertical e o dedo erra de lado. */
 @media (pointer:coarse){
-  .modal-x,
-  .icon-action,
-  .cal-nav button,
-  .year-switcher button,
-  .month-switcher button{min-width:var(--toque);min-height:var(--toque);}
+  .btn,.mh-btn,.btn-sm,.tab,.tab-pill,.rent-tab,.mh-tab,
+  .mobile-nav-item,.portal-nav-item,.menu-btn,.top-search-btn,
+  .filter-chip,.panel-toggle,.house-edit-tabs button,
+  .month-switcher>button,.mh-month-switcher>button,
+  .month-switcher input,.mh-month-switcher input,
+  .finance-section-nav button,
+  .vitrine-row-actions .btn,.rent-more-grid button,
+  .onboarding-step{
+    min-height:var(--toque);
+  }
+  .menu-btn,.top-search-btn,
+  .modal-x,.icon-action,.cal-nav button,.year-switcher button{
+    min-width:var(--toque);min-height:var(--toque);
+  }
 }

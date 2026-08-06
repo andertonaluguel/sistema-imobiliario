@@ -192,7 +192,7 @@ function openAddTenantModal(){
     '</details>'+
     '<div class="modal-actions sticky-actions"><span></span><div class="modal-actions-right">'+
       '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
-      '<button class="btn btn-primary" onclick="saveNewTenant()">Cadastrar</button>'+
+      '<button id="btn_save_tenant" class="btn btn-primary" onclick="saveNewTenant()">Cadastrar</button>'+
     '</div></div>'
   );
   setTimeout(function(){const el=document.getElementById('f_nome');if(el)el.focus();},20);
@@ -206,6 +206,11 @@ async function saveNewTenant(){
     showToast('E-mail inválido. Confira ou deixe em branco.', 'error'); if(emailEl) emailEl.focus(); return;
   }
   const rgEl=document.getElementById('f_rg');
+  /* Trava de duplo toque, no mesmo formato dos fluxos de dinheiro: dois
+     toques antes da rede responder criavam dois inquilinos iguais. */
+  const submitButton=document.getElementById('btn_save_tenant');
+  if(submitButton&&submitButton.disabled)return;
+  if(submitButton){submitButton.disabled=true;submitButton.textContent='Cadastrando…';}
   try{
     const novo = await db.insertTenant({
       nome:nome,
@@ -218,7 +223,10 @@ async function saveNewTenant(){
     state.tenants.push(novo);
     render();
     offerLinkNewTenant(novo.id, novo.nome);
-  }catch(e){ console.error(e); showToast('Erro ao cadastrar.', 'error'); }
+  }catch(e){
+    console.error(e); showToast('Erro ao cadastrar.', 'error');
+    if(submitButton){submitButton.disabled=false;submitButton.textContent='Cadastrar';}
+  }
 }
 /* Cadastro e vínculo são passos separados: depois de cadastrar, oferece
    vincular a um imóvel (sem misturar contrato no cadastro da pessoa). */

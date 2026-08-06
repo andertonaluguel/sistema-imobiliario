@@ -927,7 +927,7 @@ function openAddHouseModal(){
         '<div class="modal-actions-right">'+
           '<button class="btn btn-ghost wizard-back" onclick="houseWizardBack()">Voltar</button>'+
           '<button class="btn btn-primary wizard-next" onclick="houseWizardNext()">Continuar</button>'+
-          '<button class="btn btn-primary wizard-submit" onclick="addHouse()">Cadastrar imóvel</button>'+
+          '<button id="btn_add_house" class="btn btn-primary wizard-submit" onclick="addHouse()">Cadastrar imóvel</button>'+
         '</div>'+
       '</div>'+
     '</div>'
@@ -939,6 +939,10 @@ async function addHouse(){
   const endereco = document.getElementById('f_endereco').value.trim();
   const tipoEl = document.getElementById('f_tipo');
   const tipo = normalizeImovelTipo(tipoEl?tipoEl.value:'casa');
+  /* Trava de duplo toque, no mesmo formato dos fluxos de dinheiro. */
+  const submitButton=document.getElementById('btn_add_house');
+  if(submitButton&&submitButton.disabled)return;
+  if(submitButton){submitButton.disabled=true;submitButton.textContent='Cadastrando…';}
   try{
     const draft=readHouseCharacteristics({ nome:nome, endereco:endereco, tipo:tipo, status:'vaga',
       proprietarioClienteId:readHouseOwner(null),
@@ -947,7 +951,10 @@ async function addHouse(){
     state.houses.push(novo);
     if(state.commercialAccess)state.commercialAccess.quantidadeCasas=state.houses.length;
     closeModal(); render();
-  }catch(e){ console.error(e); showToast(e&&e.message&&e.message.toLowerCase().includes('limite')?e.message:'Erro ao adicionar o imóvel.', 'error'); }
+  }catch(e){
+    console.error(e); showToast(e&&e.message&&e.message.toLowerCase().includes('limite')?e.message:'Erro ao adicionar o imóvel.', 'error');
+    if(submitButton){submitButton.disabled=false;submitButton.textContent='Cadastrar imóvel';}
+  }
 }
 function openEditHouseModal(houseId){
   if(!requirePropertyPermission())return;

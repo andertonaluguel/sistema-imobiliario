@@ -715,6 +715,16 @@ function maskSensitiveDocument(value){
   return 'Documento protegido';
 }
 function requireAccountPermission(allowed,message){
+  /* No modo de consulta offline não existe gravação — não há fila de
+     sincronização. O banner avisa, mas os botões continuavam vivos: a
+     pessoa tocava, esperava a chamada falhar e recebia um erro genérico
+     ("Erro ao adicionar o imóvel") que não diz que o problema é a internet.
+     Como todo require*Permission passa por aqui, um aviso claro neste ponto
+     cobre as 132 guardas de ação do app. */
+  if(state.offlineMode){
+    showToast('Sem internet — modo de consulta. Esta ação precisa de conexão.','error');
+    return false;
+  }
   if(allowed) return true;
   showToast(message||'Sua função permite somente consultar estes dados.','error');
   return false;

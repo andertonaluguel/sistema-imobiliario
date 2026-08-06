@@ -891,10 +891,14 @@ a{color:inherit;}
 .chart-cur-note{color:var(--brass-deep);font-weight:600;}
 
 /* ---- painel de Alertas (cobrança: próximo / atrasado) ---- */
-.alert-row{display:flex;align-items:center;gap:var(--s-3);padding:13px 16px;border-radius:var(--r-md);margin-bottom:var(--s-2);cursor:pointer;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);transition:transform .15s var(--ease),box-shadow .15s var(--ease);}
+.alert-row{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3);padding:13px 16px;border-radius:var(--r-md);margin-bottom:var(--s-2);cursor:pointer;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);transition:transform .15s var(--ease),box-shadow .15s var(--ease);}
 .alert-row:last-child{margin-bottom:0;}
 .alert-row:hover{transform:translateX(2px);box-shadow:var(--shadow-hover);}
-.alert-row .ledger-row-main{flex:1;font-size:13px;}
+/* Base de 240px: o painel de Alertas vive numa coluna de ~577px do painel,
+   estreita em qualquer largura de tela. Sem uma base mínima, o selo, os dois
+   botões e o valor espremiam este texto em 100px e ele quebrava em 8 linhas.
+   Com wrap na linha, abaixo disso o texto passa a ocupar a linha inteira. */
+.alert-row .ledger-row-main{flex:1 1 240px;font-size:13px;}
 .alert-row .ledger-row-sub{font-size:var(--t-xs);color:var(--ink-soft);margin-top:2px;}
 .alert-row .ledger-row-value{font-family:var(--font-mono);font-weight:600;min-width:84px;text-align:right;}
 .alert-atraso{background:var(--rust-soft);border-color:transparent;}

@@ -1040,6 +1040,10 @@
   outline:3px solid var(--brass);outline-offset:2px;
 }
 .vitrine-busca:focus-within{outline-offset:0;border-color:var(--brass);}
+/* A busca do herói chegou depois e ficou de fora do anel acima. Ela zera o
+   outline do input (.vh-busca-campo input:focus), então sem isto o primeiro
+   campo que o Tab alcança na Vitrine pública não mostrava foco nenhum. */
+.vh-busca-campo:focus-within{outline:3px solid var(--brass);outline-offset:2px;}
 
 /* Alvo de toque: no celular, tudo que se clica tem pelo menos 44px. */
 @media (pointer:coarse){

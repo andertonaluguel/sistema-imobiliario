@@ -131,7 +131,7 @@
 /* ============================================================
    PÁGINA PÚBLICA
    ============================================================ */
-.vitrine-public{min-height:100vh;background:var(--paper);}
+.vitrine-public{min-height:100vh;overflow-x:hidden;background:var(--paper);}
 
 .vitrine-pub-top{
   padding:26px max(20px,calc((100vw - 1180px)/2));color:var(--cover-text);
@@ -143,6 +143,11 @@
   display:flex;align-items:center;gap:16px;max-width:1180px;margin:0 auto;flex-wrap:wrap;
 }
 .vitrine-pub-top .brand-mark{width:44px;height:44px;color:var(--accent-on-cover);}
+.vitrine-brand-logo-img{
+  width:52px;height:52px;object-fit:contain;border-radius:var(--r-md);
+  background:var(--card);padding:5px;
+}
+.vitrine-brand-place{margin:3px 0 0;color:var(--cover-muted);font-size:var(--t-xs);}
 .vitrine-pub-top .eyebrow{
   display:block;font-family:var(--font-mono);font-size:var(--t-xs);
   letter-spacing:1.5px;color:var(--accent-on-cover);
@@ -162,6 +167,8 @@
   background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);padding:14px max(20px,calc((100vw - 1180px)/2));
 }
+.vitrine-filtros-mobile-bar,.vitrine-filtros-mobile-head,
+.vitrine-filtros-mobile-foot,.vitrine-filtros-backdrop{display:none;}
 .vitrine-filtros-in{
   max-width:1180px;margin:0 auto;display:flex;gap:9px;flex-wrap:wrap;align-items:center;
 }
@@ -188,6 +195,50 @@
 }
 .vitrine-chip:hover{border-color:var(--accent-on-cover);color:var(--ink);}
 .vitrine-chip.on{background:var(--cover-light);border-color:var(--cover-light);color:var(--cover-text);}
+/* "Mais filtros" abre a segunda fileira. Fica separado dos chips de
+   característica por uma borda: não é a mesma coisa que "aceita pet". */
+.vitrine-chip-mais{margin-left:auto;border-style:dashed;}
+.vitrine-chip-conta{
+  display:inline-block;margin-left:6px;min-width:17px;padding:0 5px;border-radius:var(--r-full);
+  background:var(--accent-on-cover);color:var(--cover);
+  font-family:var(--font-mono);font-size:var(--t-xs);font-style:normal;font-weight:700;
+}
+.vitrine-filtros-finos{
+  max-width:1180px;margin:11px auto 0;padding-top:11px;border-top:1px solid var(--line);
+  display:flex;gap:var(--s-3);flex-wrap:wrap;align-items:flex-end;
+}
+.vitrine-num{display:flex;flex-direction:column;gap:5px;}
+.vitrine-num>span{font-size:var(--t-xs);font-weight:600;color:var(--ink-soft);}
+.vitrine-num input{
+  width:96px;min-height:42px;padding:0 var(--s-3);
+  border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);
+  font-family:var(--font-body);font-size:var(--t-sm);color:var(--ink);
+}
+.vitrine-num input:focus-visible,.vitrine-num select:focus-visible{
+  outline:3px solid var(--brass);outline-offset:2px;
+}
+/* Mínimo e máximo andam juntos: separá-los faria a pessoa ler duas vezes
+   para entender que são as pontas do mesmo intervalo. */
+.vitrine-par{display:flex;flex-direction:column;gap:5px;}
+.vitrine-par>div{display:flex;gap:6px;}
+.vitrine-par-tit{font-size:var(--t-xs);font-weight:700;color:var(--ink);}
+.vitrine-limpar-finos{
+  min-height:42px;padding:0 var(--s-3);border:1px solid var(--line);border-radius:var(--r-md);
+  background:none;font-size:var(--t-xs);font-weight:600;color:var(--ink-soft);cursor:pointer;
+}
+.vitrine-limpar-finos:hover{border-color:var(--accent-on-cover);color:var(--ink);}
+.vitrine-filtros-ativos{
+  max-width:1180px;margin:0 auto;padding:10px 20px 0;
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+}
+.vitrine-filtros-ativos>span{font-size:var(--t-xs);font-weight:700;color:var(--ink-soft);}
+.vitrine-filtros-ativos button{
+  min-height:36px;padding:6px 11px;border:1px solid var(--line);border-radius:var(--r-full);
+  background:var(--card);color:var(--ink);font-size:var(--t-xs);font-weight:600;
+}
+.vitrine-filtros-ativos button:hover{border-color:var(--accent-on-cover);}
+.vitrine-filtros-ativos button b{margin-left:5px;font-size:var(--t-md);line-height:1;}
+.vitrine-filtros-ativos .vitrine-limpar-todos{border-color:transparent;background:none;color:var(--ink-soft);}
 
 .vitrine-pub-main{max-width:1180px;margin:0 auto;padding:26px 20px 80px;}
 .vitrine-result{margin-bottom:16px;}
@@ -206,6 +257,17 @@
 .vitrine-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);}
 .vitrine-card-foto{position:relative;height:196px;background:var(--cover-light);}
 .vitrine-card-foto img{width:100%;height:100%;object-fit:cover;display:block;}
+.vitrine-card-acoes{
+  position:absolute;top:10px;right:10px;z-index:3;display:flex;gap:6px;
+}
+.vitrine-card-acao{
+  width:38px;height:38px;display:grid;place-items:center;padding:0;
+  border:1px solid color-mix(in srgb,var(--card) 65%,transparent);border-radius:var(--r-full);
+  background:color-mix(in srgb,var(--cover) 72%,transparent);color:var(--cover-text);
+  font-size:var(--t-lg);font-weight:700;box-shadow:var(--shadow);cursor:pointer;
+}
+.vitrine-card-acao:hover,.vitrine-card-acao.on{background:var(--accent-on-cover);color:var(--cover);}
+.vitrine-card-acao:focus-visible{outline:3px solid var(--brass);outline-offset:2px;}
 .vitrine-sem-foto{
   width:100%;height:100%;display:flex;align-items:center;justify-content:center;
   background:var(--cover-light);color:var(--accent-on-cover);
@@ -219,6 +281,30 @@
   position:absolute;bottom:11px;right:11px;padding:5px 10px;border-radius:var(--r-full);
   background:color-mix(in srgb,var(--cover) 78%,transparent);color:var(--cover-text);font-size:var(--t-xs);font-family:var(--font-mono);
 }
+/* Folhear as fotos sem abrir o anúncio.
+   A capa é botão só para o mouse: cobre a foto inteira e fica atrás das
+   setas, senão a seta ficaria inalcançável. */
+.vitrine-card-capa{
+  display:block;width:100%;height:100%;padding:0;border:0;background:none;
+  cursor:pointer;position:relative;z-index:0;
+}
+.vitrine-card-capa .vitrine-sem-foto{display:flex;}
+.vc-nav{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:2;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  border:0;border-radius:var(--r-full);cursor:pointer;
+  background:color-mix(in srgb,var(--cover) 72%,transparent);
+  color:var(--cover-text);font-size:var(--t-lg);line-height:1;
+  opacity:0;transition:opacity .16s,background .16s;
+}
+.vc-ant{left:var(--s-2);}
+.vc-prox{right:var(--s-2);}
+.vc-nav:hover{background:var(--cover);}
+/* Some por padrão para a foto respirar; aparece quando a pessoa mira o
+   cartão ou chega nele pelo teclado. */
+.vitrine-card:hover .vc-nav,
+.vitrine-card-foto:focus-within .vc-nav{opacity:1;}
+.vc-nav:focus-visible{opacity:1;outline:3px solid var(--brass);outline-offset:2px;}
 .vitrine-card-body{padding:var(--s-4) 18px 19px;}
 .vitrine-card-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);margin-bottom:var(--s-2);}
 .vitrine-card-body h3{
@@ -262,6 +348,36 @@
 
 /* "Ver mais": a grade carrega em blocos. */
 .vitrine-mais{display:flex;justify-content:center;margin-top:var(--s-5);}
+.vitrine-empty-alternativas{display:flex;justify-content:center;gap:var(--s-2);flex-wrap:wrap;margin-top:var(--s-3);}
+
+/* A selecao acompanha a pessoa sem cobrir o conteudo. A tabela so e aberta
+   quando ha dois ou mais imoveis, e continua legivel em tela estreita. */
+.vitrine-comparacao-bar{
+  position:fixed;left:50%;bottom:18px;z-index:75;transform:translateX(-50%);
+  display:flex;align-items:center;gap:var(--s-2);min-width:310px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);
+  color:var(--ink);box-shadow:var(--shadow-hover);
+}
+.vitrine-comparacao-bar span{flex:1;font-size:var(--t-sm);}
+.vitrine-comparacao-modal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:20px;}
+.vitrine-comparacao-backdrop{position:absolute;inset:0;border:0;background:color-mix(in srgb,var(--cover) 72%,transparent);}
+.vitrine-comparacao-modal>section{
+  position:relative;z-index:1;width:min(1080px,100%);max-height:calc(100dvh - 40px);overflow:hidden;
+  border-radius:var(--r-xl);background:var(--card);color:var(--ink);box-shadow:var(--shadow-hover);
+}
+.vitrine-comparacao-modal header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line);}
+.vitrine-comparacao-modal header h2{margin:2px 0 0;font:700 var(--t-xl) var(--font-display);}
+.vitrine-comparacao-modal header>button,.vitrine-filtros-mobile-head button{
+  width:44px;height:44px;border:1px solid var(--line);border-radius:var(--r-full);background:var(--card);color:var(--ink);font-size:var(--t-xl);
+}
+.vitrine-comparacao-scroll{max-height:calc(100dvh - 138px);overflow:auto;}
+.vitrine-comparacao-scroll table{width:100%;min-width:720px;border-collapse:collapse;font-size:var(--t-sm);}
+.vitrine-comparacao-scroll th,.vitrine-comparacao-scroll td{padding:13px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);}
+.vitrine-comparacao-scroll thead th{position:sticky;top:0;z-index:1;background:var(--card);}
+.vitrine-comparacao-scroll thead th:not(:first-child){min-width:190px;}
+.vitrine-comparacao-scroll thead span{display:block;margin-bottom:5px;font-weight:700;}
+.vitrine-comparacao-scroll thead button{padding:0;border:0;background:none;color:var(--ink-soft);font-size:var(--t-xs);text-decoration:underline;}
+.vitrine-comparacao-scroll tbody th{color:var(--ink-soft);font-weight:600;}
 
 /* ---------- detalhe público ---------- */
 .vitrine-detalhe{max-width:1180px;margin:0 auto;padding:22px 20px 80px;}
@@ -337,6 +453,269 @@
   .vlb-nav{display:none;}            /* no celular passa-se com o dedo */
   .vlb-palco img{max-height:72vh;border-radius:0;}
 }
+
+/* Etapas 4–6: ficha premium, retenção e agenda. */
+.vitrine-result{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);}
+.vitrine-result>div{display:flex;gap:var(--s-1);flex-wrap:wrap;}
+.vitrine-result button,.vitrine-recentes button,.vitrine-detalhe-acoes button,.vitrine-code-copiar,
+.vitrine-legal button,.vitrine-visitas-locais button,.vitrine-gestoes-locais button{
+  min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--card);color:var(--ink-soft);font:600 var(--t-sm) var(--font-body);
+}
+.vitrine-breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:var(--s-2);color:var(--ink-faint);font-size:var(--t-sm);}
+.vitrine-breadcrumb button{padding:4px 0;border:0;background:none;color:var(--ink-soft);text-decoration:underline;}
+.vitrine-breadcrumb strong{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);}
+.vitrine-atualizado{margin-left:auto;color:var(--ink-faint);font-size:var(--t-sm);}
+.vitrine-code-copiar{min-height:32px!important;padding:4px 9px!important;border-radius:var(--r-full)!important;}
+.vitrine-detalhe-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:var(--s-2);}
+.vitrine-detalhe-acoes button[aria-pressed="true"]{border-color:var(--brass);background:var(--brass-soft);color:var(--brass-deep);}
+.vitrine-comodidades-detalhe{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--s-3);margin-top:var(--s-2);}
+.vitrine-comodidades-detalhe h3{margin:0 0 8px;font:700 var(--t-sm) var(--font-body);color:var(--ink);}
+.vitrine-comodidades-detalhe ul{display:grid;gap:7px;margin:0;padding:0;list-style:none;}
+.vitrine-comodidades-detalhe li{display:flex;gap:8px;color:var(--ink-soft);font-size:var(--t-sm);}
+.vitrine-comodidades-detalhe li span{color:var(--ok);font-weight:800;}
+.vitrine-documentos{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:var(--s-2) 0;}
+.vitrine-documentos>div{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);font-size:var(--t-sm);}
+.vitrine-documentos .is-sim strong{color:var(--ok);}.vitrine-documentos .is-nao strong{color:var(--warn);}
+.vitrine-condicoes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0;margin:var(--s-2) 0 0;}
+.vitrine-condicoes>div{padding:10px 12px;border-bottom:1px solid var(--line);}
+.vitrine-condicoes dt{color:var(--ink-faint);font-size:var(--t-xs);}.vitrine-condicoes dd{margin:3px 0 0;color:var(--ink);font-weight:700;}
+.vitrine-responsavel{display:flex;flex-direction:column;align-items:flex-start;gap:5px;}
+.vitrine-responsavel h2,.vitrine-responsavel p{width:100%;}.vitrine-responsavel span{color:var(--ink-soft);font-size:var(--t-sm);}
+
+/* ---------- quem responde pelo imóvel -------------------------------
+   Etiqueta, identidade, nota e estoque, nesta ordem: quem é, se dá para
+   confiar, e o que mais tem. O botão de ver os outros anúncios fecha o
+   bloco porque é a única coisa ali que leva para outra página. */
+.vitrine-resp-tipo{
+  display:inline-flex;align-items:center;gap:6px;
+  margin:var(--s-1) 0 var(--s-2);padding:4px 10px;
+  border:1px solid var(--brass-soft);border-radius:var(--r-full);
+  background:var(--brass-soft);color:var(--brass-deep);
+  font:600 var(--t-xs) var(--font-mono);letter-spacing:.8px;
+}
+.vitrine-resp-tipo i{font-style:normal;font-size:12px;}
+.vitrine-resp-id{display:flex;align-items:center;gap:var(--s-3);width:100%;}
+.vitrine-resp-avatar{
+  display:grid;place-items:center;flex:0 0 auto;width:46px;height:46px;
+  border-radius:var(--r-full);background:var(--cover);color:var(--cover-text);
+  font:700 15px var(--font-display);letter-spacing:.5px;
+}
+.vitrine-resp-id>div{min-width:0;}
+.vitrine-resp-id strong{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--font-display);font-size:var(--t-md);color:var(--ink);
+}
+/* O visto é discreto de propósito: ele confirma, não anuncia. Um selo
+   maior que o nome vira propaganda do selo. */
+.vitrine-visto{
+  display:grid;place-items:center;flex:0 0 auto;width:18px;height:18px;
+  border-radius:var(--r-full);background:var(--visto);color:var(--visto-ink);
+  font-size:var(--t-xs);line-height:1;cursor:help;
+}
+.vitrine-resp-registro{display:block;font-size:var(--t-xs);color:var(--ink-soft);}
+.vitrine-resp-nota{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-2);flex-wrap:wrap;}
+.vitrine-resp-nota b{font:700 var(--t-md) var(--font-display);color:var(--ink);}
+.vitrine-resp-nota span{font-size:var(--t-xs);color:var(--ink-soft);}
+.vitrine-resp-nota.vazia span{font-style:italic;}
+.vitrine-estrelas{display:inline-flex;gap:2px;}
+.vitrine-estrelas i{font-style:normal;font-size:14px;line-height:1;color:var(--line);}
+.vitrine-estrelas i.on{color:var(--estrela);}
+/* Meia estrela sem sobrepor dois elementos: o preenchimento para no
+   meio pelo próprio recorte do texto. */
+.vitrine-estrelas i.meia{
+  background:linear-gradient(90deg,var(--estrela) 50%,var(--line) 50%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.vitrine-resp-imoveis{margin-top:var(--s-3);font-size:var(--t-sm);color:var(--ink-soft);}
+.vitrine-resp-imoveis b{font:700 var(--t-md) var(--font-display);color:var(--ink);}
+.vitrine-resp-ver{
+  width:100%;margin-top:var(--s-2);padding:11px var(--s-3);
+  border:1px solid var(--cover);border-radius:var(--r-md);
+  background:transparent;color:var(--cover);
+  font:600 var(--t-sm) var(--font-display);cursor:pointer;
+}
+.vitrine-resp-ver:hover{background:var(--cover);color:var(--cover-text);}
+
+/* Célula da tabela de proprietários: a etiqueta é o próprio botão de
+   editar, para não gastar uma coluna só com "Editar". */
+.vitrine-resp-editar{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:0;border:0;background:none;cursor:pointer;text-align:left;
+}
+.vitrine-resp-editar:hover .chip{background:var(--cover);color:var(--cover-text);}
+
+/* ---------- página Anunciar -----------------------------------------
+   Dois cartões, não três: quem chega ainda não sabe em qual perfil se
+   encaixa, e cada opção a mais divide a atenção. A divisão é pelo que
+   a pessoa compra — usar meu público ou ter a própria plataforma —,
+   não por quem ela é. */
+.vitrine-anunciar{max-width:1000px;margin:0 auto;padding:var(--s-5) var(--s-4) var(--s-6);}
+.va-topo{text-align:center;margin-bottom:var(--s-5);}
+.va-topo h1{margin:var(--s-2) 0 var(--s-3);font:700 clamp(26px,4vw,40px)/1.15 var(--font-display);}
+.va-topo p{max-width:52ch;margin:0 auto;color:var(--ink-soft);line-height:1.55;}
+.va-cartoes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--s-4);}
+.va-cartao{
+  display:flex;flex-direction:column;gap:var(--s-2);
+  padding:var(--s-5) var(--s-4);
+  border:1px solid var(--line);border-radius:var(--r-xl);
+  background:var(--card);box-shadow:var(--shadow);
+}
+/* O caminho da plataforma é o produto mais caro: ganha o fundo escuro
+   para não competir de igual com o mais barato. */
+.va-cartao.va-plataforma{background:var(--cover);color:var(--cover-text);border-color:var(--cover);}
+.va-olho{font:600 var(--t-xs) var(--font-mono);letter-spacing:.9px;color:var(--ink-soft);}
+.va-plataforma .va-olho{color:var(--cover-muted);}
+.va-cartao h2{margin:var(--s-1) 0 0;font:700 var(--t-xl) var(--font-display);}
+.va-cartao>p{margin:0;color:var(--ink-soft);line-height:1.55;}
+.va-plataforma>p{color:var(--cover-muted);}
+.va-marcas{display:flex;flex-direction:column;gap:var(--s-2);margin:var(--s-2) 0 var(--s-4);padding:0;list-style:none;}
+.va-marcas li{display:flex;align-items:center;gap:var(--s-2);font-size:var(--t-sm);}
+.va-marcas span{
+  display:grid;place-items:center;flex:0 0 auto;width:20px;height:20px;
+  border-radius:var(--r-full);background:var(--brass-soft);color:var(--brass-deep);font-size:var(--t-xs);
+}
+.va-plataforma .va-marcas span{background:var(--accent-on-cover);color:var(--accent-contrast);}
+.va-acao{
+  margin-top:auto;min-height:var(--toque);padding:13px var(--s-4);
+  border:0;border-radius:var(--r-md);cursor:pointer;
+  background:var(--cover);color:var(--cover-text);
+  font:600 var(--t-md) var(--font-display);
+}
+.va-plataforma .va-acao{background:var(--accent-on-cover);color:var(--accent-contrast);}
+.va-acao:hover{filter:brightness(1.08);}
+.va-nota{
+  max-width:60ch;margin:var(--s-5) auto 0;text-align:center;
+  font-size:var(--t-sm);color:var(--ink-soft);line-height:1.55;
+}
+
+/* formulário: quatro campos e uma autorização. Cada campo a mais é
+   gente que desiste no meio. */
+.va-form{display:flex;flex-direction:column;gap:var(--s-2);}
+.va-form h2{margin:0 0 var(--s-2);font:700 var(--t-xl) var(--font-display);}
+.va-consent{display:flex;align-items:flex-start;gap:var(--s-2);font-size:var(--t-sm);color:var(--ink-soft);}
+.va-consent input{margin-top:3px;}
+.va-form-acoes{display:flex;gap:var(--s-2);margin-top:var(--s-2);}
+.va-fechar,.va-enviar{
+  flex:1;min-height:var(--toque);padding:12px var(--s-3);
+  border-radius:var(--r-md);cursor:pointer;
+  font:600 var(--t-sm) var(--font-display);text-align:center;
+}
+.va-fechar{border:1px solid var(--line);background:var(--paper);color:var(--ink);}
+.va-enviar{border:0;background:var(--cover);color:var(--cover-text);text-decoration:none;
+  display:grid;place-items:center;}
+.va-atalho{display:block;margin-top:var(--s-2);text-align:center;font-size:var(--t-sm);color:var(--ink-soft);}
+.va-form-ok{text-align:center;gap:var(--s-3);}
+.va-form-ok p{color:var(--ink-soft);line-height:1.55;}
+
+/* o link no topo: marcado, porque é a única coisa ali que fala com o
+   outro lado do balcão */
+.vitrine-pub-anunciar{display:inline-flex;align-items:center;gap:6px;font-weight:600;}
+.vitrine-pub-anunciar span{color:var(--brass);font-size:var(--t-xs);}
+
+/* ---------- Anunciar: o resto da página ------------------------------
+   A página parava nos dois cartões e o rodapé subia junto — parecia
+   que tinha acabado antes de convencer. As seções abaixo respondem, na
+   ordem em que a dúvida aparece: como funciona, por que aqui, o que eu
+   recebo, e onde clico. Fundo alternado para a rolagem ter marcos. */
+.va-secao{padding:var(--s-6) var(--s-4);}
+.va-secao-in{max-width:1000px;margin:0 auto;}
+.va-secao-in>.eyebrow{display:block;text-align:center;}
+.va-secao h2{
+  margin:var(--s-2) 0 var(--s-5);text-align:center;
+  font:700 clamp(22px,3vw,32px)/1.2 var(--font-display);
+}
+.va-como{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.va-passos{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--s-4);}
+.va-passo{display:flex;gap:var(--s-3);align-items:flex-start;}
+.va-passo>b{
+  display:grid;place-items:center;flex:0 0 auto;width:38px;height:38px;
+  border-radius:var(--r-full);background:var(--cover);color:var(--accent-on-cover);
+  font:700 var(--t-md) var(--font-display);
+}
+.va-passo>div{display:flex;flex-direction:column;gap:var(--s-1);min-width:0;}
+.va-passo strong{font:700 var(--t-md) var(--font-display);}
+.va-passo span{font-size:var(--t-sm);color:var(--ink-soft);line-height:1.55;}
+
+.va-difs{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:var(--s-4);}
+.va-dif{
+  display:flex;flex-direction:column;gap:var(--s-2);
+  padding:var(--s-4);border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);
+}
+.va-dif i{font-style:normal;font-size:24px;line-height:1;}
+.va-dif strong{font:700 var(--t-md) var(--font-display);}
+.va-dif p{margin:0;font-size:var(--t-sm);color:var(--ink-soft);line-height:1.55;}
+
+.va-recebe-secao{background:var(--card);border-top:1px solid var(--line);}
+.va-recebe{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--s-4);}
+.va-recebe-col{
+  display:flex;flex-direction:column;gap:var(--s-3);
+  padding:var(--s-5) var(--s-4);border:1px solid var(--line);border-radius:var(--r-xl);
+  background:var(--paper);
+}
+.va-recebe-col h3{margin:0;font:700 var(--t-lg) var(--font-display);}
+.va-recebe-col ul{display:flex;flex-direction:column;gap:var(--s-2);margin:0;padding:0;list-style:none;}
+.va-recebe-col li{display:flex;gap:var(--s-2);font-size:var(--t-sm);line-height:1.5;}
+.va-recebe-col li span{
+  display:grid;place-items:center;flex:0 0 auto;width:20px;height:20px;
+  border-radius:var(--r-full);background:var(--brass-soft);color:var(--brass-deep);font-size:var(--t-xs);
+}
+.va-recebe-col .va-acao{margin-top:auto;}
+/* O caminho da plataforma mantém o destaque escuro que ele tem no
+   cartão lá em cima — a pessoa reconhece que é o mesmo produto. */
+.va-recebe-plataforma{background:var(--cover);border-color:var(--cover);color:var(--cover-text);}
+.va-recebe-plataforma li span{background:var(--accent-on-cover);color:var(--accent-contrast);}
+.va-recebe-plataforma .va-acao{background:var(--accent-on-cover);color:var(--accent-contrast);}
+
+.va-fechamento{
+  padding:var(--s-6) var(--s-4);text-align:center;
+  background:var(--cover);color:var(--cover-text);
+}
+.va-fechamento h2{margin:0 0 var(--s-2);font:700 clamp(22px,3vw,32px)/1.2 var(--font-display);}
+.va-fechamento p{max-width:46ch;margin:0 auto var(--s-4);color:var(--cover-muted);line-height:1.55;}
+.va-fechamento-acoes{display:flex;flex-wrap:wrap;gap:var(--s-3);justify-content:center;}
+.va-fechamento-acoes .va-acao{flex:0 1 300px;}
+.va-acao-plataforma{background:var(--accent-on-cover);color:var(--accent-contrast);}
+.va-fechamento .va-acao-divulgar{background:var(--card);color:var(--ink);}
+.vitrine-legal{border-color:var(--warn-border);background:var(--warn-soft);}.vitrine-legal p{color:var(--ink-soft);}
+.vitrine-agenda-nota{margin:7px 0 12px;color:var(--ink-faint);font-size:var(--t-xs);line-height:1.45;}
+
+.vitrine-modal-publico{position:fixed;inset:0;z-index:130;display:grid;place-items:center;padding:20px;}
+.vitrine-modal-fundo{position:absolute;inset:0;width:100%;border:0;background:color-mix(in srgb,var(--cover) 76%,transparent);}
+.vitrine-modal-publico>section{position:relative;width:min(560px,100%);max-height:92dvh;overflow:auto;padding:20px;border:1px solid var(--line);border-radius:var(--r-xl);background:var(--card);box-shadow:var(--shadow-hover);}
+.vitrine-modal-publico header{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);margin-bottom:var(--s-2);}
+.vitrine-modal-publico header h2{margin:2px 0 0;font:700 var(--t-xl) var(--font-display);}
+.vitrine-modal-publico header>button{width:44px;height:44px;border:1px solid var(--line);border-radius:var(--r-full);background:var(--paper);font-size:var(--t-xl);}
+.vitrine-modal-publico .field{margin-bottom:12px;}.vitrine-modal-resumo{padding:12px;border-radius:var(--r-md);background:var(--paper);color:var(--ink-soft);}
+.vitrine-salvos{display:grid;gap:10px;}.vitrine-salvos article{display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--line);border-radius:var(--r-lg);}
+.vitrine-salvos article>div{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;}.vitrine-salvos span,.vitrine-salvos small{color:var(--ink-soft);font-size:var(--t-xs);}
+.vitrine-gestoes-locais{display:grid;gap:7px;margin-top:var(--s-3);padding-top:var(--s-2);border-top:1px solid var(--line);}
+.vitrine-gestoes-locais>div{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:var(--t-sm);}
+.vitrine-horarios{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:280px;overflow:auto;margin:var(--s-2) 0;}
+.vitrine-horarios button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:58px;padding:10px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--paper);color:var(--ink);}
+.vitrine-horarios button.on{border-color:var(--brass);background:var(--brass-soft);}.vitrine-horarios span{color:var(--ink-soft);font-size:var(--t-xs);}
+.vitrine-visitas-locais{display:grid;gap:10px;}.vitrine-visitas-locais article{padding:12px;border:1px solid var(--line);border-radius:var(--r-lg);}
+.vitrine-visitas-locais article>div{display:flex;justify-content:space-between;gap:8px;}.vitrine-visitas-locais article span{font-size:var(--t-xs);font-weight:700;text-transform:uppercase;}.vitrine-visitas-locais p{color:var(--ink-soft);font-size:var(--t-sm);}
+.vitrine-visitas-locais button{margin-right:8px;}.vitrine-visitas-locais .is-confirmada,.vitrine-visitas-locais .is-realizada{color:var(--ok);}.vitrine-visitas-locais .is-solicitada,.vitrine-visitas-locais .is-reagendada{color:var(--warn);}
+.vitrine-recentes{margin-top:var(--s-5);padding-top:var(--s-3);border-top:1px solid var(--line);}
+.vitrine-recentes header{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);}.vitrine-recentes h2{font:700 var(--t-lg) var(--font-display);}
+.vitrine-recentes>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;}.vitrine-recentes>div button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;}.vitrine-recentes span{color:var(--ink-soft);font-size:var(--t-xs);}
+.vitrine-comparacao-diferencas{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--paper);font-size:var(--t-sm);}
+
+.vitrine-agenda-config{display:grid;gap:var(--s-3);margin-top:var(--s-2);}.vitrine-agenda-opcoes{display:grid;grid-template-columns:2fr 1fr 1fr;gap:var(--s-2);}
+.vitrine-retencao-resumo{display:grid;grid-template-columns:repeat(2,minmax(180px,260px));gap:var(--s-2);margin-bottom:var(--s-4);}
+.vitrine-agenda-grade{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}.vitrine-agenda-grade fieldset{display:grid;gap:7px;margin:0;padding:10px;border:1px solid var(--line);border-radius:var(--r-md);}
+.vitrine-agenda-grade legend{padding:0 4px;font-weight:700;font-size:var(--t-xs);}.vitrine-agenda-grade label{font-size:var(--t-xs);color:var(--ink-soft);}.vitrine-visitas-titulo{margin-top:var(--s-5);}.vitrine-agenda-vazia{padding:var(--s-4);text-align:center;color:var(--ink-soft);}
+.vitrine-table td small{display:block;margin-top:3px;color:var(--ink-faint);font-size:var(--t-xs);}
+
+@media(max-width:760px){
+  .vitrine-result{align-items:flex-start;}.vitrine-result>div{justify-content:flex-end;}
+  .vitrine-breadcrumb{overflow:hidden;}.vitrine-atualizado{font-size:var(--t-xs);}
+  .vitrine-detalhe-acoes{display:grid;grid-template-columns:repeat(2,1fr);}.vitrine-detalhe-acoes button{min-height:44px;}
+  .vitrine-modal-publico{padding:0;place-items:end center;}.vitrine-modal-publico>section{width:100%;max-height:94dvh;border-radius:var(--r-xl) var(--r-xl) 0 0;}
+  .vitrine-horarios{grid-template-columns:1fr;}.vitrine-salvos article{flex-wrap:wrap;}.vitrine-salvos article>div{flex-basis:100%;}
+  .vitrine-agenda-opcoes{grid-template-columns:1fr;}.vitrine-agenda-grade{grid-template-columns:repeat(2,1fr);}
+}
 .vitrine-detalhe-cols{display:grid;grid-template-columns:1fr 366px;gap:var(--s-5);align-items:start;}
 .vitrine-bloco{
   background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;
@@ -370,6 +749,8 @@
 .vitrine-custo-total b{font-family:var(--font-display);font-size:21px;color:var(--accent-on-cover);}
 
 #vitrineMapa{height:330px;border-radius:var(--r-lg);border:1px solid var(--line);z-index:1;background:#E6EDE9;}
+.vitrine-mapa-pedido{width:100%;min-height:160px;display:grid;place-content:center;gap:var(--s-2);border:1px dashed var(--line);border-radius:var(--r-lg);background:var(--paper);color:var(--ink);text-align:center;padding:var(--s-5)}
+.vitrine-mapa-pedido span{font-size:var(--t-sm);color:var(--ink-soft)}
 .vitrine-mapa-off{height:100%;display:grid;place-items:center;color:var(--ink-soft);font-size:var(--t-sm);}
 .vitrine-poi{display:grid;grid-template-columns:repeat(auto-fit,minmax(226px,1fr));gap:9px;}
 .vitrine-poi-item{
@@ -588,7 +969,68 @@
 .vitrine-voltar:focus-visible{outline:3px solid var(--brass);outline-offset:2px;}
 .vitrine-cidade-atual{font:700 var(--t-xl) var(--font-display);color:var(--ink);}
 .vitrine-cidade-atual small{color:var(--ink-faint);font-size:var(--t-sm);font-weight:600;}
-.vitrine-finalidade{display:flex;gap:6px;margin-left:auto;padding:4px;border-radius:var(--r-full);background:var(--slate-soft);}
+/* ---------- as duas perguntas do topo --------------------------------
+   O que fazer com o imóvel (alugar/comprar) e que tipo de imóvel
+   (residencial/comercial/terreno). Lado a lado porque são a mesma
+   decisão para quem chega, e ficam na mesma pílula para ler como um
+   conjunto e não como dois filtros soltos. */
+.vitrine-busca-modos{display:flex;gap:var(--s-3);margin-left:auto;flex-wrap:wrap;align-items:center;}
+.vitrine-categorias{display:flex;gap:6px;padding:4px;border-radius:var(--r-full);background:var(--slate-soft);}
+.vitrine-categorias button{
+  display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:8px 15px;
+  border:0;border-radius:var(--r-full);background:transparent;color:var(--ink-soft);
+  font-size:var(--t-sm);font-weight:600;cursor:pointer;
+}
+.vitrine-categorias button span{font-size:var(--t-md);line-height:1;}
+.vitrine-categorias button i{
+  font-style:normal;font-size:var(--t-xs);font-weight:700;
+  padding:1px 7px;border-radius:var(--r-full);background:var(--card);color:var(--ink-soft);
+}
+.vitrine-categorias button.on{background:var(--cover);color:var(--cover-text);box-shadow:var(--shadow);}
+.vitrine-categorias button.on i{background:color-mix(in srgb,var(--cover-text) 20%,transparent);color:var(--cover-text);}
+/* Categoria vazia fica visível e apagada: some o clique que leva a uma
+   tela sem resultado, mas a pessoa continua sabendo que ela existe. */
+.vitrine-categorias button[disabled]{opacity:.42;cursor:not-allowed;}
+
+/* ---------- trocar de cidade sem sair da tela ------------------------
+   <details> em vez de biblioteca: fecha no Escape e no clique fora por
+   conta do navegador, e funciona no teclado sem código meu. */
+.vitrine-troca-cidade{position:relative;}
+.vitrine-troca-cidade summary{
+  display:inline-flex;align-items:center;gap:var(--s-2);
+  min-height:var(--toque);padding:8px var(--s-3);
+  border:1px solid var(--line);border-radius:var(--r-full);
+  background:var(--card);color:var(--ink);font-size:var(--t-sm);
+  cursor:pointer;list-style:none;
+}
+.vitrine-troca-cidade summary::-webkit-details-marker{display:none;}
+.vitrine-troca-cidade summary b{font:600 var(--t-sm) var(--font-body);}
+.vitrine-troca-cidade summary i{font-style:normal;color:var(--ink-soft);transition:transform .18s var(--ease);}
+.vitrine-troca-cidade[open] summary i{transform:rotate(180deg);}
+.vitrine-troca-cidade summary:hover{border-color:var(--cover);}
+.vtc-lista{
+  position:absolute;z-index:70;top:calc(100% + 6px);left:0;min-width:260px;max-height:52vh;overflow-y:auto;
+  display:flex;flex-direction:column;padding:var(--s-1);
+  border:1px solid var(--line);border-radius:var(--r-lg);
+  background:var(--card);box-shadow:var(--shadow-hover);
+}
+.vtc-lista button{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);
+  min-height:var(--toque);padding:9px var(--s-3);
+  border:0;border-radius:var(--r-md);background:none;color:var(--ink);
+  font-size:var(--t-sm);text-align:left;cursor:pointer;
+}
+.vtc-lista button:hover{background:var(--paper);}
+.vtc-lista button.on{background:var(--cover);color:var(--cover-text);font-weight:700;}
+.vtc-lista button small{color:var(--ink-soft);font-size:var(--t-xs);}
+.vtc-lista button.on small{color:var(--cover-muted);}
+.vtc-lista button i{
+  font-style:normal;font-size:var(--t-xs);font-weight:700;
+  padding:1px 7px;border-radius:var(--r-full);background:var(--paper);color:var(--ink-soft);
+}
+.vtc-lista button.on i{background:color-mix(in srgb,var(--cover-text) 20%,transparent);color:var(--cover-text);}
+
+.vitrine-finalidade{display:flex;gap:6px;padding:4px;border-radius:var(--r-full);background:var(--slate-soft);}
 .vitrine-finalidade button{
   display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:8px 18px;
   border:0;border-radius:var(--r-full);background:transparent;color:var(--ink-soft);
@@ -612,9 +1054,19 @@
 /* ------------------------------------------------------------
    Acabamento do padrão novo na página pública
    ------------------------------------------------------------ */
-/* O cartão do imóvel virou <button>: precisa parecer cartão de novo. */
+/* O cartão do imóvel é <article> com um <button> no corpo: precisa
+   parecer cartão, e o botão precisa parecer o corpo do cartão. */
 .vitrine-card{
   display:block;width:100%;padding:0;text-align:left;font:inherit;color:inherit;
+}
+.vitrine-card-abrir{
+  display:block;width:100%;border:0;background:none;text-align:left;
+  font:inherit;color:inherit;cursor:pointer;
+}
+/* O cartão tem overflow:hidden, que recorta o anel de foco desenhado
+   para fora. Por isso o do corpo é desenhado para dentro. */
+.vitrine-card-abrir:focus-visible{
+  outline:3px solid var(--brass);outline-offset:-3px;
 }
 /* Foco visível em tudo que se clica — antes só existia o hover, e quem
    navega por teclado não enxergava onde estava. */
@@ -629,23 +1081,80 @@
 
 /* Alvo de toque: no celular, tudo que se clica tem pelo menos 44px. */
 @media (pointer:coarse){
+  .vc-nav{opacity:1;width:var(--toque);height:var(--toque);}
   .vitrine-chip,.vitrine-sel,.vitrine-voltar,.vitrine-finalidade button,
-  .vitrine-cidade-card,.vitrine-parecido{min-height:var(--toque);}
-  .vitrine-busca{min-height:var(--toque);}
+  .vitrine-cidade-card,.vitrine-parecido,.vitrine-card-acao,
+  .vitrine-filtros-ativos button{min-height:var(--toque);}
+  .vitrine-busca,.vitrine-num input,.vitrine-limpar-finos{min-height:var(--toque);}
+  /* No celular não existe passar o mouse: a seta fica à vista, e no
+     tamanho do dedo. Quem prefere, desliza a foto. */
 }
 
 /* Respiro e hierarquia no celular. */
 @media(max-width:720px){
   .vitrine-pub-top{padding-top:20px;padding-bottom:20px;}
   .vitrine-pub-count{margin-left:0;}
+  .vitrine-filtros-mobile-bar{
+    position:sticky;top:0;z-index:39;display:flex;align-items:center;justify-content:space-between;
+    gap:var(--s-2);padding:10px 14px;border-bottom:1px solid var(--line);
+    background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(10px);
+  }
+  .vitrine-filtros-mobile-bar button{
+    min-height:44px;display:flex;align-items:center;gap:7px;padding:8px 14px;
+    border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);color:var(--ink);font-weight:700;
+  }
+  .vitrine-filtros-mobile-bar button b{
+    min-width:20px;padding:2px 6px;border-radius:var(--r-full);background:var(--accent-on-cover);color:var(--cover);font-size:var(--t-xs);
+  }
+  .vitrine-filtros-mobile-bar>span{font-size:var(--t-xs);color:var(--ink-soft);}
+  .vitrine-filtros{display:none;position:fixed;inset:0;z-index:110;padding:0;border:0;background:none;backdrop-filter:none;}
+  .vitrine-filtros.is-open{display:block;}
+  .vitrine-filtros-backdrop{display:block;position:absolute;inset:0;width:100%;border:0;background:color-mix(in srgb,var(--cover) 70%,transparent);}
+  .vitrine-filtros-painel{
+    position:absolute;inset:0 0 0 auto;width:min(92vw,430px);overflow-y:auto;
+    display:flex;flex-direction:column;background:var(--paper);
+    box-shadow:var(--shadow-hover);overscroll-behavior:contain;
+  }
+  .vitrine-filtros-mobile-head{
+    position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;border-bottom:1px solid var(--line);background:var(--paper);
+  }
+  .vitrine-filtros-mobile-head strong{font:700 var(--t-lg) var(--font-display);}
+  .vitrine-filtros-in{max-width:none;padding:14px;align-items:stretch;}
+  .vitrine-filtros-in .vitrine-busca,.vitrine-filtros-in .vitrine-sel{width:100%;flex:1 1 auto;}
+  .vitrine-chips{margin:0;padding:0 14px 14px;}
+  .vitrine-filtros-finos{margin:0;padding:14px;border-top:1px solid var(--line);}
+  .vitrine-filtros-mobile-foot{
+    position:sticky;bottom:0;z-index:2;display:flex;gap:var(--s-2);padding:12px 14px;
+    margin-top:auto;border-top:1px solid var(--line);background:var(--paper);
+  }
+  .vitrine-filtros-mobile-foot .btn{flex:1;min-height:44px;}
+  .vitrine-filtros-ativos{
+    flex-wrap:nowrap;overflow-x:auto;padding:10px 14px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .vitrine-filtros-ativos::-webkit-scrollbar{display:none;}
+  .vitrine-filtros-ativos>span,.vitrine-filtros-ativos button{flex:0 0 auto;}
   .vitrine-grid{grid-template-columns:1fr;gap:14px;}
   .vitrine-card-foto{height:180px;}
+  /* Na tela estreita cada par de filtros finos ocupa a linha inteira e os
+     dois campos dividem a largura: 96px fixos estouravam para fora. */
+  .vitrine-chip-mais{margin-left:0;}
+  .vitrine-filtros-finos{gap:var(--s-2);}
+  .vitrine-par,.vitrine-num{flex:1 1 100%;}
+  .vitrine-par>div{gap:var(--s-2);}
+  .vitrine-par>div .vitrine-num{flex:1 1 0;}
+  .vitrine-num input{width:100%;}
+  .vitrine-limpar-finos{flex:1 1 100%;}
   .vitrine-detalhe-cols{grid-template-columns:1fr;}
   .vitrine-galeria{grid-template-columns:1fr;}
   .vg-principal{height:250px;}
   .vg-lado{display:none;}
   /* O contato deixa de ser coluna fixa e vira o fim natural da página. */
   .vitrine-sticky{position:static;}
+  .vitrine-comparacao-bar{left:14px;right:14px;bottom:12px;transform:none;min-width:0;}
+  .vitrine-comparacao-modal{padding:0;place-items:end center;}
+  .vitrine-comparacao-modal>section{width:100%;max-height:92dvh;border-radius:var(--r-xl) var(--r-xl) 0 0;}
+  .vitrine-comparacao-scroll{max-height:calc(92dvh - 78px);}
 }
 
 /* Imóveis parecidos no fim do detalhe */
@@ -686,4 +1195,354 @@
   .vitrine-finalidade{margin-left:0;width:100%;}
   .vitrine-finalidade button{flex:1;justify-content:center;padding:8px 10px;}
   .vitrine-cidade-row{flex-wrap:wrap;}
+}
+
+/* ============================================================
+   SITE PÚBLICO 2026 — entrada editorial + busca em três modos
+   ============================================================ */
+.vitrine-public{
+  background:
+    radial-gradient(circle at 12% 0,color-mix(in srgb,var(--accent-on-cover) 9%,transparent),transparent 28%),
+    var(--paper);
+}
+.vitrine-pub-top{
+  position:sticky;top:0;z-index:70;min-height:78px;padding:0 max(var(--s-5),calc((100vw - 1440px)/2));
+  border-bottom:1px solid color-mix(in srgb,var(--accent-on-cover) 22%,transparent);
+  background:color-mix(in srgb,var(--cover) 96%,transparent);backdrop-filter:blur(16px);
+  box-shadow:0 8px 28px color-mix(in srgb,var(--cover) 18%,transparent);
+}
+.vitrine-pub-top-in{max-width:1440px;min-height:78px;flex-wrap:nowrap;justify-content:space-between;}
+.vitrine-brand-publica{
+  display:flex;align-items:center;gap:var(--s-3);padding:0;border:0;background:none;
+  color:var(--cover-text);text-align:left;cursor:pointer;
+}
+.vitrine-brand-publica .brand-mark{width:42px;height:42px;flex:0 0 42px;}
+.vitrine-brand-publica .vitrine-brand-logo-img{width:46px;height:46px;flex:0 0 46px;}
+.vitrine-brand-publica>span{display:flex;flex-direction:column;min-width:0;}
+.vitrine-brand-publica small{
+  font:600 var(--t-xs) var(--font-mono);letter-spacing:1.6px;color:var(--accent-on-cover);
+}
+.vitrine-brand-publica strong{font:700 var(--t-xl) var(--font-display);line-height:1.1;}
+.vitrine-brand-publica i{font-style:normal;font-size:var(--t-xs);color:var(--cover-muted);margin-top:2px;}
+.vitrine-pub-nav{display:flex;align-items:center;gap:var(--s-2);margin-left:auto;}
+.vitrine-pub-nav button,.vitrine-pub-nav a{
+  display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 var(--s-4);
+  border:0;border-radius:var(--r-full);background:none;color:var(--cover-text);
+  font:600 var(--t-sm) var(--font-body);text-decoration:none;cursor:pointer;
+}
+.vitrine-pub-nav button:hover,.vitrine-pub-nav a:hover{background:color-mix(in srgb,var(--cover-text) 9%,transparent);}
+.vitrine-pub-nav .vitrine-pub-contato{
+  border:1px solid color-mix(in srgb,var(--accent-on-cover) 54%,transparent);
+  background:color-mix(in srgb,var(--accent-on-cover) 14%,transparent);color:var(--accent-on-cover);
+}
+.vitrine-pub-count{margin-left:var(--s-3);white-space:nowrap;}
+
+/* Entrada por cidade */
+.vitrine-cidades-page{max-width:1440px;margin:0 auto;padding:var(--s-5) var(--s-5) 80px;}
+.vitrine-cidades-hero{
+  position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);
+  min-height:520px;overflow:hidden;border:1px solid var(--line);border-radius:var(--r-xl);
+  background:var(--card);box-shadow:var(--shadow-hover);
+}
+.vitrine-cidades-hero::before{
+  content:'';position:absolute;z-index:-1;width:420px;height:420px;left:-180px;bottom:-260px;
+  border-radius:var(--r-circle);background:color-mix(in srgb,var(--accent-on-cover) 18%,transparent);
+}
+.vitrine-cidades-hero-copy{
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+  padding:clamp(var(--s-5),5vw,64px);color:var(--ink);
+}
+.vitrine-cidades-hero-copy .eyebrow,.vitrine-cidades-intro .eyebrow,.vitrine-cidades-ajuda .eyebrow,
+.vitrine-resultados-topo .eyebrow,.vitrine-cidade-contexto .eyebrow{
+  display:block;margin-bottom:var(--s-2);font:700 var(--t-xs) var(--font-mono);
+  letter-spacing:1.4px;color:var(--brass-deep);
+}
+.vitrine-cidades-hero-copy h2{
+  max-width:720px;margin:0;font:700 clamp(34px,4.6vw,62px)/1.02 var(--font-display);
+  letter-spacing:-2px;text-wrap:balance;
+}
+.vitrine-cidades-hero-copy>p{
+  max-width:62ch;margin:var(--s-4) 0 0;font-size:var(--t-lg);line-height:1.65;color:var(--ink-soft);
+}
+.vitrine-cidades-hero-acoes{display:flex;gap:var(--s-2);flex-wrap:wrap;margin-top:var(--s-5);}
+.vitrine-cidades-hero-acoes .btn{min-height:48px;padding-inline:var(--s-5);}
+.vitrine-cidades-confianca{display:flex;gap:var(--s-4);flex-wrap:wrap;margin-top:var(--s-5);color:var(--ink-soft);font-size:var(--t-xs);}
+.vitrine-cidades-confianca span{display:flex;align-items:center;gap:6px;}
+.vitrine-cidades-confianca span::before{content:'✓';display:grid;place-items:center;width:20px;height:20px;border-radius:var(--r-circle);background:var(--brass-soft);color:var(--brass-deep);font-weight:800;}
+.vitrine-cidades-hero-visual{position:relative;min-height:520px;background:var(--cover-light);overflow:hidden;}
+.vitrine-cidades-hero-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,color-mix(in srgb,var(--cover) 18%,transparent),transparent 45%);pointer-events:none;}
+.vitrine-cidades-hero-visual>img{width:100%;height:100%;object-fit:cover;display:block;}
+.vitrine-cidades-hero-sem-foto{height:100%;display:grid;place-items:center;color:var(--accent-on-cover);}
+.vitrine-cidades-hero-sem-foto svg{width:96px;height:96px;}
+.vitrine-cidades-hero-dado{
+  position:absolute;z-index:2;right:var(--s-5);bottom:var(--s-5);display:flex;align-items:center;gap:var(--s-3);
+  max-width:220px;padding:var(--s-3) var(--s-4);border:1px solid color-mix(in srgb,var(--card) 60%,transparent);
+  border-radius:var(--r-lg);background:color-mix(in srgb,var(--cover) 84%,transparent);color:var(--cover-text);
+  box-shadow:var(--shadow-hover);backdrop-filter:blur(10px);
+}
+.vitrine-cidades-hero-dado strong{font:700 34px var(--font-display);color:var(--accent-on-cover);}
+.vitrine-cidades-hero-dado span{font-size:var(--t-sm);line-height:1.25;}
+.vitrine-cidades-escolha{padding:80px 0 var(--s-6);scroll-margin-top:96px;}
+.vitrine-cidades-intro{max-width:720px;margin:0 auto var(--s-6);}
+.vitrine-cidades-intro h2{font-size:clamp(30px,4vw,46px);letter-spacing:-1.2px;}
+.vitrine-cidades-intro p{font-size:var(--t-lg);}
+.vitrine-cidades-grid{grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:var(--s-4);max-width:none;}
+.vitrine-cidade-card{
+  display:grid;grid-template-rows:180px 1fr;gap:0;min-height:350px;padding:0;overflow:hidden;
+  border-radius:var(--r-xl);box-shadow:var(--shadow);background:var(--card);
+}
+.vitrine-cidade-foto{display:grid;place-items:center;width:100%;height:180px;overflow:hidden;background:var(--cover-light);}
+.vitrine-cidade-foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s var(--ease);}
+.vitrine-cidade-card:hover .vitrine-cidade-foto img{transform:scale(1.04);}
+.vitrine-cidade-inicial{width:64px;height:64px;background:color-mix(in srgb,var(--accent-on-cover) 20%,transparent);color:var(--accent-on-cover);font-size:30px;}
+.vitrine-cidade-conteudo{display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:var(--s-4);}
+.vitrine-cidade-txt strong{font-size:var(--t-xl);}
+.vitrine-cidade-tags{margin-top:var(--s-3);}
+.vitrine-cidade-abrir{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:auto;padding-top:var(--s-3);border-top:1px solid var(--line);color:var(--cover);font-size:var(--t-sm);font-weight:700;}
+.vitrine-cidade-abrir b{font-size:var(--t-lg);transition:transform .18s var(--ease);}
+.vitrine-cidade-card:hover .vitrine-cidade-abrir b{transform:translateX(4px);}
+.vitrine-cidade-card.is-vazia{opacity:.72;cursor:not-allowed;}
+.vitrine-cidade-card.is-vazia .vitrine-cidade-abrir{display:none;}
+.vitrine-cidades-ajuda{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-6);margin-top:var(--s-6);
+  padding:var(--s-6);border-radius:var(--r-xl);background:var(--cover);color:var(--cover-text);
+  box-shadow:var(--shadow);
+}
+.vitrine-cidades-ajuda h2{margin:0;font:700 clamp(24px,3vw,38px) var(--font-display);}
+.vitrine-cidades-ajuda p{max-width:66ch;margin:var(--s-2) 0 0;color:var(--cover-muted);line-height:1.6;}
+.vitrine-cidades-ajuda .eyebrow{color:var(--accent-on-cover);}
+.vitrine-cidades-ajuda .btn{flex:0 0 auto;}
+
+/* Cabeçalho da busca */
+.vitrine-cidade-barra{max-width:none;margin:0;padding:0;border-bottom:1px solid var(--line);background:var(--card);}
+.vitrine-public-resultados .vitrine-cidade-barra{width:calc(100% - 304px);margin-left:304px;}
+.vitrine-cidade-barra-in{
+  width:min(1440px,100%);min-height:116px;margin:0 auto;padding:var(--s-4) var(--s-5);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-5);
+}
+.vitrine-cidade-contexto{display:flex;align-items:center;gap:var(--s-4);}
+.vitrine-cidade-contexto .eyebrow{margin-bottom:2px;}
+.vitrine-cidade-atual{margin:0;font-size:clamp(25px,3vw,38px);letter-spacing:-1px;}
+.vitrine-finalidade{margin-left:0;}
+.vitrine-finalidade button{min-width:128px;}
+
+/* Estrutura lateral da busca */
+/* Lateral e resultados viram duas colunas de um grid, e a lateral fica
+   sticky dentro dele.
+
+   Antes ela era `position:fixed; top:78px; bottom:0`. Fixed não sabe
+   onde o conteúdo termina: ao rolar até o fim, a lateral seguia colada
+   na tela e passava POR CIMA do rodapé. E o `top:78px` era a altura do
+   cabeçalho — quando ele rolava para fora, sobrava uma faixa vazia.
+
+   Sticky resolve os dois de uma vez: gruda no topo da tela enquanto há
+   conteúdo ao lado e para sozinha quando a coluna acaba, que é
+   exatamente onde o rodapé começa. Sem JavaScript, sem medir altura de
+   cabeçalho. */
+.vitrine-resultados{
+  width:100%;margin:0;padding:0;
+  display:grid;grid-template-columns:304px minmax(0,1fr);align-items:start;
+  scroll-margin-top:96px;
+}
+.vitrine-resultados-main{padding:var(--s-5) var(--s-5) 80px;min-width:0;}
+.vitrine-filtros-mobile-bar{display:none;}
+.vitrine-filtros{
+  position:sticky;z-index:60;top:0;left:auto;bottom:auto;
+  width:304px;height:100vh;max-height:none;padding:0;
+  overflow:hidden;border:0;border-right:1px solid var(--line);border-radius:0;
+  background:var(--card);box-shadow:var(--shadow);backdrop-filter:none;
+}
+.vitrine-filtros-painel{display:flex;flex-direction:column;height:100%;max-height:none;overflow:hidden;}
+.vitrine-filtros-cab{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);padding:var(--s-4);border-bottom:1px solid var(--line);}
+.vitrine-filtros-cab span{font:600 var(--t-xs) var(--font-mono);letter-spacing:1px;color:var(--brass-deep);}
+.vitrine-filtros-cab h2{margin:2px 0 0;font:700 var(--t-xl) var(--font-display);}
+.vitrine-filtros-cab button{display:flex;align-items:center;gap:4px;padding:0;border:0;background:none;color:var(--ink-soft);font-size:var(--t-xs);text-decoration:underline;cursor:pointer;}
+.vitrine-filtros-cab button span{color:inherit;font:inherit;letter-spacing:0;text-decoration:none;}
+.vitrine-filtros-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;}
+.vitrine-filtros-desktop-foot{flex:0 0 auto;padding:var(--s-3);border-top:1px solid var(--line);background:var(--card);box-shadow:0 -8px 24px color-mix(in srgb,var(--cover) 8%,transparent);}
+.vitrine-filtros-desktop-foot button{display:flex;align-items:center;justify-content:center;gap:var(--s-2);width:100%;min-height:48px;border:0;border-radius:var(--r-md);background:var(--cover);color:var(--cover-text);font:700 var(--t-sm) var(--font-body);cursor:pointer;}
+.vitrine-filtros-desktop-foot button:hover{background:var(--cover-light);}
+.vitrine-filtros-finalidade{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-1);padding:var(--s-3);border-bottom:1px solid var(--line);background:var(--paper);}
+.vitrine-filtros-finalidade button{min-height:40px;border:1px solid transparent;border-radius:var(--r-md);background:none;color:var(--ink-soft);font-weight:700;}
+.vitrine-filtros-finalidade button.on{border-color:var(--line);background:var(--card);color:var(--cover);box-shadow:var(--shadow);}
+.vitrine-filtro-grupo{border-bottom:1px solid var(--line);}
+.vitrine-filtro-grupo summary{
+  min-height:52px;padding:var(--s-3) var(--s-4);display:flex;align-items:center;gap:var(--s-2);
+  color:var(--ink);font-size:var(--t-sm);font-weight:700;cursor:pointer;list-style:none;
+}
+.vitrine-filtro-grupo summary::-webkit-details-marker{display:none;}
+.vitrine-filtro-grupo summary::after{content:'⌄';margin-left:auto;color:var(--ink-faint);font-size:var(--t-lg);transition:transform .18s var(--ease);}
+.vitrine-filtro-grupo[open] summary::after{transform:rotate(180deg);}
+.vitrine-filtro-grupo summary>span{display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);background:var(--brass-soft);color:var(--brass-deep);font-size:var(--t-xs);}
+.vitrine-filtro-grupo summary>i{margin-left:auto;padding:2px 7px;border-radius:var(--r-full);background:var(--paper);color:var(--ink-soft);font-size:var(--t-xs);font-style:normal;}
+.vitrine-filtro-conteudo{display:grid;gap:var(--s-3);padding:0 var(--s-4) var(--s-4);}
+.vitrine-busca{width:100%;min-height:44px;flex:none;}
+.vitrine-filtro-campo{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.vitrine-filtro-campo>span{color:var(--ink-soft);font-size:var(--t-xs);font-weight:650;}
+.vitrine-filtro-campo input,.vitrine-filtro-campo .vitrine-sel{
+  width:100%;min-height:44px;padding:0 34px 0 var(--s-3);border:1px solid var(--line);
+  border-radius:var(--r-md);background-color:var(--card);color:var(--ink);font:500 var(--t-sm) var(--font-body);
+}
+.vitrine-filtro-campo input{padding-right:var(--s-3);}
+.vitrine-filtro-campo input:focus-visible,.vitrine-filtro-campo .vitrine-sel:focus-visible{outline:3px solid var(--brass);outline-offset:1px;border-color:var(--brass);}
+.vitrine-filtro-contagem{display:grid;gap:6px;}
+.vitrine-filtro-contagem>span{color:var(--ink-soft);font-size:var(--t-xs);font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+.vitrine-contagem-opcoes{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.vitrine-contagem-opcoes button{min-width:0;min-height:42px;padding:0;border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);color:var(--ink-soft);font:650 var(--t-sm) var(--font-body);cursor:pointer;}
+.vitrine-contagem-opcoes button:hover{border-color:var(--brass);color:var(--ink);}
+.vitrine-contagem-opcoes button.on{border-color:var(--cover);background:var(--cover);color:var(--cover-text);box-shadow:var(--shadow);}
+.vitrine-contagem-opcoes button:focus-visible{outline:3px solid var(--brass);outline-offset:2px;}
+.vitrine-filtro-par{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-2);}
+.vitrine-filtro-cidade{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);width:100%;min-height:52px;padding:var(--s-2) var(--s-3);
+  border:1px solid var(--line);border-radius:var(--r-md);background:var(--paper);color:var(--ink);text-align:left;
+}
+.vitrine-filtro-cidade span{display:flex;flex-direction:column;min-width:0;}.vitrine-filtro-cidade small{color:var(--ink-soft);font-size:var(--t-xs);}.vitrine-filtro-cidade strong{font-size:var(--t-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.vitrine-filtro-cidade>b{color:var(--brass-deep);font-size:var(--t-xs);}
+.vitrine-filtro-opcoes{display:grid;gap:6px;}
+.vitrine-filtro-opcao{
+  display:flex;align-items:center;gap:var(--s-2);min-height:38px;padding:6px var(--s-2);border:0;
+  border-radius:var(--r-sm);background:none;color:var(--ink-soft);text-align:left;font-size:var(--t-sm);cursor:pointer;
+}
+.vitrine-filtro-opcao>span{display:grid;place-items:center;width:19px;height:19px;flex:0 0 19px;border:1px solid var(--line-strong);border-radius:var(--r-xs);background:var(--card);font-size:var(--t-xs);}
+.vitrine-filtro-opcao:hover{background:var(--paper);color:var(--ink);}
+.vitrine-filtro-opcao.on{color:var(--ink);font-weight:650;}.vitrine-filtro-opcao.on>span{border-color:var(--cover);background:var(--cover);color:var(--cover-text);}
+.vitrine-filtros-mobile-head,.vitrine-filtros-mobile-foot,.vitrine-filtros-backdrop{display:none;}
+
+/* Conteúdo e alternadores */
+.vitrine-resultados-main{width:min(1440px,100%);max-width:none;margin:0 auto;padding:0;min-width:0;}
+.vitrine-resultados-topo{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);margin-bottom:var(--s-4);}
+.vitrine-resultados-topo .eyebrow{margin:0 0 3px;}
+.vitrine-resultados-topo h2{margin:0;font:700 clamp(22px,2.4vw,30px) var(--font-display);letter-spacing:-.7px;}
+.vitrine-resultados-acoes{display:flex;align-items:center;justify-content:flex-end;gap:var(--s-2);flex-wrap:wrap;}
+.vitrine-ordem select,.vitrine-salvar-busca{
+  min-height:42px;padding:0 34px 0 var(--s-3);border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--card);color:var(--ink-soft);font:600 var(--t-sm) var(--font-body);
+}
+.vitrine-ordem select{padding-right:var(--s-3);}
+.vitrine-salvar-busca{padding:0 var(--s-3);cursor:pointer;}.vitrine-salvar-busca span{font-size:var(--t-lg);}
+.vitrine-modos{display:flex;padding:3px;border-radius:var(--r-md);background:var(--slate-soft);}
+.vitrine-modos button{display:flex;align-items:center;gap:5px;min-height:36px;padding:0 10px;border:0;border-radius:var(--r-sm);background:none;color:var(--ink-soft);font:600 var(--t-xs) var(--font-body);}
+.vitrine-modos button.on{background:var(--card);color:var(--cover);box-shadow:var(--shadow);}
+.vitrine-filtros-ativos{max-width:none;margin:0 0 var(--s-4);padding:0;}
+.vitrine-grid.is-cards{grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:var(--s-4);}
+.vitrine-grid.is-lista{grid-template-columns:1fr;gap:var(--s-3);}
+.vitrine-grid.is-lista .vitrine-card{display:grid;grid-template-columns:minmax(260px,34%) minmax(0,1fr);height:248px;min-height:248px;}
+.vitrine-grid.is-lista .vitrine-card-foto{height:248px;min-height:248px;}
+.vitrine-grid.is-lista .vitrine-card-body{display:flex;flex-direction:column;justify-content:center;padding:var(--s-5);}
+.vitrine-grid.is-lista .vitrine-card-body h3{font-size:var(--t-xl);}
+.vitrine-grid.is-lista .vitrine-preco{font-size:28px;}
+.vitrine-grid.is-lista .vitrine-specs{margin-top:auto;}
+
+/* Mapa com lista compacta e marcadores de preço */
+.vitrine-mapa-resultados{
+  display:grid;grid-template-columns:minmax(300px,36%) minmax(0,1fr);height:calc(100dvh - 250px);min-height:590px;
+  overflow:hidden;border:1px solid var(--line);border-radius:var(--r-xl);background:var(--card);box-shadow:var(--shadow);
+}
+.vitrine-mapa-lista{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--line);background:var(--paper);}
+.vitrine-mapa-lista>header{padding:var(--s-3);border-bottom:1px solid var(--line);background:var(--card);}
+.vitrine-mapa-lista>header>div{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);}.vitrine-mapa-lista>header strong{font-size:var(--t-sm);}.vitrine-mapa-lista>header span,.vitrine-mapa-lista>header p{color:var(--ink-soft);font-size:var(--t-xs);}.vitrine-mapa-lista>header p{margin:5px 0 0;line-height:1.4;}
+.vitrine-mapa-lista>div{display:flex;flex-direction:column;gap:var(--s-2);padding:var(--s-2);overflow-y:auto;}
+.vitrine-mapa-card{
+  display:grid;grid-template-columns:112px minmax(0,1fr);gap:var(--s-3);min-height:118px;padding:var(--s-2);
+  border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);color:var(--ink);text-align:left;box-shadow:var(--shadow);
+}
+.vitrine-mapa-card:hover{border-color:var(--brass);box-shadow:var(--shadow-hover);}
+.vitrine-mapa-card>img,.vitrine-mapa-card-sem-foto{width:112px;height:102px;object-fit:cover;border-radius:var(--r-sm);background:var(--cover-light);}
+.vitrine-mapa-card-sem-foto{display:grid;place-items:center;color:var(--accent-on-cover);}.vitrine-mapa-card-sem-foto svg{width:34px;height:34px;}
+.vitrine-mapa-card>span{display:flex;flex-direction:column;min-width:0;padding:3px 0;}.vitrine-mapa-card small{color:var(--ink-soft);font-size:var(--t-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.vitrine-mapa-card strong{display:-webkit-box;margin-top:4px;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font:700 var(--t-sm)/1.25 var(--font-display);}.vitrine-mapa-card b{margin-top:auto;color:var(--cover);font-size:var(--t-sm);}
+.vitrine-mapa-canvas-wrap{position:relative;min-width:0;background:var(--slate-soft);}
+.vitrine-mapa-canvas{width:100%;height:100%;min-height:590px;z-index:1;}
+.vitrine-mapa-sem-pinos{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:min(360px,calc(100% - 40px));padding:var(--s-5);border:1px solid var(--line);border-radius:var(--r-xl);background:var(--card);text-align:center;box-shadow:var(--shadow-hover);}.vitrine-mapa-sem-pinos>span{display:grid;place-items:center;width:52px;height:52px;margin:0 auto var(--s-3);border-radius:var(--r-circle);background:var(--brass-soft);color:var(--brass-deep);font-size:var(--t-xl);}.vitrine-mapa-sem-pinos strong{font:700 var(--t-lg) var(--font-display);}.vitrine-mapa-sem-pinos p{margin:var(--s-2) 0 0;color:var(--ink-soft);font-size:var(--t-sm);line-height:1.5;}
+.vitrine-mapa-legenda{position:absolute;z-index:4;right:var(--s-3);bottom:var(--s-3);display:flex;align-items:center;gap:6px;padding:var(--s-2) var(--s-3);border:1px solid var(--line);border-radius:var(--r-md);background:color-mix(in srgb,var(--card) 92%,transparent);color:var(--ink-soft);font-size:var(--t-xs);box-shadow:var(--shadow);backdrop-filter:blur(8px);}.vitrine-mapa-legenda span{width:13px;height:13px;border-radius:var(--r-xs);background:var(--cover);}
+.vitrine-mapa-marker-wrap{border:0!important;background:transparent!important;}
+.vitrine-mapa-preco{position:relative;display:grid;place-items:center;min-width:72px;height:34px;padding:0 var(--s-2);border:2px solid var(--card);border-radius:var(--r-full);background:var(--cover);color:var(--cover-text);font:700 var(--t-xs) var(--font-body);white-space:nowrap;box-shadow:var(--shadow-hover);}
+.vitrine-mapa-preco::after{content:'';position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:9px solid var(--cover);}
+.vitrine-mapa-cluster{display:flex;flex-direction:column;align-items:center;justify-content:center;width:62px;height:62px;border:3px solid var(--card);border-radius:var(--r-circle);background:var(--cover);color:var(--cover-text);box-shadow:var(--shadow-hover);}.vitrine-mapa-cluster b{font:700 var(--t-xl) var(--font-display);line-height:1;}.vitrine-mapa-cluster small{font-size:var(--t-xs);}
+.vitrine-mapa-popup{display:flex;flex-direction:column;gap:4px;min-width:200px;color:var(--ink);}.vitrine-mapa-popup small{color:var(--ink-soft);font-size:var(--t-xs);}.vitrine-mapa-popup strong{font:700 var(--t-sm)/1.3 var(--font-display);}.vitrine-mapa-popup b{color:var(--cover);font-size:var(--t-md);}.vitrine-mapa-popup button{min-height:36px;margin-top:5px;border:0;border-radius:var(--r-sm);background:var(--cover);color:var(--cover-text);font-weight:700;}
+.vitrine-mapa-canvas .leaflet-popup-content-wrapper{border-radius:var(--r-md);}.vitrine-mapa-canvas .leaflet-popup-content{margin:var(--s-3);}
+.vitrine-rodape{margin-top:0;padding:var(--s-6) max(var(--s-5),calc((100vw - 1440px)/2));}
+/* A lateral saiu de `fixed` e virou coluna do grid, entao o rodape
+   nao precisa mais desviar dela. */
+.vitrine-public-resultados .vitrine-rodape{margin-left:0;padding-right:var(--s-5);padding-left:var(--s-5);}
+
+@media(max-width:1180px){
+  .vitrine-pub-count{display:none;}
+  .vitrine-resultados-topo{align-items:flex-start;flex-direction:column;}
+  .vitrine-resultados-acoes{justify-content:flex-start;}
+  .vitrine-grid.is-cards{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));}
+  .vitrine-mapa-resultados{grid-template-columns:330px minmax(0,1fr);}
+}
+
+@media(max-width:900px){
+  .vitrine-pub-nav button,.vitrine-pub-nav a:not(.vitrine-pub-contato){display:none;}
+  .vitrine-cidades-hero{grid-template-columns:1fr;}
+  .vitrine-cidades-hero-copy{min-height:470px;}
+  .vitrine-cidades-hero-visual{min-height:360px;}
+  .vitrine-cidades-ajuda{align-items:flex-start;flex-direction:column;}
+  .vitrine-cidade-barra-in{align-items:flex-start;flex-direction:column;}
+  .vitrine-finalidade{width:100%;}.vitrine-finalidade button{flex:1;justify-content:center;}
+  .vitrine-public-resultados .vitrine-cidade-barra{width:auto;margin-left:0;}
+  .vitrine-resultados{width:auto;margin-left:0;display:block;padding:var(--s-3) var(--s-5) 80px;}
+  .vitrine-resultados-main{padding:0;}
+  .vitrine-public-resultados .vitrine-rodape{margin-left:0;padding-right:max(var(--s-5),calc((100vw - 1440px)/2));padding-left:max(var(--s-5),calc((100vw - 1440px)/2));}
+  .vitrine-filtros-mobile-bar{
+    position:sticky;top:78px;z-index:45;display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:var(--s-3);padding:var(--s-2);border:1px solid var(--line);border-radius:var(--r-md);
+    background:color-mix(in srgb,var(--card) 94%,transparent);box-shadow:var(--shadow);backdrop-filter:blur(12px);
+  }
+  .vitrine-filtros-mobile-bar button{display:flex;align-items:center;gap:var(--s-2);min-height:42px;padding:0 var(--s-3);border:0;border-radius:var(--r-sm);background:var(--cover);color:var(--cover-text);font-weight:700;}.vitrine-filtros-mobile-bar button b{min-width:21px;padding:2px 6px;border-radius:var(--r-full);background:var(--accent-on-cover);color:var(--cover);font-size:var(--t-xs);}.vitrine-filtros-mobile-bar>span{color:var(--ink-soft);font-size:var(--t-xs);}
+  .vitrine-filtros{display:none;position:fixed;inset:0;z-index:110;width:auto;max-height:none;padding:0;border:0;border-radius:0;background:none;box-shadow:none;}
+  .vitrine-filtros.is-open{display:block;}
+  .vitrine-filtros-backdrop{display:block;position:absolute;inset:0;width:100%;border:0;background:color-mix(in srgb,var(--cover) 72%,transparent);}
+  .vitrine-filtros-painel{position:absolute;inset:0 0 0 auto;width:min(92vw,430px);height:100%;max-height:none;display:flex;flex-direction:column;overflow:hidden;background:var(--card);box-shadow:var(--shadow-hover);}
+  .vitrine-filtros-mobile-head{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:var(--s-3) var(--s-4);border-bottom:1px solid var(--line);background:var(--card);}.vitrine-filtros-mobile-head strong{font:700 var(--t-lg) var(--font-display);}.vitrine-filtros-mobile-head button{width:44px;height:44px;border:1px solid var(--line);border-radius:var(--r-circle);background:var(--card);color:var(--ink);font-size:var(--t-xl);}
+  .vitrine-filtros-cab{display:none;}
+  .vitrine-filtros-desktop-foot{display:none;}
+  .vitrine-filtros-mobile-foot{position:relative;z-index:3;display:flex;gap:var(--s-2);padding:var(--s-3);border-top:1px solid var(--line);background:var(--card);}.vitrine-filtros-mobile-foot .btn{flex:1;}
+  .vitrine-resultados-main{padding:0;}
+  .vitrine-mapa-resultados{height:auto;min-height:0;grid-template-columns:1fr;}
+  .vitrine-mapa-canvas-wrap{order:-1;height:55vh;min-height:430px;}
+  .vitrine-mapa-canvas{min-height:430px;}
+  .vitrine-mapa-lista{border-right:0;border-top:1px solid var(--line);}.vitrine-mapa-lista>div{max-height:440px;}
+}
+
+@media(max-width:640px){
+  .vitrine-pub-top{min-height:68px;padding:0 var(--s-3);}
+  .vitrine-pub-top-in{min-height:68px;}
+  .vitrine-brand-publica .brand-mark{width:38px;height:38px;flex-basis:38px;}
+  .vitrine-brand-publica small,.vitrine-brand-publica i{display:none;}
+  .vitrine-brand-publica strong{max-width:150px;font-size:var(--t-lg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .vitrine-pub-nav{margin-left:var(--s-2);}.vitrine-pub-nav .vitrine-pub-contato{min-height:40px;padding:0 var(--s-3);font-size:var(--t-xs);}
+  .vitrine-cidades-page{padding:var(--s-3) var(--s-3) 72px;}
+  .vitrine-cidades-hero{min-height:0;}
+  .vitrine-cidades-hero-copy{min-height:430px;padding:var(--s-5);}
+  .vitrine-cidades-hero-copy h2{font-size:clamp(34px,11vw,48px);letter-spacing:-1.4px;}
+  .vitrine-cidades-hero-copy>p{font-size:var(--t-md);}
+  .vitrine-cidades-hero-acoes{width:100%;}.vitrine-cidades-hero-acoes .btn{width:100%;}
+  .vitrine-cidades-confianca{display:grid;gap:var(--s-2);}
+  .vitrine-cidades-hero-visual{min-height:300px;}.vitrine-cidades-hero-dado{right:var(--s-3);bottom:var(--s-3);}
+  .vitrine-cidades-escolha{padding:56px 0 var(--s-5);}
+  .vitrine-cidades-intro{text-align:left;margin-bottom:var(--s-5);}.vitrine-cidades-intro h2{font-size:34px;}
+  .vitrine-cidades-grid{grid-template-columns:1fr;gap:var(--s-3);}
+  .vitrine-cidade-card{grid-template-rows:170px 1fr;min-height:330px;}
+  .vitrine-cidade-foto{height:170px;}
+  .vitrine-cidades-ajuda{padding:var(--s-5);}
+  .vitrine-cidade-barra-in{min-height:0;padding:var(--s-4) var(--s-3);}
+  .vitrine-cidade-contexto{align-items:flex-start;flex-direction:column;gap:var(--s-3);}
+  .vitrine-cidade-atual{font-size:30px;}
+  .vitrine-resultados{padding:var(--s-3) var(--s-3) 72px;}
+  .vitrine-filtros-mobile-bar{top:68px;}
+  .vitrine-resultados-topo{gap:var(--s-3);}.vitrine-resultados-topo h2{font-size:24px;}
+  .vitrine-resultados-acoes{display:grid;grid-template-columns:1fr 1fr;width:100%;}
+  .vitrine-ordem select{width:100%;}.vitrine-modos{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);order:-1;}.vitrine-modos button{justify-content:center;min-height:42px;}
+  .vitrine-salvar-busca{width:100%;}.vitrine-grid.is-lista .vitrine-card{grid-template-columns:1fr;height:auto;min-height:0;}.vitrine-grid.is-lista .vitrine-card-foto{height:190px;min-height:190px;}.vitrine-grid.is-lista .vitrine-card-body{padding:var(--s-4);}.vitrine-grid.is-lista .vitrine-card-body h3{font-size:var(--t-lg);}
+  .vitrine-mapa-canvas-wrap{height:52vh;min-height:380px;}.vitrine-mapa-canvas{min-height:380px;}.vitrine-mapa-lista>div{max-height:520px;}
+  .vitrine-mapa-card{grid-template-columns:96px minmax(0,1fr);}.vitrine-mapa-card>img,.vitrine-mapa-card-sem-foto{width:96px;}
+  .vitrine-mapa-legenda{left:var(--s-2);right:var(--s-2);justify-content:center;}
+}
+
+@media (pointer:coarse){
+  .vitrine-pub-nav a,.vitrine-pub-nav button,.vitrine-filtros-finalidade button,
+  .vitrine-filtro-grupo summary,.vitrine-filtro-opcao,.vitrine-contagem-opcoes button,.vitrine-modos button,
+  .vitrine-salvar-busca,.vitrine-ordem select,.vitrine-mapa-card{min-height:var(--toque);}
 }

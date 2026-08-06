@@ -292,9 +292,84 @@ function renderPortalDocumentos(){
     }).join('');
 }
 
+/* ------------------------------------------------------------
+   AVALIAR QUEM ADMINISTRA
+
+   A nota aparece no anúncio público do responsável, e é o inquilino que
+   a escreve — por isso ela mora aqui, e não numa tela do gestor. Uma
+   por responsável: reavaliar é corrigir a própria nota, não somar
+   outra. Quem já saiu do imóvel continua podendo avaliar; é justamente
+   quem tem a opinião mais honesta.
+
+   A lista vem da RPC `vitrine_meus_responsaveis`. Enquanto a migração
+   não roda, ela volta vazia e o bloco simplesmente não aparece.
+   ------------------------------------------------------------ */
+async function carregarResponsaveisDoPortal(){
+  if(state.portalResponsaveis) return;
+  try{
+    state.portalResponsaveis=await db.meusResponsaveis();
+  }catch(e){ console.warn('Responsáveis para avaliar não puderam ser lidos:',e); state.portalResponsaveis=[]; }
+  render();
+}
+function setPortalNota(id,n){
+  state.portalNotaRascunho=Object.assign({},state.portalNotaRascunho,{[id]:n});
+  render();
+}
+function renderPortalAvaliacoes(){
+  const lista=state.portalResponsaveis;
+  /* null = ainda não carregou. Dispara e sai: o render volta sozinho. */
+  if(lista===null||lista===undefined){ carregarResponsaveisDoPortal(); return ''; }
+  if(!lista.length) return '';
+  const rascunho=state.portalNotaRascunho||{};
+  return '<section class="portal-house-card portal-avaliacao">'+
+    '<div class="eyebrow">SUA OPINIÃO</div>'+
+    '<h2 class="panel-title">Como foi alugar com quem administra</h2>'+
+    '<p class="portal-aberto-nota">Sua nota aparece no anúncio público deste responsável, sem o seu nome. '+
+      'Ela ajuda quem está procurando imóvel a saber com quem vai tratar.</p>'+
+    lista.map(function(r){
+      const atual=rascunho[r.id]!=null?rascunho[r.id]:(r.minhaNota||0);
+      return '<div class="portal-aval-item"><strong>'+esc(r.nome)+'</strong>'+
+        '<div class="portal-aval-estrelas" role="group" aria-label="Nota para '+esc(r.nome)+'">'+
+          [1,2,3,4,5].map(function(n){
+            return '<button type="button" class="portal-aval-estrela'+(n<=atual?' on':'')+'" '+
+              'aria-pressed="'+(n<=atual)+'" aria-label="'+n+' estrela'+(n===1?'':'s')+'" '+
+              'onclick="setPortalNota(\''+esc(r.id)+'\','+n+')">★</button>';
+          }).join('')+
+        '</div>'+
+        '<textarea id="aval_txt_'+esc(r.id)+'" rows="2" maxlength="600" '+
+          'placeholder="Conte como foi, se quiser (opcional)">'+esc(r.meuComentario||'')+'</textarea>'+
+        '<div class="portal-aval-acoes">'+
+          (r.minhaNota?'<button class="btn btn-ghost btn-sm" onclick="removerMinhaAvaliacao(\''+esc(r.id)+'\')">Apagar minha avaliação</button>':'<span></span>')+
+          '<button class="btn btn-primary btn-sm"'+(atual?'':' disabled')+' onclick="enviarMinhaAvaliacao(\''+esc(r.id)+'\')">'+
+            (r.minhaNota?'Atualizar':'Enviar')+'</button>'+
+        '</div></div>';
+    }).join('')+'</section>';
+}
+async function enviarMinhaAvaliacao(id){
+  const rascunho=state.portalNotaRascunho||{};
+  const atual=(state.portalResponsaveis||[]).find(function(r){return String(r.id)===String(id);});
+  const nota=rascunho[id]!=null?rascunho[id]:(atual&&atual.minhaNota)||0;
+  if(!nota){ showToast('Escolha de 1 a 5 estrelas.','error'); return; }
+  const campo=document.getElementById('aval_txt_'+id);
+  try{
+    await db.avaliarResponsavel(id,nota,campo?campo.value:'');
+    state.portalResponsaveis=null;state.portalNotaRascunho={};
+    showToast('Obrigado pela avaliação.');
+    await carregarResponsaveisDoPortal();
+  }catch(e){ console.error(e);showToast((e&&e.message)||'Não foi possível enviar.','error'); }
+}
+async function removerMinhaAvaliacao(id){
+  try{
+    await db.removerAvaliacaoResponsavel(id);
+    state.portalResponsaveis=null;state.portalNotaRascunho={};
+    showToast('Avaliação apagada.');
+    await carregarResponsaveisDoPortal();
+  }catch(e){ console.error(e);showToast((e&&e.message)||'Não foi possível apagar.','error'); }
+}
+
 function renderTenantPortal(){
   if(state.portalTab==='energia'&&(!energyModuleEnabled()||!state.houses.some(houseEnergyEnabled))) state.portalTab='inicio';
-  const body=state.portalTab==='contrato'?renderPortalContrato():
+  const body=state.portalTab==='contrato'?renderPortalContrato()+renderPortalAvaliacoes():
     state.portalTab==='pagamentos'?renderPortalPagamentos():
     state.portalTab==='energia'?renderPortalEnergia():
     state.portalTab==='documentos'?renderPortalDocumentos():renderPortalInicio();

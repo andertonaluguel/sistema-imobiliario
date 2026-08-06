@@ -19,6 +19,16 @@ function rowToVitrineAnunciante(r){
        anunciante continua existindo por si — a Vitrine anuncia imóvel de
        gente que não é cliente da administração. */
     proprietarioClienteId:r.proprietario_cliente_id||'',
+    /* Quem responde pelo imóvel no anúncio. `tipo` só existe depois de
+       migracao-vitrine-responsavel.sql; antes dela todo cadastro é o
+       espelho de um proprietário-cliente, que é o default assumido. */
+    tipo:r.tipo||'proprietario',
+    registro:r.registro||'',
+    /* O visto é somente leitura aqui de propósito: quem acende é o
+       administrador da plataforma, pela RPC. Ver o cabeçalho da
+       migração. Vencido, não vale — a data manda. */
+    verificado:!!r.verificado&&(!r.verificado_ate||String(r.verificado_ate)>=new Date().toISOString().slice(0,10)),
+    verificadoAte:r.verificado_ate||'',
     createdAt:r.created_at||''};
 }
 /* Endereço da cidade na URL pública: sem acento, sem espaço. */
@@ -36,6 +46,15 @@ function rowToVitrineCidade(r){
     fotoPath:r.foto_path||'',ordem:Number(r.ordem)||0,ativa:r.ativa!==false
   };
 }
+function rowToVitrineComodidade(r){
+  return {id:r.id,codigo:r.codigo||'',rotulo:r.rotulo||'',grupo:r.grupo||'imovel',
+    ordem:Number(r.ordem)||0,ativo:r.ativo!==false,
+    tiposAplicaveis:Array.isArray(r.tipos_aplicaveis)?r.tipos_aplicaveis:[]};
+}
+function rowToVitrineDocumento(r){
+  return {imovelId:r.imovel_id||'',tipo:r.tipo||'',estado:r.estado||'nao_informado',
+    observacaoPrivada:r.observacao_privada||''};
+}
 function rowToVitrineImovel(r){
   return {
     id:r.id,anuncianteId:r.anunciante_id||'',codigo:r.codigo||'',titulo:r.titulo||'',
@@ -50,6 +69,38 @@ function rowToVitrineImovel(r){
     aluguel:Number(r.aluguel)||0,condominio:Number(r.condominio)||0,iptu:Number(r.iptu)||0,
     quartos:Number(r.quartos)||0,banheiros:Number(r.banheiros)||0,vagas:Number(r.vagas)||0,
     areaM2:Number(r.area_m2)||0,
+    /* Detalhes que o visitante pergunta no WhatsApp. Idade e área total
+       ficam nulas quando não informadas: zero seria uma resposta errada,
+       e o anúncio precisa poder dizer "não informado". */
+    suites:Number(r.suites)||0,andar:Number(r.andar)||0,
+    idadeAnos:(r.idade_anos==null?null:Number(r.idade_anos)),
+    areaTotalM2:(r.area_total_m2==null?null:Number(r.area_total_m2)),
+    conservacao:r.conservacao||'',
+    /* Etapa 1: nulo continua nulo. Campo ausente nao pode virar 0 ou
+       "nao", porque isso afirmaria algo que o anunciante nao informou. */
+    areaUtilM2:(r.area_util_m2==null?(Number(r.area_m2)>0?Number(r.area_m2):null):Number(r.area_util_m2)),
+    totalAndares:r.total_andares==null?null:Number(r.total_andares),
+    anoConstrucao:r.ano_construcao==null?null:Number(r.ano_construcao),
+    disponivelEm:r.disponivel_em||'',
+    enderecoPublicoModo:r.endereco_publico_modo||(r.endereco_exato_publico===false?'aproximado':'exato'),
+    latitudePublica:r.latitude_publica==null?null:Number(r.latitude_publica),
+    longitudePublica:r.longitude_publica==null?null:Number(r.longitude_publica),
+    garantiasAceitas:Array.isArray(r.garantias_aceitas)?r.garantias_aceitas:[],
+    indiceReajuste:r.indice_reajuste||'',
+    custosInclusos:Array.isArray(r.custos_inclusos)?r.custos_inclusos:[],
+    aceitaEstudante:r.aceita_estudante==null?null:!!r.aceita_estudante,
+    aceitaPessoaJuridica:r.aceita_pessoa_juridica==null?null:!!r.aceita_pessoa_juridica,
+    aceitaCrianca:r.aceita_crianca==null?null:!!r.aceita_crianca,
+    permiteSublocacao:r.permite_sublocacao==null?null:!!r.permite_sublocacao,
+    aceitaFinanciamento:r.aceita_financiamento==null?null:!!r.aceita_financiamento,
+    aceitaPermuta:r.aceita_permuta==null?null:!!r.aceita_permuta,
+    situacaoOcupacao:r.situacao_ocupacao||'',observacaoPrivada:r.observacao_privada||'',
+    pavimentacao:r.pavimentacao==null?null:!!r.pavimentacao,
+    aguaDisponivel:r.agua_disponivel==null?null:!!r.agua_disponivel,
+    energiaDisponivel:r.energia_disponivel==null?null:!!r.energia_disponivel,
+    esgotoDisponivel:r.esgoto_disponivel==null?null:!!r.esgoto_disponivel,
+    aptidoesTerreno:Array.isArray(r.aptidoes_terreno)?r.aptidoes_terreno:[],
+    comodidadeCodigos:[],documentacao:[],
     mobiliado:!!r.mobiliado,aceitaPet:!!r.aceita_pet,quintal:!!r.quintal,areaServico:!!r.area_servico,
     exigeFiador:!!r.exige_fiador,caucao:r.caucao||'',
     contratoMinimoMeses:Number(r.contrato_minimo_meses)||12,descricao:r.descricao||'',
@@ -86,6 +137,39 @@ function vitrineImovelToRow(i){
     aluguel:Number(i.aluguel)||0,condominio:Number(i.condominio)||0,iptu:Number(i.iptu)||0,
     quartos:Number(i.quartos)||0,banheiros:Number(i.banheiros)||0,vagas:Number(i.vagas)||0,
     area_m2:Number(i.areaM2)||0,
+    /* O banco recusa suíte a mais que quarto. Aparar aqui evita que a
+       gravação estoure com erro de restrição na cara de quem cadastra. */
+    suites:Math.min(Number(i.suites)||0,Number(i.quartos)||0),
+    andar:Number(i.andar)||0,
+    idade_anos:(i.idadeAnos===''||i.idadeAnos==null)?null:Number(i.idadeAnos),
+    area_total_m2:(i.areaTotalM2===''||i.areaTotalM2==null)?null:Number(i.areaTotalM2),
+    conservacao:['','na_planta','novo','semi_novo','reformado','bom_estado','precisa_reforma']
+      .includes(i.conservacao)?i.conservacao:'',
+    area_util_m2:(i.areaUtilM2===''||i.areaUtilM2==null)?null:Number(i.areaUtilM2),
+    total_andares:(i.totalAndares===''||i.totalAndares==null)?null:Number(i.totalAndares),
+    ano_construcao:(i.anoConstrucao===''||i.anoConstrucao==null)?null:Number(i.anoConstrucao),
+    disponivel_em:i.disponivelEm||null,
+    endereco_publico_modo:['oculto','aproximado','exato'].includes(i.enderecoPublicoModo)
+      ?i.enderecoPublicoModo:'exato',
+    latitude_publica:i.latitudePublica==null||i.latitudePublica===''?null:Number(i.latitudePublica),
+    longitude_publica:i.longitudePublica==null||i.longitudePublica===''?null:Number(i.longitudePublica),
+    garantias_aceitas:Array.isArray(i.garantiasAceitas)?i.garantiasAceitas.slice(0,20):[],
+    indice_reajuste:String(i.indiceReajuste||'').slice(0,60),
+    custos_inclusos:Array.isArray(i.custosInclusos)?i.custosInclusos.slice(0,20):[],
+    aceita_estudante:i.aceitaEstudante==null?null:!!i.aceitaEstudante,
+    aceita_pessoa_juridica:i.aceitaPessoaJuridica==null?null:!!i.aceitaPessoaJuridica,
+    aceita_crianca:i.aceitaCrianca==null?null:!!i.aceitaCrianca,
+    permite_sublocacao:i.permiteSublocacao==null?null:!!i.permiteSublocacao,
+    aceita_financiamento:i.aceitaFinanciamento==null?null:!!i.aceitaFinanciamento,
+    aceita_permuta:i.aceitaPermuta==null?null:!!i.aceitaPermuta,
+    situacao_ocupacao:['','vago','ocupado_proprietario','ocupado_inquilino','em_obras']
+      .includes(i.situacaoOcupacao)?i.situacaoOcupacao:'',
+    observacao_privada:String(i.observacaoPrivada||'').slice(0,8000),
+    pavimentacao:i.pavimentacao==null?null:!!i.pavimentacao,
+    agua_disponivel:i.aguaDisponivel==null?null:!!i.aguaDisponivel,
+    energia_disponivel:i.energiaDisponivel==null?null:!!i.energiaDisponivel,
+    esgoto_disponivel:i.esgotoDisponivel==null?null:!!i.esgotoDisponivel,
+    aptidoes_terreno:Array.isArray(i.aptidoesTerreno)?i.aptidoesTerreno.slice(0,20):[],
     mobiliado:!!i.mobiliado,aceita_pet:!!i.aceitaPet,quintal:!!i.quintal,area_servico:!!i.areaServico,
     exige_fiador:!!i.exigeFiador,caucao:i.caucao||'',
     contrato_minimo_meses:Number(i.contratoMinimoMeses)||12,descricao:i.descricao||'',
@@ -103,11 +187,65 @@ function vitrineImovelToRow(i){
     updated_at:new Date().toISOString()
   };
 }
+async function saveVitrineFoundationRelations(imovelId,item){
+  const allowedStates=['sim','nao','nao_informado'];
+  const docs=(Array.isArray(item.documentacao)?item.documentacao:[]).map(function(d){return {
+    tipo:String(d.tipo||''),estado:allowedStates.includes(d.estado)?d.estado:'nao_informado',
+    observacao_privada:String(d.observacaoPrivada||'').slice(0,2000)
+  };}).filter(function(d){return !!d.tipo;});
+  const atomico=await sb.rpc('salvar_relacoes_fundacao_vitrine',{
+    p_imovel_id:imovelId,
+    p_comodidades:Array.isArray(item.comodidadeCodigos)?item.comodidadeCodigos:[],
+    p_documentacao:docs
+  });
+  if(!atomico.error)return;
+  if(!missingOptionalRpc(atomico.error))throw atomico.error;
+
+  /* Compatibilidade de uma implantação parcial: se as tabelas já existem
+     mas a RPC ainda não entrou no cache, conclui pelos endpoints normais. */
+  const catalog=await sb.from('vitrine_comodidades_catalogo').select('id,codigo');
+  if(catalog.error){
+    if(missingOptionalRelation(catalog.error))return;
+    throw catalog.error;
+  }
+  const uid=await _userId();
+  const selected=new Set(Array.isArray(item.comodidadeCodigos)?item.comodidadeCodigos:[]);
+  const delLinks=await sb.from('vitrine_imovel_comodidades').delete().eq('imovel_id',imovelId);
+  if(delLinks.error)throw delLinks.error;
+  const linkRows=(catalog.data||[]).filter(function(c){return selected.has(c.codigo);})
+    .map(function(c){return {user_id:uid,imovel_id:imovelId,comodidade_id:c.id};});
+  if(linkRows.length){const ins=await sb.from('vitrine_imovel_comodidades').insert(linkRows);if(ins.error)throw ins.error;}
+
+  const delDocs=await sb.from('vitrine_documentacao_imovel').delete().eq('imovel_id',imovelId);
+  if(delDocs.error)throw delDocs.error;
+  const docRows=docs.map(function(d){return {
+    user_id:uid,imovel_id:imovelId,tipo:d.tipo,estado:d.estado,observacao_privada:d.observacao_privada
+  };});
+  if(docRows.length){const ins=await sb.from('vitrine_documentacao_imovel').insert(docRows);if(ins.error)throw ins.error;}
+}
 function rowToVitrineLead(r){
   return {id:r.id,imovelId:r.imovel_id||'',nome:r.nome||'',telefone:r.telefone||'',
     mensagem:r.mensagem||'',origem:r.origem||'formulario',status:r.status||'novo',
-    interessadoId:r.interessado_id||'',
+    campanha:r.campanha||'',utmSource:r.utm_source||'',interessadoId:r.interessado_id||'',
     createdAt:r.created_at||''};
+}
+function rowToVitrineVisita(r){
+  return {id:r.id,imovelId:r.imovel_id||'',leadId:r.lead_id||'',nome:r.nome||'',telefone:r.telefone||'',
+    data:r.data_preferida||'',faixa:r.faixa||'',mensagem:r.mensagem||'',status:r.status||'solicitada',
+    responsavelId:r.responsavel_id||'',lembreteEm:r.lembrete_em||'',createdAt:r.created_at||''};
+}
+function rowToVitrineDisponibilidade(r){
+  return {id:r.id,diaSemana:Number(r.dia_semana),faixa:r.faixa||'',inicio:String(r.inicio||'').slice(0,5),
+    fim:String(r.fim||'').slice(0,5),ativo:r.ativo!==false};
+}
+function rowToVitrineBuscaSalva(r){
+  return {id:r.id,nome:r.nome||'',resumo:r.resumo||'',frequencia:r.frequencia||'',canal:r.canal||'',
+    destino:r.destino||'',ativo:r.ativo!==false,createdAt:r.created_at||''};
+}
+function rowToVitrineAlertaPreco(r){
+  return {id:r.id,imovelId:r.imovel_id||'',finalidade:r.finalidade||'alugar',
+    precoReferencia:Number(r.preco_referencia)||0,canal:r.canal||'',destino:r.destino||'',
+    ativo:r.ativo!==false,createdAt:r.created_at||''};
 }
 function rowToVitrineTaxa(r){
   return {id:r.id,imovelId:r.imovel_id||'',anuncianteId:r.anunciante_id||'',
@@ -249,15 +387,32 @@ function rowToTenant(r){
 }
 
 function rowToInterest(r){
+  const etapaLegada={conversando:'contatado',visita:'visita_agendada',quente:'qualificacao',desistiu:'perdido'};
   return {
     id:r.id,nome:r.nome||'',telefone:r.telefone||'',valorMaximo:Number(r.valor_maximo)||0,
     quartosMin:Number(r.quartos_min)||0,banheirosMin:Number(r.banheiros_min)||0,
     precisaGaragem:!!r.precisa_garagem,precisaQuintal:!!r.precisa_quintal,
     precisaCozinha:!!r.precisa_cozinha,precisaSala:!!r.precisa_sala,
-    precisaAreaServico:!!r.precisa_area_servico,observacoes:r.observacoes||'',status:r.status||'novo',
-    tenantId:r.inquilino_id||'',createdAt:r.created_at||''
+    precisaAreaServico:!!r.precisa_area_servico,observacoes:r.observacoes||'',status:etapaLegada[r.status]||r.status||'novo',
+    email:r.email||'',origem:r.origem||'manual',campanha:r.campanha||'',finalidade:r.finalidade||'alugar',
+    responsavelId:r.responsavel_id||'',primeiraRespostaEm:r.primeira_resposta_em||'',
+    proximaAcao:r.proxima_acao||'',proximaAcaoEm:r.proxima_acao_em||'',motivoPerda:r.motivo_perda||'',
+    leadId:r.lead_id||'',deduplicado:!!r.deduplicado,tenantId:r.inquilino_id||'',createdAt:r.created_at||'',updatedAt:r.updated_at||''
   };
 }
+
+function rowToCrmEvento(r){return {id:r.id,interessadoId:r.interessado_id||'',atorId:r.ator_id||'',
+  atorPapel:r.ator_papel||'',tipo:r.tipo||'registro',titulo:r.titulo||'',detalhes:r.detalhes||{},createdAt:r.created_at||''};}
+function rowToCrmTarefa(r){return {id:r.id,interessadoId:r.interessado_id||'',responsavelId:r.responsavel_id||'',
+  tipo:r.tipo||'retorno',titulo:r.titulo||'',prazo:r.prazo||'',status:r.status||'pendente',
+  concluidaEm:r.concluida_em||'',createdAt:r.created_at||'',updatedAt:r.updated_at||''};}
+function rowToCrmProposta(r){return {id:r.id,interessadoId:r.interessado_id||'',vitrineImovelId:r.vitrine_imovel_id||'',
+  imovelId:r.imovel_id||'',finalidade:r.finalidade||'alugar',valor:Number(r.valor)||0,validade:r.validade||'',
+  condicoes:r.condicoes||'',status:r.status||'rascunho',createdAt:r.created_at||'',updatedAt:r.updated_at||''};}
+function rowToCrmImovel(r){return {id:r.id,interessadoId:r.interessado_id||'',vitrineImovelId:r.vitrine_imovel_id||'',
+  imovelId:r.imovel_id||'',origem:r.origem||'manual',createdAt:r.created_at||''};}
+function rowToVitrineObservabilidade(r){return {id:r.id,tipo:r.tipo||'',duracaoMs:Number(r.duracao_ms)||0,
+  contexto:r.contexto||{},createdAt:r.created_at||''};}
 
 function rowToMaintenanceCall(r){
   return {
@@ -532,12 +687,21 @@ function missingOptionalRpc(error){
     || /function .* does not exist|schema cache/i.test(error.message||'');
 }
 
-/* Perfil do proprietário. O CRECI só existe depois de
-   migracao-vitrine-fotos.sql; sem ele, lê o mesmo conjunto de antes em
-   vez de derrubar o login inteiro por uma coluna de rodapé. */
+/* Perfil do proprietário. CRECI e marca nasceram em migrações diferentes;
+   cada tentativa cai para a versão anterior sem derrubar o login. */
 const CAMPOS_PROPRIETARIO='user_id,nome,email,slug_publico,nome_publico,contato_publico';
 let _creciOff=false;
+let _vitrineBrandOff=false;
 async function selectProprietario(userId){
+  if(!_vitrineBrandOff){
+    const brand=await sb.from('proprietarios').select(CAMPOS_PROPRIETARIO+
+      ',creci,descricao_publica,cidade_sede,uf_sede,marca_tema,logo_path')
+      .eq('user_id',userId).maybeSingle();
+    if(!brand.error)return brand;
+    if(!missingOptionalRelation(brand.error)&&
+       !/descricao_publica|cidade_sede|uf_sede|marca_tema|logo_path/i.test(brand.error.message||''))return brand;
+    _vitrineBrandOff=true;
+  }
   if(!_creciOff){
     const res=await sb.from('proprietarios')
       .select(CAMPOS_PROPRIETARIO+',creci').eq('user_id',userId).maybeSingle();
@@ -678,6 +842,91 @@ async function assertBackupStorageAvailable(payload,replace){
   }
 }
 
+function _backupUuid(value,label){
+  const id=String(value||'').trim().toLowerCase();
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id)){
+    throw new Error((label||'ID')+' invalido no backup da Vitrine.');
+  }
+  return id;
+}
+function exportVitrineBackup(vitrine){
+  const v=vitrine||{};
+  return {
+    cidades:(v.cidades||[]).map(function(c){return {id:c.id,nome:c.nome,uf:c.uf,slug:c.slug,ordem:c.ordem,ativa:c.ativa};}),
+    anunciantes:(v.anunciantes||[]).map(function(a){return {id:a.id,nome:a.nome,telefone:a.telefone,email:a.email,
+      documento:a.documento,observacoes:a.observacoes,proprietario_cliente_id:a.proprietarioClienteId||null};}),
+    imoveis:(v.imoveis||[]).map(function(i){return Object.assign({id:i.id},vitrineImovelToRow(i),{
+      status:i.status||'rascunho',publicado_em:i.publicadoEm||null,expira_em:i.expiraEm||null,
+      created_at:i.createdAt||null,updated_at:i.updatedAt||null
+    });}),
+    comodidades_catalogo:(v.comodidades||[]).map(function(c){return {id:c.id,codigo:c.codigo,rotulo:c.rotulo,
+      grupo:c.grupo,ordem:c.ordem,ativo:c.ativo,tipos_aplicaveis:c.tiposAplicaveis||[]};}),
+    imovel_comodidades:(v.vinculosComodidades||[]).map(function(l){return {
+      imovel_id:l.imovel_id,comodidade_id:l.comodidade_id};}),
+    documentacao:(v.documentacao||[]).map(function(d){return {imovel_id:d.imovelId,tipo:d.tipo,
+      estado:d.estado,observacao_privada:d.observacaoPrivada||''};})
+  };
+}
+function normalizeVitrineBackupForImport(raw){
+  if(raw==null)return null;
+  if(typeof raw!=='object'||Array.isArray(raw))throw new Error('A secao Vitrine do backup e invalida.');
+  const result={};
+  const arrays=['cidades','anunciantes','imoveis','comodidades_catalogo','imovel_comodidades','documentacao'];
+  arrays.forEach(function(k){if(raw[k]!=null&&!Array.isArray(raw[k]))throw new Error('A secao '+k+' da Vitrine deve ser uma lista.');});
+  if((raw.imoveis||[]).length>2000||(raw.comodidades_catalogo||[]).length>1000
+    ||(raw.imovel_comodidades||[]).length>50000||(raw.documentacao||[]).length>20000){
+    throw new Error('O backup da Vitrine ultrapassa o limite seguro de registros.');
+  }
+  result.cidades=(raw.cidades||[]).map(function(c){return {id:_backupUuid(c.id,'ID da cidade'),
+    nome:_backupText(c.nome,120,'Cidade')||'Cidade',uf:_backupText(c.uf,2,'PE').toUpperCase(),
+    slug:_backupText(c.slug,60),ordem:Math.max(0,parseInt(c.ordem,10)||0),ativa:c.ativa!==false};});
+  result.anunciantes=(raw.anunciantes||[]).map(function(a){return {id:_backupUuid(a.id,'ID do anunciante'),
+    nome:_backupText(a.nome,160,'Anunciante')||'Anunciante',telefone:_backupText(a.telefone,40),
+    email:_backupText(a.email,180),documento:_backupText(a.documento,80),observacoes:_backupText(a.observacoes,2000),
+    proprietario_cliente_id:a.proprietario_cliente_id?_backupUuid(a.proprietario_cliente_id,'Proprietario do anunciante'):null};});
+  result.imoveis=(raw.imoveis||[]).map(function(i){
+    const item=rowToVitrineImovel(i||{}),row=vitrineImovelToRow(item);
+    return Object.assign({id:_backupUuid(i.id,'ID do anuncio')},row,{
+      anunciante_id:i.anunciante_id?_backupUuid(i.anunciante_id,'Anunciante do anuncio'):null,
+      cidade_id:i.cidade_id?_backupUuid(i.cidade_id,'Cidade do anuncio'):null,
+      status:['rascunho','ativo','vencido','pausado','alugado','vendido'].includes(i.status)?i.status:'rascunho',
+      publicado_em:_backupTimestamp(i.publicado_em,'Publicacao do anuncio'),
+      expira_em:_backupDate(i.expira_em,'Expiracao do anuncio'),
+      created_at:_backupTimestamp(i.created_at,'Criacao do anuncio'),
+      updated_at:_backupTimestamp(i.updated_at,'Atualizacao do anuncio')
+    });
+  });
+  result.comodidades_catalogo=(raw.comodidades_catalogo||[]).map(function(c){return {
+    id:_backupUuid(c.id,'ID da comodidade'),codigo:_backupText(c.codigo,60),rotulo:_backupText(c.rotulo,120),
+    grupo:_backupText(c.grupo,30),ordem:Math.max(0,parseInt(c.ordem,10)||0),ativo:c.ativo!==false,
+    tipos_aplicaveis:Array.isArray(c.tipos_aplicaveis)?c.tipos_aplicaveis.slice(0,20):[]};});
+  result.imovel_comodidades=(raw.imovel_comodidades||[]).map(function(l){return {
+    imovel_id:_backupUuid(l.imovel_id,'Anuncio da comodidade'),comodidade_id:_backupUuid(l.comodidade_id,'Comodidade do anuncio')};});
+  const docTypes=['matricula','escritura','habite_se','iptu','condominio','financiamento','onus','inventario','usucapiao'];
+  const states=['sim','nao','nao_informado'];
+  result.documentacao=(raw.documentacao||[]).map(function(d){return {
+    imovel_id:_backupUuid(d.imovel_id,'Anuncio da documentacao'),
+    tipo:docTypes.includes(d.tipo)?d.tipo:(function(){throw new Error('Tipo de documentacao invalido no backup da Vitrine.');})(),
+    estado:states.includes(d.estado)?d.estado:'nao_informado',
+    observacao_privada:_backupText(d.observacao_privada,2000)};});
+  const indexar=function(lista,chave,rotulo){
+    const ids=new Set();
+    lista.forEach(function(item){if(ids.has(item[chave]))throw new Error('Ha '+rotulo+' duplicados no backup da Vitrine.');ids.add(item[chave]);});
+    return ids;
+  };
+  const cidades=indexar(result.cidades,'id','cidades'),anunciantes=indexar(result.anunciantes,'id','anunciantes');
+  const imoveis=indexar(result.imoveis,'id','anuncios'),comodidades=indexar(result.comodidades_catalogo,'id','comodidades');
+  result.imoveis.forEach(function(i){
+    if(i.cidade_id&&!cidades.has(i.cidade_id))throw new Error('Um anuncio aponta para uma cidade inexistente.');
+    if(i.anunciante_id&&!anunciantes.has(i.anunciante_id))throw new Error('Um anuncio aponta para um anunciante inexistente.');
+  });
+  result.imovel_comodidades.forEach(function(l){
+    if(!imoveis.has(l.imovel_id)||!comodidades.has(l.comodidade_id))throw new Error('Um vinculo de comodidade da Vitrine esta incompleto.');
+  });
+  result.documentacao.forEach(function(d){if(!imoveis.has(d.imovel_id))throw new Error('Um documento aponta para um anuncio inexistente.');});
+  return result;
+}
+
 function normalizeBackupForImport(data){
   if(!data || typeof data!=='object' || !Array.isArray(data.houses)){
     throw new Error('Esse arquivo não parece ser um backup do Aluguel.');
@@ -686,7 +935,7 @@ function normalizeBackupForImport(data){
   if(!Number.isInteger(version)||version<1){
     throw new Error('A versão informada no backup é inválida.');
   }
-  if(version>7){
+  if(version>8){
     throw new Error('Este backup foi criado por uma versão mais nova do aplicativo.');
   }
   const housesIn = data.houses;
@@ -1139,7 +1388,7 @@ function normalizeBackupForImport(data){
     pix_cidade:_backupText(data.config.pixCidade,15)
   } : null;
 
-  return {
+  const normalized={
     owners:ownerRows,
     tenants:tenantRows,houses:houseRows,contracts:contractRows,
     adjustments:reajRows,charges:chargeRows,payments:pagRows,energy:enerRows,
@@ -1153,6 +1402,16 @@ function normalizeBackupForImport(data){
     export_id:_backupExportId(data.exportId),
     exported_at:_backupExportedAt(data.exportedAt)
   };
+  if(data.vitrine!=null){
+    normalized.vitrine=normalizeVitrineBackupForImport(data.vitrine);
+    normalized.vitrine.anunciantes.forEach(function(a){
+      if(!a.proprietario_cliente_id)return;
+      const mapped=ownerIdMap[a.proprietario_cliente_id];
+      if(!mapped)throw new Error('Um anunciante da Vitrine aponta para um proprietario inexistente no backup.');
+      a.proprietario_cliente_id=mapped;
+    });
+  }
+  return normalized;
 }
 
 /* Data da exportação, só informativa. Vai validada porque ela é gravada no
@@ -1458,15 +1717,46 @@ const db = {
 
   async savePublicProfile(profile){
     const base={p_slug:profile.slug||'',p_nome:profile.nome||'',p_contato:profile.contato||''};
-    /* A versão com CRECI só existe depois de migracao-vitrine-fotos.sql.
-       Mesmo padrão dos papéis de colaborador: tenta a nova, cai na antiga
-       e o resto do formulário salva do mesmo jeito. */
-    let res=await sb.rpc('salvar_perfil_publico',
-      Object.assign({p_creci:profile.creci||''},base));
+    const brand=Object.assign({
+      p_creci:profile.creci||'',p_descricao:profile.descricao||'',
+      p_cidade_sede:profile.cidadeSede||'',p_uf_sede:profile.ufSede||'',
+      p_marca_tema:profile.marcaTema||'floresta'
+    },base);
+    /* A versão com marca é a preferida. Se o banco estiver na etapa anterior,
+       não descartamos silenciosamente texto, sede ou paleta preenchidos. */
+    let res=await sb.rpc('salvar_perfil_publico',brand);
+    if(res.error&&missingOptionalRpc(res.error)){
+      const pediuMarca=(profile.descricao||profile.cidadeSede||profile.ufSede||
+        (profile.marcaTema&&profile.marcaTema!=='floresta'));
+      if(pediuMarca)throw new Error('A migração de SEO e marca da Vitrine ainda não foi aplicada no banco.');
+      res=await sb.rpc('salvar_perfil_publico',Object.assign({p_creci:profile.creci||''},base));
+    }
     if(res.error&&missingOptionalRpc(res.error)){
       res=await sb.rpc('salvar_perfil_publico',base);
     }
     if(res.error) throw res.error;
+  },
+
+  async saveVitrineLogoFile(file,oldPath){
+    const uid=await _userId();
+    const path=uid+'/vitrine-marca/logo-'+_uuid()+'.jpg';
+    const upload=await sb.storage.from(FILE_BUCKET).upload(path,file,
+      {contentType:'image/jpeg',upsert:false});
+    if(upload.error)throw upload.error;
+    const saved=await sb.rpc('salvar_logo_vitrine',{p_logo_path:path});
+    if(saved.error){
+      await sb.storage.from(FILE_BUCKET).remove([path]);
+      if(missingOptionalRpc(saved.error))throw new Error('A migração de SEO e marca da Vitrine ainda não foi aplicada no banco.');
+      throw saved.error;
+    }
+    if(oldPath&&oldPath!==path)await sb.storage.from(FILE_BUCKET).remove([oldPath]).catch(function(){});
+    return {path:path,url:await signedStorageUrl(path)};
+  },
+
+  async removeVitrineLogo(oldPath){
+    const saved=await sb.rpc('salvar_logo_vitrine',{p_logo_path:''});
+    if(saved.error)throw saved.error;
+    if(oldPath)await sb.storage.from(FILE_BUCKET).remove([oldPath]);
   },
 
   async loadPublicListings(slug){
@@ -1481,25 +1771,91 @@ const db = {
      Tabelas próprias, separadas de public.imoveis de propósito: um imóvel
      de terceiro nunca pode entrar no Financeiro nem no limite do plano. */
   async loadVitrine(){
-    const [anunciantes,imoveis,leads,taxas,cidades]=await Promise.all([
+    /* A fundacao semeia um catalogo curto por conta. Em banco antigo a RPC
+       nao existe e a Vitrine continua carregando com os campos anteriores. */
+    const catalogReady=await sb.rpc('garantir_catalogo_comodidades_vitrine');
+    if(catalogReady.error&&!missingOptionalRpc(catalogReady.error)) throw catalogReady.error;
+    const [anunciantes,imoveis,leads,taxas,cidades,comodidades,vinculos,documentacao,
+      visitas,disponibilidade,agendaConfig,buscasSalvas,alertasPreco,crmEventos,crmTarefas,
+      crmPropostas,crmImoveis,observabilidade,avaliacoes,parceiros]=await Promise.all([
       sb.from('vitrine_anunciantes').select('*').order('nome'),
       sb.from('vitrine_imoveis').select('*').order('created_at',{ascending:false}),
       sb.from('vitrine_leads').select('*').order('created_at',{ascending:false}).limit(300),
       sb.from('vitrine_taxas').select('*').order('periodo_fim',{ascending:false}),
       /* Cidades só existem depois de migracao-vitrine-corretora.sql.
          Sem ela, a Vitrine segue funcionando como antes. */
-      sb.from('vitrine_cidades').select('*').order('ordem').order('nome')
+      sb.from('vitrine_cidades').select('*').order('ordem').order('nome'),
+      sb.from('vitrine_comodidades_catalogo').select('*').order('grupo').order('ordem'),
+      sb.from('vitrine_imovel_comodidades').select('imovel_id,comodidade_id'),
+      sb.from('vitrine_documentacao_imovel').select('*').order('tipo'),
+      sb.from('vitrine_visitas').select('*').order('data_preferida').order('created_at'),
+      sb.from('vitrine_disponibilidade').select('*').order('dia_semana').order('inicio'),
+      sb.from('vitrine_agenda_config').select('*').maybeSingle(),
+      sb.from('vitrine_buscas_salvas').select('*').order('created_at',{ascending:false}).limit(300),
+      sb.from('vitrine_alertas_preco').select('*').order('created_at',{ascending:false}).limit(300),
+      sb.from('crm_eventos').select('*').order('created_at',{ascending:false}).limit(800),
+      sb.from('crm_tarefas').select('*').order('prazo').limit(800),
+      sb.from('crm_propostas').select('*').order('created_at',{ascending:false}).limit(500),
+      sb.from('crm_interessado_imoveis').select('*').order('created_at',{ascending:false}).limit(1000),
+      sb.from('vitrine_observabilidade').select('*').gte('created_at',new Date(Date.now()-30*86400000).toISOString())
+        .order('created_at',{ascending:false}).limit(2000),
+      /* Só existe depois de migracao-vitrine-responsavel.sql. A policy do
+         dono deixa ele ler e apagar; escrever, nunca. */
+      sb.from('vitrine_avaliacoes').select('id,anunciante_id,nota,comentario,created_at')
+        .order('created_at',{ascending:false}).limit(1000),
+      /* Contatos da página Anunciar. Só existe depois de
+         migracao-vitrine-parceiros.sql. */
+      sb.from('vitrine_parceiros').select('*').order('created_at',{ascending:false}).limit(500)
     ]);
     if(anunciantes.error) throw anunciantes.error;
     if(imoveis.error) throw imoveis.error;
     if(leads.error) throw leads.error;
     if(taxas.error) throw taxas.error;
+    for(const opcional of [cidades,comodidades,vinculos,documentacao,visitas,disponibilidade,
+      agendaConfig,buscasSalvas,alertasPreco,crmEventos,crmTarefas,crmPropostas,crmImoveis,observabilidade,
+      avaliacoes,parceiros]){
+      if(opcional.error&&!missingOptionalRelation(opcional.error))throw opcional.error;
+    }
+    const imoveisMem=(imoveis.data||[]).map(rowToVitrineImovel);
+    const comodidadesMem=comodidades.error?[]:(comodidades.data||[]).map(rowToVitrineComodidade);
+    const codigoPorId={};comodidadesMem.forEach(function(c){codigoPorId[c.id]=c.codigo;});
+    const vinculosMem=vinculos.error?[]:(vinculos.data||[]);
+    const docsMem=documentacao.error?[]:(documentacao.data||[]).map(rowToVitrineDocumento);
+    imoveisMem.forEach(function(i){
+      i.comodidadeCodigos=vinculosMem.filter(function(l){return l.imovel_id===i.id;})
+        .map(function(l){return codigoPorId[l.comodidade_id];}).filter(Boolean);
+      i.documentacao=docsMem.filter(function(d){return d.imovelId===i.id;});
+    });
     return {
       anunciantes:(anunciantes.data||[]).map(rowToVitrineAnunciante),
-      imoveis:(imoveis.data||[]).map(rowToVitrineImovel),
+      imoveis:imoveisMem,
       leads:(leads.data||[]).map(rowToVitrineLead),
       taxas:(taxas.data||[]).map(rowToVitrineTaxa),
-      cidades:cidades.error?[]:(cidades.data||[]).map(rowToVitrineCidade)
+      cidades:cidades.error?[]:(cidades.data||[]).map(rowToVitrineCidade),
+      comodidades:comodidadesMem,documentacao:docsMem,vinculosComodidades:vinculosMem,
+      visitas:visitas.error?[]:(visitas.data||[]).map(rowToVitrineVisita),
+      disponibilidade:disponibilidade.error?[]:(disponibilidade.data||[]).map(rowToVitrineDisponibilidade),
+      agendaConfig:agendaConfig.error?{confirmacaoAutomatica:false,antecedenciaHoras:24,horizonteDias:30}:{
+        confirmacaoAutomatica:!!((agendaConfig.data||{}).confirmacao_automatica),
+        antecedenciaHoras:Number((agendaConfig.data||{}).antecedencia_horas)||24,
+        horizonteDias:Number((agendaConfig.data||{}).horizonte_dias)||30},
+      buscasSalvas:buscasSalvas.error?[]:(buscasSalvas.data||[]).map(rowToVitrineBuscaSalva),
+      alertasPreco:alertasPreco.error?[]:(alertasPreco.data||[]).map(rowToVitrineAlertaPreco),
+      parceiros:parceiros.error?[]:(parceiros.data||[]).map(function(r){
+        return {id:r.id,caminho:r.caminho||'divulgar',nome:r.nome||'',telefone:r.telefone||'',
+          email:r.email||'',cidade:r.cidade||'',quantidade:r.quantidade||'',mensagem:r.mensagem||'',
+          status:r.status||'novo',origem:r.origem||'anunciar',utmSource:r.utm_source||'',
+          createdAt:r.created_at||''};
+      }),
+      avaliacoes:avaliacoes.error?[]:(avaliacoes.data||[]).map(function(r){
+        return {id:r.id,anuncianteId:r.anunciante_id,nota:Number(r.nota)||0,
+          comentario:r.comentario||'',createdAt:r.created_at||''};
+      }),
+      crmEventos:crmEventos.error?[]:(crmEventos.data||[]).map(rowToCrmEvento),
+      crmTarefas:crmTarefas.error?[]:(crmTarefas.data||[]).map(rowToCrmTarefa),
+      crmPropostas:crmPropostas.error?[]:(crmPropostas.data||[]).map(rowToCrmProposta),
+      crmImoveis:crmImoveis.error?[]:(crmImoveis.data||[]).map(rowToCrmImovel),
+      observabilidade:observabilidade.error?[]:(observabilidade.data||[]).map(rowToVitrineObservabilidade)
     };
   },
 
@@ -1535,6 +1891,10 @@ const db = {
     const payload={nome:item.nome,telefone:item.telefone||'',email:item.email||'',
       documento:item.documento||'',observacoes:item.observacoes||'',updated_at:new Date().toISOString()};
     if(item.proprietarioClienteId) payload.proprietario_cliente_id=item.proprietarioClienteId;
+    /* `verificado` fica de fora: o gestor não acende o próprio selo.
+       Só entram os campos que ele de fato preenche. */
+    if(item.tipo) payload.tipo=item.tipo;
+    if(item.registro!=null) payload.registro=item.registro||'';
     if(!item.id) payload.user_id=await _userId();
     const query=item.id
       ? sb.from('vitrine_anunciantes').update(payload).eq('id',item.id).select().single()
@@ -1545,6 +1905,93 @@ const db = {
   },
   async deleteVitrineAnunciante(id){
     const {error}=await sb.from('vitrine_anunciantes').delete().eq('id',id);
+    if(error) throw error;
+  },
+
+  /* ---------- página Anunciar: quem chega com imóvel --------------
+     Anônimo grava, mas nunca escolhe a conta: o dono sai do slug
+     dentro da função. Ver migracao-vitrine-parceiros.sql. */
+  async registrarParceiroVitrine(dados){
+    const {error}=await sb.rpc('vitrine_registrar_parceiro',{
+      p_slug:dados.slug,p_caminho:dados.caminho||'divulgar',
+      p_nome:dados.nome,p_telefone:dados.telefone,
+      p_cidade:dados.cidade||'',p_quantidade:dados.quantidade||'',
+      p_mensagem:dados.mensagem||'',
+      p_utm:(new URLSearchParams(location.search).get('utm_source')||'')
+    });
+    if(error) throw error;
+  },
+  async loadParceirosVitrine(){
+    const {data,error}=await sb.from('vitrine_parceiros').select('*')
+      .order('created_at',{ascending:false}).limit(500);
+    if(error){ if(missingOptionalRelation(error)) return []; throw error; }
+    return (data||[]).map(function(r){
+      return {id:r.id,caminho:r.caminho||'divulgar',nome:r.nome||'',telefone:r.telefone||'',
+        email:r.email||'',cidade:r.cidade||'',quantidade:r.quantidade||'',mensagem:r.mensagem||'',
+        status:r.status||'novo',origem:r.origem||'anunciar',utmSource:r.utm_source||'',
+        createdAt:r.created_at||''};
+    });
+  },
+  async atualizarParceiroVitrine(id,campos){
+    const {error}=await sb.from('vitrine_parceiros')
+      .update(Object.assign({updated_at:new Date().toISOString()},campos)).eq('id',id);
+    if(error) throw error;
+  },
+
+  /* ---------- responsável: estrelas e visto ----------------------
+     Tudo passa por RPC. A tabela não aceita insert direto porque é na
+     função que o vínculo de contrato é conferido — sem isso, qualquer
+     usuário autenticado escreveria nota em qualquer responsável.
+     Ver migracao-vitrine-responsavel.sql. */
+
+  /* Devolve o inquilino_id quando a pessoa logada tem direito a avaliar
+     este responsável, e vazio quando não tem. É o que decide se o portal
+     mostra o formulário. */
+  async podeAvaliarResponsavel(anuncianteId){
+    const {data,error}=await sb.rpc('vitrine_pode_avaliar',{p_anunciante_id:anuncianteId});
+    if(error){ if(missingOptionalRpc(error)) return ''; throw error; }
+    return data||'';
+  },
+  /* Portal do inquilino: quem ele pode avaliar e o que ele já respondeu.
+     Vai por RPC porque a tabela de anunciantes é do dono da conta — o
+     inquilino não lê, e não deve passar a ler. */
+  async meusResponsaveis(){
+    const {data,error}=await sb.rpc('vitrine_meus_responsaveis');
+    if(error){ if(missingOptionalRpc(error)) return []; throw error; }
+    return Array.isArray(data)?data:[];
+  },
+  async avaliarResponsavel(anuncianteId,nota,comentario){
+    const {data,error}=await sb.rpc('vitrine_avaliar_responsavel',
+      {p_anunciante_id:anuncianteId,p_nota:Number(nota),p_comentario:comentario||''});
+    if(error) throw error;
+    return data;
+  },
+  async removerAvaliacaoResponsavel(anuncianteId){
+    const {error}=await sb.rpc('vitrine_remover_avaliacao',{p_anunciante_id:anuncianteId});
+    if(error) throw error;
+  },
+  /* A própria nota, para o portal abrir o formulário já preenchido. A
+     policy do autor é que limita o retorno a uma linha. */
+  async minhaAvaliacao(anuncianteId){
+    const {data,error}=await sb.from('vitrine_avaliacoes')
+      .select('id,anunciante_id,nota,comentario,updated_at').eq('anunciante_id',anuncianteId).maybeSingle();
+    if(error){ if(missingOptionalRelation(error)) return null; throw error; }
+    return data?{id:data.id,anuncianteId:data.anunciante_id,nota:Number(data.nota)||0,
+      comentario:data.comentario||'',updatedAt:data.updated_at||''}:null;
+  },
+  /* Lista para o gestor: ele lê e pode apagar ofensa, nunca escrever. */
+  async loadAvaliacoesResponsaveis(){
+    const {data,error}=await sb.from('vitrine_avaliacoes')
+      .select('id,anunciante_id,nota,comentario,created_at').order('created_at',{ascending:false});
+    if(error){ if(missingOptionalRelation(error)) return []; throw error; }
+    return (data||[]).map(function(r){
+      return {id:r.id,anuncianteId:r.anunciante_id,nota:Number(r.nota)||0,
+        comentario:r.comentario||'',createdAt:r.created_at||''};
+    });
+  },
+  async definirVistoResponsavel(anuncianteId,ativo,ate){
+    const {error}=await sb.rpc('vitrine_definir_visto',
+      {p_anunciante_id:anuncianteId,p_ativo:!!ativo,p_ate:ate||null});
     if(error) throw error;
   },
 
@@ -1564,8 +2011,24 @@ const db = {
       delete payload.imovel_id;
       res=await gravar();
     }
+    /* A tela nunca confirma uma gravação descartando silenciosamente os
+       campos novos. A publicação deve aplicar o SQL antes do front-end; se
+       a ordem for invertida, paramos com uma mensagem operacional clara. */
+    const foundationKeys=['area_util_m2','total_andares','ano_construcao','disponivel_em',
+      'endereco_publico_modo','latitude_publica','longitude_publica','garantias_aceitas',
+      'indice_reajuste','custos_inclusos','aceita_estudante','aceita_pessoa_juridica',
+      'aceita_crianca','permite_sublocacao','aceita_financiamento','aceita_permuta',
+      'situacao_ocupacao','observacao_privada','pavimentacao','agua_disponivel',
+      'energia_disponivel','esgoto_disponivel','aptidoes_terreno'];
+    if(res.error&&foundationKeys.some(function(k){return new RegExp(k,'i').test(String(res.error.message||''));})){
+      throw new Error('A migração migracao-vitrine-fundacao.sql ainda não foi aplicada no banco. Nenhuma alteração do anúncio foi salva.');
+    }
     if(res.error) throw res.error;
-    return rowToVitrineImovel(res.data);
+    await saveVitrineFoundationRelations(res.data.id,item);
+    const result=rowToVitrineImovel(res.data);
+    result.comodidadeCodigos=Array.isArray(item.comodidadeCodigos)?item.comodidadeCodigos.slice():[];
+    result.documentacao=Array.isArray(item.documentacao)?item.documentacao.map(function(d){return Object.assign({},d,{imovelId:res.data.id});}):[];
+    return result;
   },
   async deleteVitrineImovel(id){
     const {error}=await sb.from('vitrine_imoveis').delete().eq('id',id);
@@ -1698,6 +2161,22 @@ const db = {
     const {error}=await sb.from('vitrine_leads').delete().eq('id',id);
     if(error) throw error;
   },
+  async saveVitrineAgenda(config,horarios){
+    const payload=(horarios||[]).map(function(h){return {dia_semana:Number(h.diaSemana),
+      faixa:h.faixa,inicio:h.inicio,fim:h.fim};});
+    const {error}=await sb.rpc('salvar_agenda_vitrine',{p_config:{
+      confirmacaoAutomatica:!!config.confirmacaoAutomatica,
+      antecedenciaHoras:Number(config.antecedenciaHoras)||24,
+      horizonteDias:Number(config.horizonteDias)||30},p_horarios:payload});
+    if(error)throw error;
+  },
+  async updateVitrineVisita(id,patch){
+    const row={updated_at:new Date().toISOString()};
+    if(patch.status)row.status=patch.status;
+    if(patch.responsavelId!==undefined)row.responsavel_id=patch.responsavelId||null;
+    const {error}=await sb.from('vitrine_visitas').update(row).eq('id',id);
+    if(error)throw error;
+  },
 
   async expireVitrine(){
     const {data,error}=await sb.rpc('vitrine_expirar_vencidos');
@@ -1707,9 +2186,16 @@ const db = {
 
   /* Página pública: sem login. Só devolve anúncio no ar. */
   async loadVitrinePublica(slug){
-    const {data,error}=await sb.rpc('listar_vitrine_publica',{p_slug:slug});
-    if(error) throw error;
+    let res=await sb.rpc('listar_vitrine_publica_v4',{p_slug:slug});
+    if(res.error&&missingOptionalRpc(res.error)) res=await sb.rpc('listar_vitrine_publica_v3',{p_slug:slug});
+    if(res.error&&missingOptionalRpc(res.error)) res=await sb.rpc('listar_vitrine_publica_v2',{p_slug:slug});
+    if(res.error&&missingOptionalRpc(res.error)) res=await sb.rpc('listar_vitrine_publica',{p_slug:slug});
+    if(res.error) throw res.error;
+    const data=res.data;
     const result=data||{perfil:null,imoveis:[]};
+    if(result.perfil&&result.perfil.logoPath){
+      result.perfil.logoUrl=location.origin+'/og-foto?p='+encodeURIComponent(result.perfil.logoPath);
+    }
     await Promise.all((result.imoveis||[]).map(async function(i){
       const paths=Array.isArray(i.fotos)?i.fotos:[];
       /* `thumbs` só existe depois de migracao-vitrine-fotos.sql. Sem ela,
@@ -1725,6 +2211,56 @@ const db = {
       i.thumbUrls=assinadas[1].filter(Boolean);
     }));
     return result;
+  },
+  async registrarVitrineObservabilidade(slug,tipo,duracaoMs,contexto){
+    try{
+      const {data,error}=await sb.rpc('vitrine_registrar_observabilidade',{
+        p_slug:slug,p_tipo:tipo,p_duracao_ms:Math.max(0,Math.round(Number(duracaoMs)||0)),p_contexto:contexto||{}
+      });
+      if(error&&missingOptionalRpc(error))return false;
+      if(error)throw error;return !!data;
+    }catch(e){return false;}
+  },
+  async salvarVitrineBuscaPublica(item){
+    const {data,error}=await sb.rpc('vitrine_salvar_busca',{
+      p_slug:item.slug,p_nome:item.nome||'',p_finalidade:item.finalidade,
+      p_cidade_id:item.cidadeId||null,p_filtros:item.filtros||{},p_resumo:item.resumo||'',
+      p_frequencia:item.frequencia,p_canal:item.canal,p_destino:item.destino,
+      p_consentimento:!!item.consentimento
+    });
+    if(error)throw error;return data||{};
+  },
+  async cancelarVitrineBuscaPublica(token){
+    const {data,error}=await sb.rpc('vitrine_cancelar_busca',{p_token:token});
+    if(error)throw error;return !!data;
+  },
+  async salvarVitrineAlertaPrecoPublico(item){
+    const {data,error}=await sb.rpc('vitrine_salvar_alerta_preco',{
+      p_imovel_id:item.imovelId,p_finalidade:item.finalidade,p_canal:item.canal,
+      p_destino:item.destino,p_consentimento:!!item.consentimento
+    });
+    if(error)throw error;return data||{};
+  },
+  async cancelarVitrineAlertaPrecoPublico(token){
+    const {data,error}=await sb.rpc('vitrine_cancelar_alerta_preco',{p_token:token});
+    if(error)throw error;return !!data;
+  },
+  async solicitarVitrineVisita(item){
+    const {data,error}=await sb.rpc('vitrine_solicitar_visita',{
+      p_imovel_id:item.imovelId,p_nome:item.nome,p_telefone:item.telefone,p_data:item.data,
+      p_faixa:item.faixa,p_mensagem:item.mensagem||'',p_consentimento:!!item.consentimento
+    });
+    if(error)throw error;return data||{};
+  },
+  async cancelarVitrineVisitaPublica(token){
+    const {data,error}=await sb.rpc('vitrine_cancelar_visita',{p_token:token});
+    if(error)throw error;return !!data;
+  },
+  async reagendarVitrineVisitaPublica(token,dataVisita,faixa){
+    const {data,error}=await sb.rpc('vitrine_reagendar_visita',{
+      p_token:token,p_data:dataVisita,p_faixa:faixa
+    });
+    if(error)throw error;return data||{};
   },
   async registrarVitrineVisita(imovelId,tipo){
     try{ await sb.rpc('vitrine_registrar_visita',{p_imovel_id:imovelId,p_tipo:tipo||'visualizacao'}); }
@@ -1744,12 +2280,17 @@ const db = {
     }
   },
   async registrarVitrineLead(lead){
-    const {data,error}=await sb.rpc('vitrine_registrar_lead',{
+    let result=await sb.rpc('vitrine_registrar_lead_v2',{
+      p_imovel_id:lead.imovelId,p_nome:lead.nome,p_telefone:lead.telefone,
+      p_mensagem:lead.mensagem||'',p_consentimento:!!lead.consentimento,
+      p_campanha:lead.campanha||'',p_utm_source:lead.utmSource||''
+    });
+    if(result.error&&missingOptionalRpc(result.error))result=await sb.rpc('vitrine_registrar_lead',{
       p_imovel_id:lead.imovelId,p_nome:lead.nome,p_telefone:lead.telefone,
       p_mensagem:lead.mensagem||'',p_consentimento:!!lead.consentimento
     });
-    if(error) throw error;
-    return data||{};
+    if(result.error) throw result.error;
+    return result.data||{};
   },
 
   /* Minha Casa: financeiro familiar compartilhado somente pelas contas Mestre. */
@@ -2092,6 +2633,8 @@ const db = {
      privados e comprovantes de leitura de energia. */
   async exportAll(){
     const base = await this.loadAll({includeArchived:true});
+    const vitrineData=(typeof temModulo==='function'&&temModulo('vitrine'))
+      ?await this.loadVitrine():null;
     const results=await Promise.all([
       fetchAllRows('fotos','ordem',true),
       sb.rpc('listar_documentos_backup')
@@ -2138,10 +2681,11 @@ const db = {
        a mesma exportação importada duas vezes — antes, importar o mesmo
        arquivo de novo simplesmente duplicava a carteira inteira, e a única
        proteção era uma frase na tela pedindo para não fazer isso. */
-    return { version:7, exportId:_uuid(), exportedAt:new Date().toISOString(),
+    return { version:8, exportId:_uuid(), exportedAt:new Date().toISOString(),
              owners:base.owners||[],
              houses:base.houses, tenants:base.tenants, interests:base.interests||[], photos:photos,
-             documents:documents,config:base.config, eventos:base.eventos||[] };
+             documents:documents,config:base.config, eventos:base.eventos||[],
+             vitrine:vitrineData?exportVitrineBackup(vitrineData):undefined };
   },
 
   /* Importa tudo em uma única transação no PostgreSQL. Se qualquer etapa
@@ -2156,12 +2700,15 @@ const db = {
         sb.from('vistoria_fotos').select('id').limit(1),
         sb.from('chamado_fotos').select('id').limit(1),
         sb.from('acessos_inquilino').select('user_id').limit(1),
-        sb.from('convites_inquilino').select('id').limit(1)
+        sb.from('convites_inquilino').select('id').limit(1),
+        sb.from('vitrine_fotos').select('id').limit(1),
+        sb.from('vitrine_leads').select('id').limit(1),
+        sb.from('vitrine_taxas').select('id').limit(1)
       ]);
       const protectedError=protectedRows.find(function(result){return result.error;});
       if(protectedError)throw protectedError.error;
       if(protectedRows.some(function(result){return (result.data||[]).length>0;})){
-        throw new Error('A restauração foi bloqueada porque existem vistorias, fotos de chamados, convites ou acessos do Portal que este formato ainda não substitui com segurança.');
+        throw new Error('A restauração foi bloqueada porque existem vistorias, fotos de chamados, convites, acessos do Portal, fotos, leads ou taxas da Vitrine que este formato ainda não substitui com segurança.');
       }
       const current=await Promise.all([
         sb.from('fotos').select('storage_path'),sb.rpc('listar_documentos_backup'),sb.from('energia').select('foto_path')
@@ -2187,11 +2734,17 @@ const db = {
         delete entry.foto_mime;
         delete entry.foto_tamanho;
       }
-      const { error } = await sb.rpc('importar_backup_atomico_v7', {
+      let imported = await sb.rpc('importar_backup_atomico_v8', {
         p_payload: payload,
         p_substituir: !!(options && options.replace)
       });
-      if(error) throw error;
+      if(imported.error&&missingOptionalRpc(imported.error)){
+        if(payload.vitrine) throw new Error('A migracao da Fundacao da Vitrine ainda nao foi aplicada no banco.');
+        imported=await sb.rpc('importar_backup_atomico_v7',{
+          p_payload:payload,p_substituir:!!(options&&options.replace)
+        });
+      }
+      if(imported.error) throw imported.error;
     }catch(error){
       if(uploadedPaths.length){
         try{await removeStoragePaths(uploadedPaths);}
@@ -2570,7 +3123,17 @@ const db = {
   async energyPhotoUrl(path){ return path?signedStorageUrl(path):''; },
 
   /* Interessados em alugar. */
-  async insertInterest(item){
+  async insertInterest(item,origemLeadId){
+    const payload={nome:item.nome,telefone:item.telefone||'',email:item.email||'',valorMaximo:Number(item.valorMaximo)||0,
+      quartosMin:Number(item.quartosMin)||0,banheirosMin:Number(item.banheirosMin)||0,precisaGaragem:!!item.precisaGaragem,
+      precisaQuintal:!!item.precisaQuintal,precisaCozinha:!!item.precisaCozinha,precisaSala:!!item.precisaSala,
+      precisaAreaServico:!!item.precisaAreaServico,observacoes:item.observacoes||'',status:item.status||'novo',
+      origem:item.origem||'manual',campanha:item.campanha||'',finalidade:item.finalidade||'alugar',
+      responsavelId:item.responsavelId||'',primeiraRespostaEm:item.primeiraRespostaEm||'',
+      proximaAcao:item.proximaAcao||'',proximaAcaoEm:item.proximaAcaoEm||'',motivoPerda:item.motivoPerda||''};
+    let saved=await sb.rpc('crm_salvar_interessado',{p_id:null,p_dados:payload,p_lead_id:origemLeadId||null});
+    if(!saved.error)return rowToInterest(saved.data||{});
+    if(!missingOptionalRpc(saved.error))throw saved.error;
     const uid=await _userId();
     const row={user_id:uid,nome:item.nome,telefone:item.telefone||'',valor_maximo:Number(item.valorMaximo)||0,
       quartos_min:Number(item.quartosMin)||0,banheiros_min:Number(item.banheirosMin)||0,
@@ -2582,6 +3145,16 @@ const db = {
     if(error) throw error; return rowToInterest(data);
   },
   async updateInterest(item){
+    const payload={nome:item.nome,telefone:item.telefone||'',email:item.email||'',valorMaximo:Number(item.valorMaximo)||0,
+      quartosMin:Number(item.quartosMin)||0,banheirosMin:Number(item.banheirosMin)||0,precisaGaragem:!!item.precisaGaragem,
+      precisaQuintal:!!item.precisaQuintal,precisaCozinha:!!item.precisaCozinha,precisaSala:!!item.precisaSala,
+      precisaAreaServico:!!item.precisaAreaServico,observacoes:item.observacoes||'',status:item.status||'novo',
+      origem:item.origem||'manual',campanha:item.campanha||'',finalidade:item.finalidade||'alugar',
+      responsavelId:item.responsavelId||'',primeiraRespostaEm:item.primeiraRespostaEm||'',
+      proximaAcao:item.proximaAcao||'',proximaAcaoEm:item.proximaAcaoEm||'',motivoPerda:item.motivoPerda||''};
+    let saved=await sb.rpc('crm_salvar_interessado',{p_id:item.id,p_dados:payload,p_lead_id:item.leadId||null});
+    if(!saved.error)return rowToInterest(saved.data||{});
+    if(!missingOptionalRpc(saved.error))throw saved.error;
     const row={nome:item.nome,telefone:item.telefone||'',valor_maximo:Number(item.valorMaximo)||0,
       quartos_min:Number(item.quartosMin)||0,banheiros_min:Number(item.banheirosMin)||0,
       precisa_garagem:!!item.precisaGaragem,precisa_quintal:!!item.precisaQuintal,
@@ -2589,6 +3162,39 @@ const db = {
       precisa_area_servico:!!item.precisaAreaServico,observacoes:item.observacoes||'',status:item.status||'novo',
       inquilino_id:item.tenantId||null,updated_at:new Date().toISOString()};
     const {error}=await sb.from('interessados').update(row).eq('id',item.id); if(error) throw error;
+  },
+  async insertCrmTask(item){
+    const uid=await _userId(),row={user_id:uid,interessado_id:item.interessadoId,responsavel_id:item.responsavelId||null,
+      tipo:item.tipo||'retorno',titulo:item.titulo,prazo:item.prazo,status:item.status||'pendente'};
+    const {data,error}=await sb.from('crm_tarefas').insert(row).select().single();if(error)throw error;return rowToCrmTarefa(data);
+  },
+  async updateCrmTask(item){
+    const row={responsavel_id:item.responsavelId||null,tipo:item.tipo||'retorno',titulo:item.titulo,prazo:item.prazo,
+      status:item.status||'pendente',concluida_em:item.status==='concluida'?(item.concluidaEm||new Date().toISOString()):null,updated_at:new Date().toISOString()};
+    const {data,error}=await sb.from('crm_tarefas').update(row).eq('id',item.id).select().single();if(error)throw error;return rowToCrmTarefa(data);
+  },
+  async insertCrmProposal(item){
+    const uid=await _userId(),row={user_id:uid,interessado_id:item.interessadoId,vitrine_imovel_id:item.vitrineImovelId||null,
+      imovel_id:item.imovelId||null,finalidade:item.finalidade||'alugar',valor:Number(item.valor)||0,validade:item.validade||null,
+      condicoes:item.condicoes||'',status:item.status||'rascunho'};
+    const {data,error}=await sb.from('crm_propostas').insert(row).select().single();if(error)throw error;return rowToCrmProposta(data);
+  },
+  async updateCrmProposal(item){
+    const row={valor:Number(item.valor)||0,validade:item.validade||null,condicoes:item.condicoes||'',status:item.status||'rascunho',updated_at:new Date().toISOString()};
+    const {data,error}=await sb.from('crm_propostas').update(row).eq('id',item.id).select().single();if(error)throw error;return rowToCrmProposta(data);
+  },
+  async linkCrmProperty(item){
+    const uid=await _userId(),row={user_id:uid,interessado_id:item.interessadoId,vitrine_imovel_id:item.vitrineImovelId||null,
+      imovel_id:item.imovelId||null,origem:item.origem||'manual'};
+    let find=sb.from('crm_interessado_imoveis').select('*').eq('interessado_id',item.interessadoId);
+    find=item.vitrineImovelId?find.eq('vitrine_imovel_id',item.vitrineImovelId):find.eq('imovel_id',item.imovelId);
+    const existing=await find.maybeSingle();if(existing.error)throw existing.error;if(existing.data)return rowToCrmImovel(existing.data);
+    const {data,error}=await sb.from('crm_interessado_imoveis').insert(row).select().single();if(error)throw error;return rowToCrmImovel(data);
+  },
+  async unlinkCrmProperty(id){const {error}=await sb.from('crm_interessado_imoveis').delete().eq('id',id);if(error)throw error;},
+  async registerCrmEvent(interessadoId,tipo,titulo,detalhes){
+    const {data,error}=await sb.rpc('crm_registrar_evento',{p_interessado:interessadoId,p_tipo:tipo,p_titulo:titulo,p_detalhes:detalhes||{}});
+    if(error)throw error;return data;
   },
   async deleteInterest(id){
     const {error}=await sb.from('interessados').delete().eq('id',id); if(error) throw error;
@@ -2621,10 +3227,22 @@ const db = {
     const row=maintenanceCallToRow(item,imovelId);
     if(item.id) row.id=item.id;
     row.user_id=uid;
-    let res=await sb.from('chamados').insert(row).select().single();
+    /* A RPC valida conta e imovel no servidor e torna a inclusao idempotente.
+       Enquanto a migracao nao existe, o INSERT legado continua disponivel,
+       mas sem vincular indevidamente o inquilino atual do imovel. */
+    let res=await sb.rpc('criar_chamado_manutencao',{
+      p_id:row.id||_uuid(),p_imovel_id:imovelId,p_dados:row
+    });
+    if(res.error&&missingOptionalRpc(res.error)){
+      res=await sb.from('chamados').insert(
+        Object.assign({},row,{inquilino_id:null})
+      ).select().single();
+    }
     if(res.error && !_manutencaoCamposOff && _isMissingManutencaoError(res.error)){
       _manutencaoCamposOff=true;
-      res=await sb.from('chamados').insert(_semCamposNovosManutencao(row)).select().single();
+      res=await sb.from('chamados').insert(
+        Object.assign(_semCamposNovosManutencao(row),{inquilino_id:null})
+      ).select().single();
     }
     if(res.error) throw res.error;
     return rowToMaintenanceCall(res.data);
@@ -2893,10 +3511,13 @@ const db = {
   async makeSnapshot(){
     const uid = await _userId();
     const base = await this.loadAll({includeArchived:true});
-    const payload = { version:7, exportId:_uuid(), exportedAt:new Date().toISOString(),
+    const vitrineData=(typeof temModulo==='function'&&temModulo('vitrine'))
+      ?await this.loadVitrine():null;
+    const payload = { version:8, exportId:_uuid(), exportedAt:new Date().toISOString(),
       owners:base.owners||[],
       houses:base.houses, tenants:base.tenants, interests:base.interests||[], config:base.config,
-      eventos:base.eventos, photos:{},documents:{} };
+      eventos:base.eventos, photos:{},documents:{},
+      vitrine:vitrineData?exportVitrineBackup(vitrineData):undefined };
     const ins = await sb.from('backups').upsert({ user_id:uid, dados:payload, dia:todayISO(), criado_em:new Date().toISOString() },
       { onConflict:'user_id,dia' });
     if(ins.error) throw ins.error;
@@ -2924,21 +3545,20 @@ const db = {
 
   /* Apaga TODOS os dados do usuário (mantém a conta e o config). */
   async wipeAll(){
-    const uid = await _userId();
-    const files=await Promise.all([
-      sb.from('fotos').select('storage_path').eq('user_id',uid),
-      sb.rpc('listar_documentos_backup'),
-      sb.from('energia').select('foto_path').eq('user_id',uid)
-    ]);
-    const fileError=files.find(function(r){return r.error;}); if(fileError)throw fileError.error;
-    await removeStoragePaths([].concat(files[0].data||[],files[1].data||[]).map(function(r){return r.storage_path;})
-      .concat((files[2].data||[]).map(function(r){return r.foto_path;})));
-    // filtro explícito por user_id, além do RLS (segurança dupla)
-    // ordem respeita as FKs (filhos antes dos pais)
-    for(const t of ['fotos','pagamentos','energia','despesas','historico_status','documentos','contratos','eventos','interessados','imoveis','inquilinos']){
-      const { error } = await sb.from(t).delete().eq('user_id', uid);
-      if(error) throw error;
+    const result=await sb.rpc('apagar_dados_operacionais_conta');
+    if(result.error){
+      if(missingOptionalRpc(result.error)){
+        throw new Error('A correcao segura de Apagar tudo ainda nao foi aplicada no banco.');
+      }
+      throw result.error;
     }
+    const payload=result.data||{};
+    const paths=payload.storage_paths||payload.storagePaths||[];
+    try{await removeStoragePaths(paths);}
+    catch(error){
+      console.warn('Dados apagados; alguns arquivos exigem limpeza posterior.',error);
+    }
+    return payload;
   }
 };
 

@@ -390,8 +390,9 @@ function downloadFinanceCsv(){
   const a=document.createElement('a'); a.href=url; a.download='financeiro-'+mes+'.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
-function downloadFinancePdf(){
+async function downloadFinancePdf(){
   const mes=state.financeMonth||currentMonthStr(), info=computeMonthlyFinance(mes);
+  await garantirJsPDF();
   const jsPDF=window.jspdf&&window.jspdf.jsPDF; if(!jsPDF){showToast('Gerador de PDF indisponível.','error');return;}
   const cash=(state.financeMode||'competencia')==='caixa';
   const doc=new jsPDF(); let y=22;
@@ -429,8 +430,9 @@ function downloadAnnualFinanceCsv(){
   const anchor=document.createElement('a');anchor.href=url;anchor.download='relatorio-anual-'+year+'.csv';
   anchor.click();URL.revokeObjectURL(url);
 }
-function downloadAnnualFinancePdf(){
+async function downloadAnnualFinancePdf(){
   const year=state.relatorioAno,totals=computeAnnualTotals(year);
+  await garantirJsPDF();
   const jsPDF=window.jspdf&&window.jspdf.jsPDF;
   if(!jsPDF){showToast('Gerador de PDF indisponível.','error');return;}
   const doc=new jsPDF();let y=22;

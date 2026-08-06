@@ -24,9 +24,7 @@
 <link rel="stylesheet" href="vitrine.css">
 <link rel="stylesheet" href="crm.css">
 <link rel="stylesheet" href="motion.css">
-<!-- Mapa da Vitrine. Usa o cdnjs, que o CSP já confia para o jsPDF,
-     em vez de abrir um domínio novo. -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<!-- O CSS do Leaflet vem junto com o mapa, sob demanda (utils.js). -->
 
 <!-- PWA: instalável; mantém a interface básica em cache -->
 <link rel="manifest" href="manifest.json">
@@ -53,11 +51,11 @@
 
   <!-- Biblioteca do Supabase (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-  <!-- jsPDF para recibos -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Leaflet (mapa da Vitrine). Se não carregar, a Vitrine continua
-       funcionando; só o mapa deixa de aparecer. -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" onerror="console.warn('Leaflet indisponível: o mapa da Vitrine não será exibido.')"></script>
+  <!-- jsPDF (356 KB) e Leaflet (144 KB) NÃO entram aqui de propósito.
+       Serviam a dois usos pontuais — gerar recibo e abrir mapa — e pesavam
+       meio megabyte em toda visita, incluindo a tela de login e a Vitrine
+       pública, que nunca usam nenhuma das duas. Agora são buscadas na hora
+       do uso por garantirJsPDF() e garantirLeaflet(), em utils.js. -->
 
   <!-- Módulos do app (a ordem importa) -->
   <script src="config.js"></script>

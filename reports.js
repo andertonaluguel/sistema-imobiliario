@@ -10,10 +10,11 @@
    O documento diz de onde vem cada número e o que ele NÃO é: são valores
    registrados no aplicativo, não extrato bancário. Prometer conciliação
    num papel que a pessoa guarda seria criar uma discussão para o futuro. */
-function generateOwnerStatementPDF(ownerId,mesInicio,mesFim){
+async function generateOwnerStatementPDF(ownerId,mesInicio,mesFim){
   if(typeof computeOwnerStatement!=='function'){return;}
   const ext=computeOwnerStatement(ownerId,mesInicio,mesFim);
   if(!ext.owner||!ext.owner.nome){showToast('Proprietário não encontrado.','error');return;}
+  await garantirJsPDF();
   if(!window.jspdf||!window.jspdf.jsPDF){
     showToast('Gerador de PDF indisponível agora. Verifique sua conexão e tente novamente.','error');return;
   }
@@ -107,7 +108,7 @@ function margemDireita(doc){
   return doc.internal.pageSize.getWidth()-20;
 }
 
-function generateReceiptPDF(houseId,mes,contractId,receiptId){
+async function generateReceiptPDF(houseId,mes,contractId,receiptId){
   const h = state.houses.find(function(x){ return x.id===houseId; });
   const contract=contractForMonth(h,mes,contractId);
   const charge=chargeForMonth(h,mes,'aluguel',contractId);
@@ -133,6 +134,7 @@ function generateReceiptPDF(houseId,mes,contractId,receiptId){
     ?receipts.find(function(item){return item.id===receiptId;})
     :(receipts[0]||legacy);
   if(!receipt){showToast('Não há recebimento para gerar o recibo.','error');return;}
+  await garantirJsPDF();
   if(!window.jspdf || !window.jspdf.jsPDF){ showToast('Gerador de PDF indisponível agora. Verifique sua conexão e tente novamente.', 'error'); return; }
   try{
     const jsPDF = window.jspdf.jsPDF;

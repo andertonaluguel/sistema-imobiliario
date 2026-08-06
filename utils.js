@@ -410,6 +410,45 @@ function esc(s){
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+/* ---------- bibliotecas externas sob demanda ----------------------------
+   jsPDF (356 KB) e Leaflet (144 KB) serviam a dois usos pontuais — gerar
+   recibo e abrir mapa — mas vinham no index.html e pesavam em TODA visita,
+   inclusive na tela de login e na Vitrine pública, que nunca usam nenhuma
+   das duas. Meio megabyte por visita para código que quase ninguém executa.
+
+   Aqui elas passam a ser buscadas na hora do uso. Quem chama continua com
+   a mesma guarda de indisponibilidade que já existia, então uma falha de
+   rede cai exatamente no comportamento de antes: a mensagem de que o
+   recurso está indisponível, sem quebrar a tela. */
+const _recursosExternos={};
+function carregarRecursoExterno(url,tipo){
+  if(_recursosExternos[url]) return _recursosExternos[url];
+  _recursosExternos[url]=new Promise(function(resolve,reject){
+    const el=tipo==='css'?document.createElement('link'):document.createElement('script');
+    if(tipo==='css'){ el.rel='stylesheet'; el.href=url; } else { el.src=url; }
+    el.onload=function(){ resolve(true); };
+    el.onerror=function(){ delete _recursosExternos[url]; reject(new Error('Falha ao carregar '+url)); };
+    document.head.appendChild(el);
+  });
+  return _recursosExternos[url];
+}
+async function garantirJsPDF(){
+  if(window.jspdf&&window.jspdf.jsPDF) return true;
+  try{ await carregarRecursoExterno('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); }
+  catch(e){ console.warn('jsPDF indisponível:',e); }
+  return !!(window.jspdf&&window.jspdf.jsPDF);
+}
+async function garantirLeaflet(){
+  if(typeof L!=='undefined') return true;
+  try{
+    await Promise.all([
+      carregarRecursoExterno('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css','css'),
+      carregarRecursoExterno('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js')
+    ]);
+  }catch(e){ console.warn('Leaflet indisponível:',e); }
+  return typeof L!=='undefined';
+}
+
 /* O app monta os campos sem <form>, então `type="email"` não valida nada:
    a checagem nativa do navegador só roda no envio de um formulário, que
    aqui nunca acontece. Sem isto, "joao" entrava como e-mail e só aparecia

@@ -4124,7 +4124,21 @@ assert.match(headersSource,/img-src[^;]*https:\/\/tile\.openstreetmap\.org/);
 /* Leaflet vem do cdnjs, que o CSP já confiava para o jsPDF: nenhum
    domínio novo foi aberto para scripts. */
 assert.doesNotMatch(headersSource,/script-src[^;]*unpkg/);
-assert.match(indexSource,/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet/);
+const utilsCarregador = await readFile(join(root,'utils.js'),'utf8');
+assert.match(utilsCarregador,/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet/);
+
+/* Leaflet e jsPDF são carregados SOB DEMANDA, não no index.html.
+   Juntos passam de 500 KB e serviam a dois usos pontuais — mapa e recibo —
+   mas pesavam em toda visita, inclusive na tela de login e na Vitrine
+   pública. Se alguém devolver as tags ao index.html, meio megabyte volta
+   para cima de quem só quer ver um anúncio. */
+assert.doesNotMatch(indexSource,/<script[^>]*cdnjs\.cloudflare\.com\/ajax\/libs\/(leaflet|jspdf)/);
+assert.match(utilsCarregador,/function garantirLeaflet\(/);
+assert.match(utilsCarregador,/function garantirJsPDF\(/);
+/* Quem usa precisa esperar o carregamento, senão a guarda de
+   indisponibilidade dispara antes de a biblioteca chegar. */
+assert.match(await readFile(join(root,'reports.js'),'utf8'),/await garantirJsPDF\(\)/);
+assert.match(await readFile(join(root,'vitrine.js'),'utf8'),/await garantirLeaflet\(\)/);
 
 /* --- Métodos de dados --- */
 assert.match(supabaseSource,/async loadVitrine\(\)/);

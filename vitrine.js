@@ -4014,13 +4014,14 @@ function vitrineMapaPopup(i){
   const local=[i.bairro,i.cidade].filter(Boolean).join(' · ');
   return '<div class="vitrine-mapa-popup"><small>'+esc(local||'Localização sob consulta')+'</small><strong>'+esc(i.titulo)+'</strong><b>'+esc(vitrineMapaPrecoCurto(i))+(state.vitrinePubFinalidade==='vender'?'':' / mês')+'</b><button type="button" onclick="abrirVitrineDetalhe(\''+esc(i.id)+'\')">Ver imóvel</button></div>';
 }
-function desenharMapaResultados(){
+async function desenharMapaResultados(){
   const el=document.getElementById('vitrineMapaResultados');
   if(!el)return;
   const itens=vitrineImoveisFiltrados().filter(function(i){
     return Number.isFinite(Number(i.latitude))&&Number.isFinite(Number(i.longitude))&&Number(i.latitude)!==0&&Number(i.longitude)!==0;
   });
   if(!itens.length)return;
+  await garantirLeaflet();
   if(typeof L==='undefined'){
     el.innerHTML='<div class="vitrine-mapa-off">Mapa indisponível no momento.</div>';
     return;
@@ -4055,12 +4056,13 @@ function desenharMapaResultados(){
 
 /* Mapa da ficha. Se o anuncio estiver como aproximado, `i.latitude` e
    `i.longitude` ja chegam aproximados da funcao publica do banco. */
-function desenharMapaVitrine(id){
+async function desenharMapaVitrine(id){
   const el=document.getElementById('vitrineMapa');
   if(!el)return;
   const dados=state.vitrinePublic||{};
   const i=(dados.imoveis||[]).find(function(x){return x.id===id;});
   if(!i||!i.latitude||!i.longitude)return;
+  await garantirLeaflet();
   if(typeof L==='undefined'){
     el.innerHTML='<div class="vitrine-mapa-off">Mapa indisponível no momento.</div>';
     return;

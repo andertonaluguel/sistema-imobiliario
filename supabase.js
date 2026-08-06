@@ -24,6 +24,7 @@ function rowToVitrineAnunciante(r){
        espelho de um proprietário-cliente, que é o default assumido. */
     tipo:r.tipo||'proprietario',
     registro:r.registro||'',
+    fotoPath:r.foto_path||'',
     /* O visto é somente leitura aqui de propósito: quem acende é o
        administrador da plataforma, pela RPC. Ver o cabeçalho da
        migração. Vencido, não vale — a data manda. */
@@ -1753,6 +1754,33 @@ const db = {
     return {path:path,url:await signedStorageUrl(path)};
   },
 
+  /* Foto ou logo do responsável, no mesmo molde da logo da Vitrine:
+     sobe para o bucket privado e a linha guarda só o caminho. Sem RPC
+     porque a policy do dono já autoriza escrever no anunciante — ao
+     contrário do visto, que ele não pode acender sozinho. */
+  async saveVitrineResponsavelFoto(anuncianteId,file,oldPath){
+    const uid=await _userId();
+    const path=uid+'/vitrine-responsavel/'+anuncianteId+'-'+_uuid()+'.jpg';
+    const upload=await sb.storage.from(FILE_BUCKET).upload(path,file,
+      {contentType:'image/jpeg',upsert:false});
+    if(upload.error)throw upload.error;
+    const {error}=await sb.from('vitrine_anunciantes')
+      .update({foto_path:path,updated_at:new Date().toISOString()}).eq('id',anuncianteId);
+    if(error){
+      await sb.storage.from(FILE_BUCKET).remove([path]).catch(function(){});
+      if(missingOptionalRelation(error))throw new Error('A migração da foto do responsável ainda não foi aplicada no banco.');
+      throw error;
+    }
+    if(oldPath&&oldPath!==path)await sb.storage.from(FILE_BUCKET).remove([oldPath]).catch(function(){});
+    return path;
+  },
+  async removeVitrineResponsavelFoto(anuncianteId,oldPath){
+    const {error}=await sb.from('vitrine_anunciantes')
+      .update({foto_path:'',updated_at:new Date().toISOString()}).eq('id',anuncianteId);
+    if(error)throw error;
+    if(oldPath)await sb.storage.from(FILE_BUCKET).remove([oldPath]).catch(function(){});
+  },
+
   async removeVitrineLogo(oldPath){
     const saved=await sb.rpc('salvar_logo_vitrine',{p_logo_path:''});
     if(saved.error)throw saved.error;
@@ -1895,6 +1923,7 @@ const db = {
        Só entram os campos que ele de fato preenche. */
     if(item.tipo) payload.tipo=item.tipo;
     if(item.registro!=null) payload.registro=item.registro||'';
+    if(item.fotoPath!=null) payload.foto_path=item.fotoPath||'';
     if(!item.id) payload.user_id=await _userId();
     const query=item.id
       ? sb.from('vitrine_anunciantes').update(payload).eq('id',item.id).select().single()
@@ -2186,7 +2215,8 @@ const db = {
 
   /* Página pública: sem login. Só devolve anúncio no ar. */
   async loadVitrinePublica(slug){
-    let res=await sb.rpc('listar_vitrine_publica_v4',{p_slug:slug});
+    let res=await sb.rpc('listar_vitrine_publica_v5',{p_slug:slug});
+    if(res.error&&missingOptionalRpc(res.error)) res=await sb.rpc('listar_vitrine_publica_v4',{p_slug:slug});
     if(res.error&&missingOptionalRpc(res.error)) res=await sb.rpc('listar_vitrine_publica_v3',{p_slug:slug});
     if(res.error&&missingOptionalRpc(res.error)) res=await sb.rpc('listar_vitrine_publica_v2',{p_slug:slug});
     if(res.error&&missingOptionalRpc(res.error)) res=await sb.rpc('listar_vitrine_publica',{p_slug:slug});

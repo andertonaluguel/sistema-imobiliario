@@ -1216,6 +1216,26 @@ function openVitrineResponsavelModal(id){
       ['proprietario','corretor','imobiliaria'].map(function(t){
         return '<option value="'+t+'"'+((a.tipo||'proprietario')===t?' selected':'')+'>'+VITRINE_TIPO_ROTULO[t]+'</option>';
       }).join('')+'</select></label>'+
+    /* A foto vai no topo porque é o que a pessoa reconhece antes do
+       nome — e porque, ao contrário dos outros campos, ela grava na
+       hora: sobe o arquivo e já está valendo, sem passar pelo Salvar. */
+    '<div class="resp-foto">'+
+      (a.fotoPath
+        ? '<img src="'+esc(location.origin+'/og-foto?p='+encodeURIComponent(a.fotoPath))+'" alt="">'
+        : '<span>'+esc(vitrineIniciais(a.nome))+'</span>')+
+      '<div><strong>Foto ou logo</strong>'+
+        '<small>Aparece no anúncio, no lugar das iniciais. Quadrada fica melhor.</small>'+
+        '<div class="resp-foto-acoes">'+
+          '<input type="file" id="resp_foto_arq" accept="image/*" hidden '+
+            'onchange="enviarFotoResponsavel(\''+esc(a.id)+'\',this)">'+
+          '<button type="button" class="btn btn-ghost btn-sm" '+
+            'onclick="document.getElementById(\'resp_foto_arq\').click()">'+
+            (a.fotoPath?'Trocar':'Enviar')+'</button>'+
+          (a.fotoPath?'<button type="button" class="btn btn-ghost btn-sm" '+
+            'onclick="removerFotoResponsavel(\''+esc(a.id)+'\')">Remover</button>':'')+
+        '</div>'+
+      '</div>'+
+    '</div>'+
     '<label class="field"><span>CRECI ou CNPJ</span>'+
       '<input id="resp_registro" value="'+esc(a.registro||'')+'" placeholder="CRECI 12345-F ou 00.000.000/0001-00">'+
       '<small>Aparece abaixo do nome. É o que a plataforma confere antes de liberar o visto.</small></label>'+
@@ -1245,6 +1265,37 @@ function openVitrineResponsavelModal(id){
       '<button class="btn btn-ghost" onclick="closeModal()">Fechar</button>'+
       '<button class="btn btn-primary" onclick="salvarVitrineResponsavel(\''+esc(a.id)+'\')">Salvar</button>'+
     '</div></div>');
+}
+async function enviarFotoResponsavel(id,input){
+  const file=input&&input.files&&input.files[0];
+  if(!file)return;
+  const a=vitrineAnunciantePorId(id);
+  if(!a)return;
+  /* 4 MB é folgado para uma logo e barra o retrato de 12 MP que o
+     celular manda sem pensar. */
+  if(file.size>4*1024*1024){showToast('Imagem muito grande. Use até 4 MB.','error');input.value='';return;}
+  try{
+    showToast('Enviando…');
+    const caminho=await db.saveVitrineResponsavelFoto(id,file,a.fotoPath||'');
+    state.vitrine.anunciantes=(state.vitrine.anunciantes||[]).map(function(x){
+      return String(x.id)===String(id)?Object.assign({},x,{fotoPath:caminho}):x;
+    });
+    showToast('Foto atualizada.');
+    openVitrineResponsavelModal(id);
+  }catch(e){ console.error(e);showToast((e&&e.message)||'Não foi possível enviar a foto.','error'); }
+  finally{ if(input)input.value=''; }
+}
+async function removerFotoResponsavel(id){
+  const a=vitrineAnunciantePorId(id);
+  if(!a)return;
+  try{
+    await db.removeVitrineResponsavelFoto(id,a.fotoPath||'');
+    state.vitrine.anunciantes=(state.vitrine.anunciantes||[]).map(function(x){
+      return String(x.id)===String(id)?Object.assign({},x,{fotoPath:''}):x;
+    });
+    showToast('Foto removida.');
+    openVitrineResponsavelModal(id);
+  }catch(e){ console.error(e);showToast((e&&e.message)||'Não foi possível remover.','error'); }
 }
 async function salvarVitrineResponsavel(id){
   const a=vitrineAnunciantePorId(id);
@@ -3471,7 +3522,15 @@ function renderVitrineResponsavel(perfil,i){
     '<h2>Responsável pelo imóvel</h2>'+
     (tipo?'<span class="vitrine-resp-tipo"><i aria-hidden="true">'+tipo.icone+'</i>'+tipo.rotulo+'</span>':'')+
     '<div class="vitrine-resp-id">'+
-      '<span class="vitrine-resp-avatar" aria-hidden="true">'+esc(vitrineIniciais(nome))+'</span>'+
+      /* Quem enviou marca aparece com ela; o resto segue com as
+         iniciais. Se a imagem falhar, volta para as iniciais em vez de
+         deixar um quadrado quebrado no anúncio. */
+      ((r&&r.fotoPath)
+        ? '<img class="vitrine-resp-avatar is-foto" alt="" src="'+
+          esc(location.origin+'/og-foto?p='+encodeURIComponent(r.fotoPath))+'" '+
+          'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),'+
+          '{className:\'vitrine-resp-avatar\',textContent:'+JSON.stringify(vitrineIniciais(nome))+'}))">'
+        : '<span class="vitrine-resp-avatar" aria-hidden="true">'+esc(vitrineIniciais(nome))+'</span>')+
       '<div><strong>'+esc(nome)+
         /* O visto vem do banco já conferido: a v4 só manda `true` se
            estiver pago, validado e dentro da validade. */

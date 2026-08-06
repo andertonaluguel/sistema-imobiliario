@@ -159,7 +159,8 @@ begin
       (39,'migracao-crm-qualidade.sql',             'tabela','crm_eventos',null),
       (40,'migracao-vitrine-responsavel.sql',       'tabela','vitrine_avaliacoes',null),
       (41,'migracao-vitrine-parceiros.sql',         'tabela','vitrine_parceiros',null),
-      (42,'migracao-vitrine-chacara.sql',           'corpo_restricao','vitrine_imovel_tipo_check','chacara')
+      (42,'migracao-vitrine-chacara.sql',           'corpo_restricao','vitrine_imovel_tipo_check','chacara'),
+      (43,'migracao-vitrine-foto-responsavel.sql',  'coluna','vitrine_anunciantes','foto_path')
     ) as t(ord, nome, tipo, alvo, alvo2)
     order by ord
   loop

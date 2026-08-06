@@ -1572,3 +1572,25 @@
   .vitrine-filtro-grupo summary,.vitrine-filtro-opcao,.vitrine-contagem-opcoes button,.vitrine-modos button,
   .vitrine-salvar-busca,.vitrine-ordem select,.vitrine-mapa-card{min-height:var(--toque);}
 }
+
+/* ---------- foto do responsável --------------------------------------
+   No modal: prévia à esquerda, ação à direita. A foto grava na hora —
+   não espera o Salvar — porque upload que depende de outro botão é
+   upload que a pessoa acha que falhou. */
+.resp-foto{
+  display:flex;align-items:center;gap:var(--s-3);
+  margin:var(--s-2) 0 var(--s-4);padding:var(--s-3);
+  border:1px solid var(--line);border-radius:var(--r-lg);background:var(--paper);
+}
+.resp-foto>img,.resp-foto>span{
+  display:grid;place-items:center;flex:0 0 auto;width:56px;height:56px;
+  border-radius:var(--r-full);object-fit:cover;
+  background:var(--cover);color:var(--cover-text);
+  font:700 var(--t-lg) var(--font-display);
+}
+.resp-foto>div{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.resp-foto strong{font:700 var(--t-sm) var(--font-display);}
+.resp-foto small{font-size:var(--t-xs);color:var(--ink-soft);line-height:1.45;}
+.resp-foto-acoes{display:flex;gap:var(--s-2);margin-top:var(--s-2);flex-wrap:wrap;}
+/* No anúncio público a foto ocupa o mesmo círculo das iniciais. */
+.vitrine-resp-avatar.is-foto{object-fit:cover;}

@@ -252,6 +252,11 @@
   display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:var(--r-circle);
   color:var(--rent-night);background:var(--rent-lime);font:700 var(--t-sm) var(--font-display);
 }
+/* Quando a conta enviou logo, o avatar mostra a marca em vez das
+   iniciais. `cover` e não `contain` porque o recorte circular já é o
+   enquadramento — deixar a logo boiando dentro do círculo com barras
+   brancas fica pior que cortar as beiradas. */
+.app-sidebar-avatar.is-marca{object-fit:cover;background:var(--rent-night-2);padding:0;}
 .app-sidebar-profile-copy{display:flex;min-width:0;flex-direction:column;gap:1px;}
 .app-sidebar-profile-copy strong{font-size:var(--t-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .app-sidebar-profile-copy small{color:var(--cover-muted);font-size:var(--t-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}

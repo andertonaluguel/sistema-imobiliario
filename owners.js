@@ -68,9 +68,17 @@ function renderOwnerCard(o){
         : '')+
     '</div>'+
     (casas.length
-      ? '<div class="owner-house-list">'+casas.map(function(h){
-          return '<button onclick="openHouse(\''+h.id+'\')">'+esc(h.nome)+
-            ' <b>'+fmtMoney(h.aluguelValor)+'</b></button>';
+      /* Ordenado por nome e com o valor alinhado à direita: dez imóveis
+         numa nuvem de etiquetas soltas não se compara, só se lê um a um.
+         Em colunas, o olho desce pela coluna do dinheiro. */
+      ? '<div class="owner-house-list">'+casas.slice().sort(function(a,b){
+          return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR');
+        }).map(function(h){
+          const vago=h.status!=='alugada';
+          return '<button class="'+(vago?'is-vago':'')+'" onclick="openHouse(\''+h.id+'\')" '+
+            'title="'+esc(h.nome)+(vago?' · sem inquilino':'')+'">'+
+            '<span>'+esc(h.nome)+'</span>'+
+            '<b>'+fmtMoney(h.aluguelValor)+'</b></button>';
         }).join('')+'</div>'
       : '<p class="muted">Nenhum imóvel vinculado. Abra a casa e escolha o proprietário na ficha.</p>')+
     (o.observacoes?'<p class="owner-notes">'+esc(o.observacoes)+'</p>':'')+
@@ -81,6 +89,32 @@ function renderOwnerCard(o){
   '</article>';
 }
 
+/* A carteira inteira em quatro números, antes dos cartões.
+   Com um proprietário só, a tela ficava com um cartão à esquerda e o
+   resto vazio; e mesmo com vinte, a soma da carteira não existia em
+   lugar nenhum — era preciso abrir um a um e fazer conta de cabeça. */
+function renderCarteiraResumo(lista){
+  if(!lista.length) return '';
+  let imoveis=0,alugados=0,bruto=0,taxa=0;
+  lista.forEach(function(o){
+    const casas=housesOfOwnerClient(o.id);
+    const ocupadas=casas.filter(function(h){return h.status==='alugada';});
+    const b=ocupadas.reduce(function(s,h){return s+(Number(h.aluguelValor)||0);},0);
+    imoveis+=casas.length; alugados+=ocupadas.length; bruto+=b;
+    taxa+=b*(Number(o.taxaAdministracao)||0)/100;
+  });
+  const item=function(rot,val,destaque){
+    return '<div'+(destaque?' class="destaque"':'')+'><span>'+rot+'</span><strong>'+val+'</strong></div>';
+  };
+  return '<div class="carteira-resumo">'+
+    item('Proprietários',String(lista.length))+
+    item('Imóveis',imoveis+(alugados<imoveis?' <i>'+alugados+' alugados</i>':''))+
+    item('Aluguel no mês',fmtMoney(bruto))+
+    /* Só aparece quando alguém cobra taxa: numa carteira própria o
+       número seria sempre zero e viraria ruído. */
+    (taxa>0?item('Sua taxa',fmtMoney(taxa),true):'')+
+  '</div>';
+}
 function renderProprietariosView(){
   const lista=ownersFiltered();
   const semDono=housesWithoutOwnerClient();
@@ -104,6 +138,7 @@ function renderProprietariosView(){
       ? '<div class="notice-box">'+semDono.length+' imóvel(is) ainda sem proprietário definido. '+
         'Enquanto estiverem assim, não entram em nenhum extrato.</div>'
       : '')+
+    renderCarteiraResumo(lista)+
     (lista.length
       ? '<div class="owner-grid">'+lista.map(renderOwnerCard).join('')+'</div>'
       : emptyState(

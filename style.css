@@ -1208,7 +1208,22 @@ body{min-width:320px;background:
    Os donos dos imóveis administrados. O cartão responde, sem clique, a
    pergunta que eles fazem: quantas casas, quantas alugadas, quanto entrou
    e quanto sobra depois da taxa. */
-.owner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+/* Cartões mais largos: com 320px as etiquetas de imóvel empilhavam uma
+   por linha e um proprietário com dez casas virava uma coluna
+   quilométrica. */
+.owner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:14px}
+
+/* Resumo da carteira, antes dos cartões. */
+.carteira-resumo{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s-3);
+  margin-bottom:14px;padding:var(--s-4);
+  border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card);box-shadow:var(--shadow);
+}
+.carteira-resumo>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.carteira-resumo span{font:600 var(--t-xs) var(--font-mono);letter-spacing:.5px;color:var(--ink-soft);text-transform:uppercase}
+.carteira-resumo strong{font:700 23px var(--font-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.carteira-resumo i{font-style:normal;font-size:var(--t-xs);font-weight:600;color:var(--ink-soft)}
+.carteira-resumo .destaque strong{color:var(--brass-deep)}
 .owner-card{display:flex;flex-direction:column;gap:13px;padding:18px;border:1px solid var(--line);border-top:4px solid var(--cover);border-radius:var(--r-lg);background:var(--card);box-shadow:var(--shadow)}
 .owner-card-head{display:flex;justify-content:space-between;gap:var(--s-3);align-items:flex-start}
 .owner-card-head h3{margin:0 0 2px;font:700 18px var(--font-display)}
@@ -1218,10 +1233,20 @@ body{min-width:320px;background:
 .owner-numbers div{display:flex;flex-direction:column;gap:2px}
 .owner-numbers span{font:600 var(--t-xs) var(--font-mono);letter-spacing:.5px;color:var(--ink-soft);text-transform:uppercase}
 .owner-numbers strong{font:700 var(--t-lg) var(--font-display);color:var(--cover);font-variant-numeric:tabular-nums}
-.owner-house-list{display:flex;flex-wrap:wrap;gap:6px}
-.owner-house-list button{padding:6px 11px;border:1px solid var(--line);border-radius:var(--r-full);background:var(--paper);font-size:var(--t-xs);color:var(--ink)}
+/* Imóveis em colunas, com o valor alinhado à direita: o olho desce
+   pela coluna do dinheiro em vez de ler etiqueta por etiqueta. */
+.owner-house-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:6px}
+.owner-house-list button{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);
+  min-width:0;padding:8px 11px;border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--paper);font-size:var(--t-xs);color:var(--ink);text-align:left;cursor:pointer;
+}
+.owner-house-list button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .owner-house-list button:hover{border-color:var(--brass);color:var(--brass-deep)}
-.owner-house-list b{font-family:var(--font-mono);font-weight:600}
+/* Imóvel vago não gera aluguel: o valor fica apagado para não somar
+   de mentira na leitura da coluna. */
+.owner-house-list button.is-vago b{color:var(--ink-faint)}
+.owner-house-list b{font-family:var(--font-mono);font-weight:600;white-space:nowrap}
 .owner-notes{margin:0;font-size:var(--t-xs);color:var(--ink-soft);line-height:1.5}
 .owner-actions{display:flex;gap:var(--s-2);flex-wrap:wrap}
 @media(max-width:640px){.owner-grid{grid-template-columns:1fr}.owner-card{padding:16px}}

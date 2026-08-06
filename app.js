@@ -496,8 +496,20 @@ function renderSidebarProfile(){
   const email=state.session&&state.session.user?state.session.user.email:'';
   const name=(state.staffProfile&&state.staffProfile.nome)||(state.ownerProfile&&state.ownerProfile.nome)||
     (state.config&&state.config.locadorNome)||email||'Conta';
+  /* A marca que a conta já enviou para a Vitrine vira o avatar aqui.
+     Quem subiu a logo fez isso para ser reconhecido — mostrar as
+     iniciais ao lado do próprio nome, tendo a marca guardada, é
+     desperdiçar o que ele já deu. Sem logo, seguem as iniciais. */
+  const caminho=(state.ownerProfile&&state.ownerProfile.logo_path)||'';
+  /* Mesma rota que a vitrine pública usa para servir a logo: o arquivo
+     mora num bucket privado e sai pela função og-foto. */
+  const marca=caminho?location.origin+'/og-foto?p='+encodeURIComponent(caminho):'';
   return '<button class="app-sidebar-profile" onclick="openMenuModal()" aria-label="Perfil e opções da conta" title="Perfil e opções da conta">'+
-    '<span class="app-sidebar-avatar" aria-hidden="true">'+esc(profileInitials(name))+'</span>'+
+    (marca
+      ? '<img class="app-sidebar-avatar is-marca" src="'+esc(marca)+'" alt="" '+
+        'onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),'+
+        '{className:\'app-sidebar-avatar\',textContent:'+JSON.stringify(profileInitials(name))+'}))">'
+      : '<span class="app-sidebar-avatar" aria-hidden="true">'+esc(profileInitials(name))+'</span>')+
     '<span class="app-sidebar-profile-copy"><strong>'+esc(name)+'</strong><small>'+esc(currentAccountTypeLabel())+'</small></span>'+
   '</button>';
 }

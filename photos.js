@@ -5,6 +5,39 @@
    photoCache[houseId] = [{id, dados}] | undefined (ainda não carregado)
    ============================================================ */
 
+/* Logo é outro problema que foto de imóvel.
+   `compressImage` sempre devolve JPEG, e JPEG não tem canal alfa: uma
+   logo PNG com fundo transparente sairia dentro de um retângulo preto
+   — no cabeçalho verde escuro do site, inaceitável.
+
+   Aqui: SVG passa intacto (já é pequeno e escala sem perder nada, e
+   rasterizar destruiria justamente o que ele tem de melhor); o resto
+   vira PNG, que preserva a transparência. */
+function prepararLogo(file, maxWidth){
+  if(/svg/i.test(file.type||'')) return Promise.resolve(file);
+  return new Promise(function(resolve, reject){
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const img=new Image();
+      img.onload=function(){
+        let w=img.width, h=img.height;
+        if(w>maxWidth){ h=Math.round(h*(maxWidth/w)); w=maxWidth; }
+        const canvas=document.createElement('canvas');
+        canvas.width=w; canvas.height=h;
+        /* Sem preencher o fundo: o canvas nasce transparente e o PNG
+           guarda isso. Era o passo que o JPEG jogava fora. */
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        canvas.toBlob(function(blob){
+          if(blob) resolve(blob); else reject(new Error('Não foi possível preparar a logo.'));
+        },'image/png');
+      };
+      img.onerror=function(){reject(new Error('Não consegui ler essa imagem.'));};
+      img.src=e.target.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
 function compressImage(file, maxWidth, quality){
   return new Promise(function(resolve, reject){
     const reader = new FileReader();

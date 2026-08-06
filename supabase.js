@@ -1740,9 +1740,14 @@ const db = {
 
   async saveVitrineLogoFile(file,oldPath){
     const uid=await _userId();
-    const path=uid+'/vitrine-marca/logo-'+_uuid()+'.jpg';
+    /* A extensão e o content-type saem do arquivo, não de um chute.
+       Antes tudo virava .jpg com contentType de JPEG — o que fazia o
+       navegador tratar um PNG transparente como JPEG e perder o alfa. */
+    const tipo=(file&&file.type)||'image/png';
+    const ext=/svg/i.test(tipo)?'svg':/png/i.test(tipo)?'png':/webp/i.test(tipo)?'webp':'jpg';
+    const path=uid+'/vitrine-marca/logo-'+_uuid()+'.'+ext;
     const upload=await sb.storage.from(FILE_BUCKET).upload(path,file,
-      {contentType:'image/jpeg',upsert:false});
+      {contentType:tipo,upsert:false});
     if(upload.error)throw upload.error;
     const saved=await sb.rpc('salvar_logo_vitrine',{p_logo_path:path});
     if(saved.error){

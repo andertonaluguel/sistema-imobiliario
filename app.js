@@ -1085,10 +1085,11 @@ async function saveConfig(){
 async function handleVitrineLogoFile(file){
   if(!state.isPrimaryOwner){showToast('Somente o proprietário principal pode alterar a marca.','error');return;}
   try{
-    if(!/^image\/(jpeg|png|webp)$/i.test(file.type||'')||file.size>8*1024*1024){
-      throw new Error('Use uma imagem JPG, PNG ou WebP de até 8 MB.');
+    if(!/^image\/(jpeg|png|webp|svg\+xml)$/i.test(file.type||'')||file.size>8*1024*1024){
+      throw new Error('Use uma imagem SVG, PNG, JPG ou WebP de até 8 MB.');
     }
-    const blob=await compressImage(file,640,0.86);
+    /* SVG e PNG mantêm o fundo transparente; ver prepararLogo. */
+    const blob=await prepararLogo(file,640);
     const result=await db.saveVitrineLogoFile(blob,(state.ownerProfile&&state.ownerProfile.logo_path)||'');
     state.ownerProfile.logo_path=result.path;
     state.ownerProfile.logo_url=result.url;

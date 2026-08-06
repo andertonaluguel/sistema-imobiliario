@@ -39,11 +39,19 @@ async function servirArquivo(endereco){
   const arquivo=await fetch(cred.url+'/storage/v1/object/'+BUCKET+'/'+caminho.split('/').map(encodeURIComponent).join('/'),
     {headers:{apikey:cred.key,Authorization:'Bearer '+cred.key}});
   if(!arquivo.ok)return new Response('nao encontrado',{status:404});
-  return new Response(arquivo.body,{status:200,headers:{
-    'content-type':arquivo.headers.get('content-type')||'image/jpeg',
+  const tipo=arquivo.headers.get('content-type')||'image/jpeg';
+  const cabecalhos={
+    'content-type':tipo,
     'cache-control':'public, max-age=86400, stale-while-revalidate=604800',
     'x-content-type-options':'nosniff'
-  }});
+  };
+  /* SVG servido do proprio dominio executa script se alguem abrir a URL
+     direto — dentro de <img> nao executa, mas a URL e publica. O
+     sandbox tira essa capacidade sem impedir a imagem de aparecer.
+     Hoje so o dono sobe a propria logo, entao o risco e dele mesmo;
+     ainda assim custa uma linha fechar a porta. */
+  if(/svg/i.test(tipo)) cabecalhos['content-security-policy']='sandbox; default-src \'none\'';
+  return new Response(arquivo.body,{status:200,headers:cabecalhos});
 }
 
 function lerRota(endereco){

@@ -410,6 +410,17 @@ function esc(s){
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+/* O app monta os campos sem <form>, então `type="email"` não valida nada:
+   a checagem nativa do navegador só roda no envio de um formulário, que
+   aqui nunca acontece. Sem isto, "joao" entrava como e-mail e só aparecia
+   o problema muito depois, na hora de liberar o Portal do inquilino.
+   Vazio continua válido — o campo é opcional em quase todo lugar. */
+function emailValido(valor){
+  const v=String(valor==null?'':valor).trim();
+  if(!v) return true;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
 /* ---------- status de pagamento ---------- */
 // Depende do formato em memória do imóvel (h.pagamentos[], h.status, h.diaVencimento)
 function paymentStatus(house, mesStr, contractId){

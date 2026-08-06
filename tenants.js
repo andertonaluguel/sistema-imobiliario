@@ -201,6 +201,10 @@ async function saveNewTenant(){
   if(!requirePropertyPermission())return;
   const nome = document.getElementById('f_nome').value.trim();
   if(!nome){ showToast('Informe o nome do inquilino.', 'error'); const el=document.getElementById('f_nome'); if(el) el.focus(); return; }
+  const emailEl=document.getElementById('f_email');
+  if(!emailValido(emailEl?emailEl.value:'')){
+    showToast('E-mail inválido. Confira ou deixe em branco.', 'error'); if(emailEl) emailEl.focus(); return;
+  }
   const rgEl=document.getElementById('f_rg');
   try{
     const novo = await db.insertTenant({
@@ -309,6 +313,10 @@ async function saveTenantEdit(tenantId){
   if(!requirePropertyPermission())return;
   const original = state.tenants.find(function(x){ return x.id===tenantId; });
   if(!original)return;
+  const emailEl=document.getElementById('f_email');
+  if(!emailValido(emailEl?emailEl.value:'')){
+    showToast('E-mail inválido. Confira ou deixe em branco.', 'error'); if(emailEl) emailEl.focus(); return;
+  }
   const next=Object.assign({},original,{
     nome:document.getElementById('f_nome').value.trim()||original.nome,
     telefone:document.getElementById('f_tel').value.trim(),
@@ -560,6 +568,10 @@ async function saveAssignTenant(houseId){
     if(!tenantId){
       const nome = document.getElementById('f_nome').value.trim();
       if(!nome){ showToast('Informe o nome do inquilino ou selecione um existente.', 'error'); return; }
+      const emailEl=document.getElementById('f_email');
+      if(!emailValido(emailEl?emailEl.value:'')){
+        showToast('E-mail inválido. Confira ou deixe em branco.', 'error'); if(emailEl) emailEl.focus(); return;
+      }
       const novo = await db.insertTenant({
         nome:nome,
         telefone: document.getElementById('f_tel').value.trim(),

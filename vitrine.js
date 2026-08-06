@@ -2933,13 +2933,15 @@ function renderVitrineFiltros(dados){
       '</div></details>'+ 
       '<details class="vitrine-filtro-grupo"><summary><span>⌂</span>Características</summary><div class="vitrine-filtro-conteudo">'+
         (f.tipo==='terreno'?'':vitrineOpcoesContagem('quartos','Quartos')+vitrineOpcoesContagem('banheiros','Banheiros')+vitrineOpcoesContagem('suites','Suítes')+vitrineOpcoesContagem('vagas','Vagas'))+
+        /* Garagem, mobiliado, quintal e companhia moravam num grupo
+           chamado "Filtros especiais", que não dizia nada: são
+           características do imóvel como quarto e banheiro, e estavam
+           a dois cliques de distância deles sem motivo. */
+        (especiais.length?vitrineOpcoesExtras(especiais):'')+
         '<div class="vitrine-filtro-par">'+vitrineCampoValor('areaMin','Área mínima (m²)','50')+vitrineCampoValor('areaMax','Área máxima (m²)','300')+'</div>'+ 
         (f.tipo==='terreno'?'':'<label class="vitrine-filtro-campo"><span>Conservação</span><select class="vitrine-sel" onchange="setVitrineFiltro(\'conservacao\',this.value)">'+VITRINE_CONSERVACOES.map(function(c){return '<option value="'+c[0]+'"'+(f.conservacao===c[0]?' selected':'')+'>'+(c[0]?c[1]:'Qualquer')+'</option>';}).join('')+'</select></label>')+
       '</div></details>'+ 
       (comodidades.length?'<details class="vitrine-filtro-grupo"><summary><span>✦</span>Comodidades <i>'+comodidades.length+'</i></summary><div class="vitrine-filtro-conteudo">'+vitrineOpcoesExtras(comodidades)+'</div></details>':'')+
-      '<details class="vitrine-filtro-grupo"><summary><span>≡</span>Filtros especiais</summary><div class="vitrine-filtro-conteudo">'+vitrineOpcoesExtras(especiais)+'</div></details>'+ 
-      '<details class="vitrine-filtro-grupo"><summary><span>⇅</span>Avançado</summary><div class="vitrine-filtro-conteudo"><label class="vitrine-filtro-campo"><span>Ordenar resultados</span><select class="vitrine-sel" onchange="setVitrineFiltro(\'ordem\',this.value)">'+
-        [['destaque','Relevância'],['novos','Mais recentes'],['menor','Menor preço'],['maior','Maior preço'],['area','Maior área']].map(function(o){return '<option value="'+o[0]+'"'+(f.ordem===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label></div></details>'+ 
       '</div><div class="vitrine-filtros-desktop-foot"><button type="button" onclick="document.getElementById(\'vitrineResultadosConteudo\').scrollIntoView({behavior:\'smooth\',block:\'start\'})"><span aria-hidden="true">⌕</span> Ver '+resultados+' imóve'+(resultados===1?'l':'is')+'</button></div>'+ 
       '<div class="vitrine-filtros-mobile-foot"><button type="button" class="btn btn-ghost" onclick="limparVitrineFiltros()">Limpar</button><button type="button" class="btn btn-primary" onclick="toggleVitrineFiltrosMobile(false)">Ver '+resultados+' imóve'+(resultados===1?'l':'is')+'</button></div>'+ 
     '</div></aside>';

@@ -992,44 +992,6 @@
    tela sem resultado, mas a pessoa continua sabendo que ela existe. */
 .vitrine-categorias button[disabled]{opacity:.42;cursor:not-allowed;}
 
-/* ---------- trocar de cidade sem sair da tela ------------------------
-   <details> em vez de biblioteca: fecha no Escape e no clique fora por
-   conta do navegador, e funciona no teclado sem código meu. */
-.vitrine-troca-cidade{position:relative;}
-.vitrine-troca-cidade summary{
-  display:inline-flex;align-items:center;gap:var(--s-2);
-  min-height:var(--toque);padding:8px var(--s-3);
-  border:1px solid var(--line);border-radius:var(--r-full);
-  background:var(--card);color:var(--ink);font-size:var(--t-sm);
-  cursor:pointer;list-style:none;
-}
-.vitrine-troca-cidade summary::-webkit-details-marker{display:none;}
-.vitrine-troca-cidade summary b{font:600 var(--t-sm) var(--font-body);}
-.vitrine-troca-cidade summary i{font-style:normal;color:var(--ink-soft);transition:transform .18s var(--ease);}
-.vitrine-troca-cidade[open] summary i{transform:rotate(180deg);}
-.vitrine-troca-cidade summary:hover{border-color:var(--cover);}
-.vtc-lista{
-  position:absolute;z-index:70;top:calc(100% + 6px);left:0;min-width:260px;max-height:52vh;overflow-y:auto;
-  display:flex;flex-direction:column;padding:var(--s-1);
-  border:1px solid var(--line);border-radius:var(--r-lg);
-  background:var(--card);box-shadow:var(--shadow-hover);
-}
-.vtc-lista button{
-  display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);
-  min-height:var(--toque);padding:9px var(--s-3);
-  border:0;border-radius:var(--r-md);background:none;color:var(--ink);
-  font-size:var(--t-sm);text-align:left;cursor:pointer;
-}
-.vtc-lista button:hover{background:var(--paper);}
-.vtc-lista button.on{background:var(--cover);color:var(--cover-text);font-weight:700;}
-.vtc-lista button small{color:var(--ink-soft);font-size:var(--t-xs);}
-.vtc-lista button.on small{color:var(--cover-muted);}
-.vtc-lista button i{
-  font-style:normal;font-size:var(--t-xs);font-weight:700;
-  padding:1px 7px;border-radius:var(--r-full);background:var(--paper);color:var(--ink-soft);
-}
-.vtc-lista button.on i{background:color-mix(in srgb,var(--cover-text) 20%,transparent);color:var(--cover-text);}
-
 .vitrine-finalidade{display:flex;gap:6px;padding:4px;border-radius:var(--r-full);background:var(--slate-soft);}
 .vitrine-finalidade button{
   display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:8px 18px;
@@ -1241,7 +1203,10 @@
 .vitrine-cidades-page{max-width:1440px;margin:0 auto;padding:var(--s-5) var(--s-5) 80px;}
 .vitrine-cidades-hero{
   position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);
-  min-height:520px;overflow:hidden;border:1px solid var(--line);border-radius:var(--r-xl);
+  /* Era 520px de altura só para caber uma foto decorativa. Sem ela, o
+     herói ocupa o que o texto precisa e a escolha de cidade — que é o
+     que interessa — sobe para dentro da primeira tela. */
+  min-height:0;overflow:hidden;border:1px solid var(--line);border-radius:var(--r-xl);
   background:var(--card);box-shadow:var(--shadow-hover);
 }
 .vitrine-cidades-hero::before{
@@ -1250,7 +1215,9 @@
 }
 .vitrine-cidades-hero-copy{
   display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
-  padding:clamp(var(--s-5),5vw,64px);color:var(--ink);
+  /* Menos respiro e titulo menor: o banner era metade da primeira tela
+     por causa do padding de 64px e de um titulo de 62px. */
+  padding:clamp(var(--s-4),3.5vw,44px);color:var(--ink);
 }
 .vitrine-cidades-hero-copy .eyebrow,.vitrine-cidades-intro .eyebrow,.vitrine-cidades-ajuda .eyebrow,
 .vitrine-resultados-topo .eyebrow,.vitrine-cidade-contexto .eyebrow{
@@ -1258,7 +1225,7 @@
   letter-spacing:1.4px;color:var(--brass-deep);
 }
 .vitrine-cidades-hero-copy h2{
-  max-width:720px;margin:0;font:700 clamp(34px,4.6vw,62px)/1.02 var(--font-display);
+  max-width:620px;margin:0;font:700 clamp(28px,3.4vw,46px)/1.06 var(--font-display);
   letter-spacing:-2px;text-wrap:balance;
 }
 .vitrine-cidades-hero-copy>p{
@@ -1269,9 +1236,56 @@
 .vitrine-cidades-confianca{display:flex;gap:var(--s-4);flex-wrap:wrap;margin-top:var(--s-5);color:var(--ink-soft);font-size:var(--t-xs);}
 .vitrine-cidades-confianca span{display:flex;align-items:center;gap:6px;}
 .vitrine-cidades-confianca span::before{content:'✓';display:grid;place-items:center;width:20px;height:20px;border-radius:var(--r-circle);background:var(--brass-soft);color:var(--brass-deep);font-weight:800;}
-.vitrine-cidades-hero-visual{position:relative;min-height:520px;background:var(--cover-light);overflow:hidden;}
-.vitrine-cidades-hero-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,color-mix(in srgb,var(--cover) 18%,transparent),transparent 45%);pointer-events:none;}
-.vitrine-cidades-hero-visual>img{width:100%;height:100%;object-fit:cover;display:block;}
+.vitrine-cidades-hero-visual{
+  position:relative;display:grid;place-items:center;padding:var(--s-5);
+  background:var(--cover-light);overflow:hidden;
+}
+/* ---------- abas do formulário de anúncio ----------------------------
+   São 40+ campos. Encurtar tiraria informação do anúncio — e é
+   justamente a ficha completa que responde a pergunta antes de a
+   pessoa ligar. Então o formulário não encolheu: ele virou gavetas. */
+.vif-abas{
+  display:flex;gap:4px;overflow-x:auto;
+  margin:0 0 var(--s-4);padding:4px;
+  border-radius:var(--r-md);background:var(--paper);
+  scrollbar-width:thin;
+}
+.vif-abas button{
+  flex:0 0 auto;min-height:38px;padding:0 var(--s-3);
+  border:0;border-radius:var(--r-sm);background:transparent;
+  color:var(--ink-soft);font:600 var(--t-sm) var(--font-body);
+  white-space:nowrap;cursor:pointer;
+}
+.vif-abas button:hover{color:var(--ink);}
+.vif-abas button.on{background:var(--cover);color:var(--cover-text);}
+/* A primeira seção de cada aba já é o título da aba: repetir o nome
+   logo abaixo do botão aceso é dizer duas vezes a mesma coisa. */
+.vif-aba>.form-section-title:first-child{margin-top:0;padding-top:0;border-top:0;}
+
+/* ---------- painel de busca da entrada -------------------------------
+   Substitui a foto grande. Três perguntas — cidade, alugar/comprar e
+   tipo — e a pessoa cai na lista já filtrada. */
+.vitrine-hero-busca{
+  display:flex;flex-direction:column;gap:var(--s-3);width:100%;max-width:380px;
+  padding:var(--s-5) var(--s-4);border-radius:var(--r-xl);
+  background:var(--card);box-shadow:var(--shadow-hover);
+}
+.vhb-linha{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-2);}
+.vhb-campo{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.vhb-campo>span{font:600 var(--t-xs) var(--font-mono);letter-spacing:.6px;color:var(--ink-soft);}
+.vhb-campo select{
+  min-height:var(--toque);padding:0 var(--s-3);
+  border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--paper);color:var(--ink);font:inherit;font-size:var(--t-sm);
+}
+.vhb-enviar{
+  min-height:48px;border:0;border-radius:var(--r-md);cursor:pointer;
+  background:var(--cover);color:var(--cover-text);
+  font:700 var(--t-md) var(--font-display);
+}
+.vhb-enviar:hover{filter:brightness(1.1);}
+.vhb-nota{margin:0;text-align:center;font-size:var(--t-xs);color:var(--ink-soft);}
+.vhb-nota strong{color:var(--ink);font-size:var(--t-sm);}
 .vitrine-cidades-hero-sem-foto{height:100%;display:grid;place-items:center;color:var(--accent-on-cover);}
 .vitrine-cidades-hero-sem-foto svg{width:96px;height:96px;}
 .vitrine-cidades-hero-dado{
@@ -1315,7 +1329,19 @@
 
 /* Cabeçalho da busca */
 .vitrine-cidade-barra{max-width:none;margin:0;padding:0;border-bottom:1px solid var(--line);background:var(--card);}
-.vitrine-public-resultados .vitrine-cidade-barra{width:calc(100% - 304px);margin-left:304px;}
+/* A barra de cidade tinha recuo de 304px para desviar da lateral que
+   era `position:fixed`. Com a lateral virando coluna do grid — que
+   começa ABAIXO desta barra — o recuo virou um retângulo vazio no
+   canto superior esquerdo. Barra volta a ocupar a largura toda. */
+.vitrine-public-resultados .vitrine-cidade-barra{width:auto;margin-left:0;}
+/* O título encosta na esquerda: com a lista suspensa fora, o espaço
+   sobre a coluna de filtros ficava vazio. */
+.vitrine-public-resultados .vitrine-cidade-barra-in{
+  /* Sem `margin:auto`: centralizado, o título ficava com a margem do
+     conteúdo e sobrava um vão sobre a coluna de filtros. Encostado à
+     esquerda, ele ocupa exatamente esse espaço. */
+  width:100%;margin:0;min-height:0;padding:var(--s-3) var(--s-5);
+}
 .vitrine-cidade-barra-in{
   width:min(1440px,100%);min-height:116px;margin:0 auto;padding:var(--s-4) var(--s-5);
   display:flex;align-items:center;justify-content:space-between;gap:var(--s-5);

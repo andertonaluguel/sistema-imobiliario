@@ -481,6 +481,10 @@ function vitrinePoiDeTexto(texto){
 
 function vitrineImovelFormHtml(item){
   const i=item||{};
+  /* O formulario e longo por natureza — sao 40+ campos. Em vez de
+     encurtar (o que tiraria informacao do anuncio), ele passa a viver
+     em abas: a pessoa preenche o basico e salva; o resto espera.
+     Os campos sao exatamente os mesmos, so mudam de gaveta. */
   const donos=(state.owners||[]).slice().sort(function(a,b){
     return a.nome.localeCompare(b.nome,'pt-BR');
   });
@@ -512,7 +516,13 @@ function vitrineImovelFormHtml(item){
       '<option value="nao"'+(atual.estado==='nao'?' selected':'')+'>Não</option></select></label>'+
       '<label class="field"><span>Nota interna</span><input id="vit_doc_obs_'+d[0]+'" value="'+esc(atual.observacaoPrivada||'')+'" placeholder="Nunca aparece no site"></label></div>';
   }).join('');
-  return '<div class="field-row"><label class="field"><span>Código</span>'+
+  return '<nav class="vif-abas" role="tablist">'+
+      VITRINE_FORM_ABAS.map(function(t,n){
+        return '<button type="button" role="tab" class="'+(n===0?'on':'')+'" data-alvo="'+t[0]+'" '+
+          'aria-selected="'+(n===0)+'" onclick="trocarAbaAnuncio(\''+t[0]+'\')">'+esc(t[1])+'</button>';
+      }).join('')+'</nav>'+
+    '<div class="vif-aba" data-aba="basico">'+
+    '<div class="field-row"><label class="field"><span>Código</span>'+
       '<input id="vit_codigo" value="'+esc(i.codigo||vitrineProximoCodigo())+'" placeholder="A-101"></label>'+
       '<label class="field"><span>Tipo</span><select id="vit_tipo" onchange="atualizarCamposVitrine()">'+VITRINE_TIPOS.map(function(t){
         return '<option value="'+t[0]+'"'+((i.tipo||'casa')===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+
@@ -527,6 +537,7 @@ function vitrineImovelFormHtml(item){
         return '<option value="'+esc(o.id)+'"'+(donoAtual===o.id?' selected':'')+'>'+esc(o.nome)+'</option>';}).join('')+
       '</select><small>Cadastre em <strong>Proprietários</strong> se ainda não existir.</small></label>'+
 
+    '</div><div class="vif-aba" data-aba="valores" hidden>'+
     '<div class="form-section-title">Valores</div>'+
     '<div class="field-row"><label class="field"><span>Aluguel (R$) *</span>'+
       '<input id="vit_aluguel" type="number" min="0" step="0.01" value="'+(Number(i.aluguel)||0)+'"></label>'+
@@ -540,6 +551,7 @@ function vitrineImovelFormHtml(item){
       '<label class="field"><span>Preço de venda (R$)</span>'+
       '<input id="vit_preco_venda" type="number" min="0" step="0.01" value="'+(Number(i.precoVenda)||0)+'"></label></div>'+
 
+    '</div><div class="vif-aba" data-aba="imovel" hidden>'+
     '<div class="form-section-title">O imóvel</div>'+
     '<div id="vit_bloco_construido"'+(vitrineEhTerreno(i.tipo)?' hidden':'')+'>'+
       '<div class="field-row">'+
@@ -599,6 +611,7 @@ function vitrineImovelFormHtml(item){
       '<label><input id="vit_quintal" type="checkbox"'+(i.quintal?' checked':'')+'><span>Quintal</span></label>'+
       '<label><input id="vit_servico" type="checkbox"'+(i.areaServico?' checked':'')+'><span>Área de serviço</span></label></div>'+
 
+    '</div><div class="vif-aba" data-aba="endereco" hidden>'+
     '<div class="form-section-title">Endereço</div>'+
     '<div class="field-row"><label class="field"><span>Rua</span><input id="vit_rua" value="'+esc(i.logradouro||'')+'"></label>'+
       '<label class="field"><span>Número</span><input id="vit_numero" value="'+esc(i.numero||'')+'"></label></div>'+
@@ -622,7 +635,8 @@ function vitrineImovelFormHtml(item){
       '<label class="field"><span>Latitude pública aproximada</span><input id="vit_lat_publica" value="'+(i.latitudePublica==null?'':i.latitudePublica)+'" placeholder="opcional"></label>'+
       '<label class="field"><span>Longitude pública aproximada</span><input id="vit_lng_publica" value="'+(i.longitudePublica==null?'':i.longitudePublica)+'" placeholder="opcional"></label></div>'+
 
-    '<div class="form-section-title">Regras e descrição</div>'+
+    '</div><div class="vif-aba" data-aba="regras" hidden>'+
+    '<div class="form-section-title">Regras</div>'+
     '<div class="field-row"><label class="field"><span>Garantia</span><input id="vit_caucao" value="'+esc(i.caucao||'')+'" placeholder="2 aluguéis / fiador"></label>'+
       '<label class="field"><span>Contrato mínimo (meses)</span><input id="vit_contrato" type="number" min="0" step="1" value="'+(Number(i.contratoMinimoMeses)||12)+'"></label>'+
       '<label class="field"><span>Disponível em</span><input id="vit_disponivel_em" type="date" value="'+esc(i.disponivelEm||'')+'"></label>'+
@@ -654,7 +668,30 @@ function vitrineImovelFormHtml(item){
       esc(vitrinePoiParaTexto(i.pontosInteresse))+'</textarea>'+
       '<small>Uma por linha, no formato <b>nome | distância</b>. Aparece no anúncio como uma lista.</small></label>'+
     '<label class="field-check"><input type="checkbox" id="vit_destaque"'+(i.destaque?' checked':'')+
-      '><span><strong>Destaque</strong><small>Aparece primeiro na vitrine. Cobrado à parte.</small></span></label>';
+      '><span><strong>Destaque</strong><small>Aparece primeiro na vitrine. Cobrado à parte.</small></span></label>'+
+    '</div>';
+}
+/* As abas do formulário de anúncio. A ordem é a de quem preenche: o
+   que identifica o imóvel, quanto custa, como ele é, onde fica, o que
+   vale no contrato e por último as fotos — que só existem depois de
+   salvar. */
+const VITRINE_FORM_ABAS=[
+  ['basico','Básico'],['valores','Valores'],['imovel','O imóvel'],
+  ['endereco','Endereço'],['regras','Regras'],['fotos','Fotos']
+];
+function trocarAbaAnuncio(alvo){
+  document.querySelectorAll('.vif-aba').forEach(function(p){
+    p.hidden = p.getAttribute('data-aba')!==alvo;
+  });
+  document.querySelectorAll('.vif-abas button').forEach(function(b){
+    const on=b.getAttribute('data-alvo')===alvo;
+    b.classList.toggle('on',on);
+    b.setAttribute('aria-selected',on?'true':'false');
+  });
+  /* Volta ao topo do painel: trocar de aba com a janela rolada deixava
+     a pessoa olhando para o meio da aba nova. */
+  const cx=document.querySelector('.modal-box');
+  if(cx)cx.scrollTop=0;
 }
 
 /* ------------------------------------------------------------
@@ -1014,12 +1051,13 @@ function openVitrineImovelModal(id,prefill){
   }
   /* As fotos só aparecem depois que o anúncio existe: elas precisam do
      id para serem gravadas. Em anúncio novo, mostramos o aviso. */
-  const blocoFotos=id
-    ? '<div class="form-section-title">Fotos do anúncio</div>'+
-      '<div id="vitrineFotos" class="vitrine-fotos">'+
-      '<div class="vitrine-fotos-carregando">Carregando fotos…</div></div>'
-    : '<div class="form-section-title">Fotos do anúncio</div>'+
-      '<p class="modal-hint">Salve o anúncio primeiro e ele abre de novo para você adicionar as fotos.</p>';
+  const blocoFotos='<div class="vif-aba" data-aba="fotos" hidden>'+
+    '<div class="form-section-title">Fotos do anúncio</div>'+
+    (id
+      ? '<div id="vitrineFotos" class="vitrine-fotos">'+
+        '<div class="vitrine-fotos-carregando">Carregando fotos…</div></div>'
+      : '<p class="modal-hint">Salve o anúncio primeiro e ele abre de novo para você adicionar as fotos.</p>')+
+    '</div>';
 
   /* Anúncio nascido de um imóvel da gestão: a origem viaja escondida no
      formulário e é gravada junto, para os dois nunca se separarem. */
@@ -2467,7 +2505,6 @@ function renderVitrineCidadesPublicas(dados){
   });
   const imoveis=dados.imoveis||[],perfil=dados.perfil||{};
   const total=imoveis.length;
-  const fotoHero=imoveis.map(function(i){return vitrineCardFotos(i)[0]||'';}).find(Boolean)||'';
   const contato=String(perfil.contato||'').replace(/\D/g,'');
   const wa=contato?'https://wa.me/'+(contato.length<=11?'55'+contato:contato):'';
   return '<main class="vitrine-cidades-page">'+
@@ -2478,10 +2515,33 @@ function renderVitrineCidadesPublicas(dados){
       '<div class="vitrine-cidades-hero-acoes"><button class="btn btn-primary" onclick="document.getElementById(\'cidadesAtendidas\').scrollIntoView({behavior:\'smooth\'})">Escolher uma cidade</button>'+
         (wa?'<a class="btn btn-ghost" href="'+esc(wa)+'" target="_blank" rel="noopener">Falar com atendimento</a>':'')+
       '</div><div class="vitrine-cidades-confianca"><span>Atendimento local</span><span>Informações transparentes</span><span>Contato direto</span></div>'+ 
+    /* No lugar da foto grande do imóvel: o começo da busca.
+       A foto era decoração — ocupava a metade nobre da tela, atrasava o
+       carregamento (imagem de 760px na primeira dobra) e mostrava UM
+       imóvel para quem ainda não disse nem em que cidade procura. Aqui
+       a pessoa já responde as três perguntas que o site faz e cai
+       direto no resultado. */
     '</div><div class="vitrine-cidades-hero-visual">'+
-      (fotoHero?'<img src="'+esc(fotoHero)+'" alt="Imóvel disponível na região" width="760" height="560" fetchpriority="high" decoding="async">':'<div class="vitrine-cidades-hero-sem-foto">'+houseIconSvg()+'</div>')+
-      '<div class="vitrine-cidades-hero-dado"><strong>'+total+'</strong><span>imóve'+(total===1?'l':'is')+' disponíve'+(total===1?'l':'is')+'</span></div>'+ 
-    '</div></section>'+ 
+      '<form class="vitrine-hero-busca" onsubmit="iniciarBuscaVitrine(event)">'+
+        '<span class="eyebrow">COMECE POR AQUI</span>'+
+        '<label class="vhb-campo"><span>Cidade</span>'+
+          '<select id="vhb_cidade">'+cidades.map(function(c){
+            const n=(Number(c.totalAlugar)||0)+(Number(c.totalVender)||0);
+            return '<option value="'+esc(c.id)+'">'+esc(c.nome)+' · '+esc(c.uf)+' ('+n+')</option>';
+          }).join('')+'</select></label>'+
+        '<div class="vhb-linha">'+
+          '<label class="vhb-campo"><span>Quero</span><select id="vhb_fim">'+
+            '<option value="alugar">Alugar</option><option value="vender">Comprar</option></select></label>'+
+          '<label class="vhb-campo"><span>Tipo</span><select id="vhb_cat">'+
+            '<option value="">Todos</option>'+VITRINE_CATEGORIAS.map(function(c){
+              return '<option value="'+c.id+'">'+esc(c.rotulo)+'</option>';
+            }).join('')+'</select></label>'+
+        '</div>'+
+        '<button type="submit" class="vhb-enviar">Ver imóveis</button>'+
+        '<p class="vhb-nota"><strong>'+total+'</strong> imóve'+(total===1?'l':'is')+
+          ' disponíve'+(total===1?'l':'is')+' agora</p>'+
+      '</form>'+
+    '</div></section>'+
     '<section class="vitrine-cidades-escolha" id="cidadesAtendidas" aria-labelledby="vitrineCidadesTitulo">'+
     '<div class="vitrine-cidades-intro"><span class="eyebrow">ONDE VOCÊ QUER MORAR OU INVESTIR?</span><h2 id="vitrineCidadesTitulo">Escolha uma cidade</h2>'+
       '<p>Veja apenas os imóveis da região que interessa a você.</p></div>'+
@@ -2581,23 +2641,22 @@ function setVitrineCategoria(id){
   state.vitrinePubLimite=VITRINE_PAGINA;
   gravarFiltrosNaUrl();render();
 }
-/* A lista de cidades abre no próprio botão, com <details>: sem
-   biblioteca, fecha no Escape e no clique fora por conta do navegador,
-   e funciona com teclado sem eu escrever nada. */
-function renderVitrineTrocaCidade(cidades,atual){
-  return '<details class="vitrine-troca-cidade">'+
-    '<summary aria-label="Trocar de cidade">'+
-      '<span aria-hidden="true">⌖</span>'+
-      '<b>'+esc(atual?atual.nome+' · '+atual.uf:'Escolher cidade')+'</b>'+
-      '<i aria-hidden="true">⌄</i></summary>'+
-    '<div class="vtc-lista" role="listbox">'+cidades.map(function(c){
-      const total=(Number(c.totalAlugar)||0)+(Number(c.totalVender)||0);
-      const sel=atual&&String(c.id)===String(atual.id);
-      return '<button type="button" role="option" aria-selected="'+(!!sel)+'"'+(sel?' class="on"':'')+
-        ' onclick="escolherCidadeVitrine(\''+esc(c.id)+'\')">'+
-        '<span>'+esc(c.nome)+' <small>'+esc(c.uf)+'</small></span>'+
-        '<i>'+total+'</i></button>';
-    }).join('')+'</div></details>';
+/* O "Trocar" da lateral de filtros abria a tela de cidades e a pessoa
+   perdia filtro e rolagem. Agora ele abre a mesma lista suspensa do
+   topo — uma escolha só, um jeito só de fazê-la. */
+/* As três escolhas do herói viram estado de uma vez só — um render, e
+   a pessoa já chega na lista filtrada em vez de na lista inteira. */
+function iniciarBuscaVitrine(ev){
+  if(ev&&ev.preventDefault)ev.preventDefault();
+  const v=function(id){const e=document.getElementById(id);return e?e.value:'';};
+  state.vitrinePubFinalidade=v('vhb_fim')==='vender'?'vender':'alugar';
+  state.vitrineFiltros.categoria=v('vhb_cat')||'';
+  state.vitrineFiltros.tipo='';
+  state.vitrinePubCidade=v('vhb_cidade')||'';
+  state.vitrineDetalheId=null;
+  state.vitrinePubLimite=VITRINE_PAGINA;
+  gravarFiltrosNaUrl(true);render();
+  window.scrollTo({top:0,behavior:'auto'});
 }
 function escolherCidadeVitrine(id){
   if(window._vitrineMapaResultados){try{window._vitrineMapaResultados.remove();}catch(e){}window._vitrineMapaResultados=null;}
@@ -2626,10 +2685,9 @@ function renderVitrineBarraCidade(dados){
     return base.filter(function(i){return tipos.indexOf(i.tipo)!==-1;}).length;
   };
   return '<section class="vitrine-cidade-barra"><div class="vitrine-cidade-barra-in"><div class="vitrine-cidade-contexto">'+
-    /* Trocar cidade abre a lista aqui mesmo. Antes voltava para a tela
-       de cidades e a pessoa perdia filtro, rolagem e o que já tinha
-       visto — para uma escolha de dois segundos. */
-    (cidades.length?renderVitrineTrocaCidade(cidades,atual):'')+
+    /* A troca de cidade vive na lateral de filtros, junto de Bairro:
+       era a mesma escolha em dois lugares, e este roubava o espaço da
+       esquerda que o título agora ocupa. */
     '<div><span class="eyebrow">BUSCAR IMÓVEIS</span>'+
       (atual?'<h1 class="vitrine-cidade-atual">'+esc(atual.nome)+' <small>'+esc(atual.uf)+'</small></h1>':'<h1 class="vitrine-cidade-atual">Imóveis disponíveis</h1>')+
     '</div></div>'+
@@ -2788,6 +2846,10 @@ function renderVitrineFiltros(dados){
   const ativos=vitrineFiltrosAtivos().length;
   const resultados=vitrineImoveisFiltrados().length;
   const atual=vitrineCidadePublicaPorId(state.vitrinePubCidade);
+  const cidades=dados.cidades||[];
+  /* O par Alugar/Comprar saiu daqui — já existe na barra do topo, maior.
+     Mas a finalidade continua definindo o exemplo do campo de valor:
+     aluguel é conta de centenas, venda é de dezenas de milhares. */
   const vender=state.vitrinePubFinalidade==='vender';
   return '<div class="vitrine-filtros-mobile-bar"><button type="button" onclick="toggleVitrineFiltrosMobile(true)">'+
       '<span aria-hidden="true">☷</span> Filtros'+(ativos?' <b>'+ativos+'</b>':'')+'</button>'+
@@ -2799,10 +2861,18 @@ function renderVitrineFiltros(dados){
       '<header class="vitrine-filtros-cab"><div><span>REFINE SUA BUSCA</span><h2>Filtros</h2></div>'+ 
         '<button type="button" onclick="limparVitrineFiltros()"><span aria-hidden="true">×</span> Limpar</button></header>'+ 
       '<div class="vitrine-filtros-scroll">'+
-      '<div class="vitrine-filtros-finalidade" role="group" aria-label="Finalidade"><button class="'+(vender?'':'on')+'" onclick="setVitrinePubFinalidade(\'alugar\')">Alugar</button><button class="'+(vender?'on':'')+'" onclick="setVitrinePubFinalidade(\'vender\')">Comprar</button></div>'+ 
       '<details class="vitrine-filtro-grupo" open><summary><span>⌖</span>Localização</summary><div class="vitrine-filtro-conteudo">'+
         '<label class="vitrine-busca"><span aria-hidden="true">⌕</span><input id="vitf_busca" value="'+esc(f.busca)+'" placeholder="Bairro, rua ou código…" oninput="setVitrineFiltro(\'busca\',this.value)"></label>'+ 
-        (atual?'<button type="button" class="vitrine-filtro-cidade" onclick="voltarVitrineCidades()"><span><small>Cidade</small><strong>'+esc(atual.nome)+' · '+esc(atual.uf)+'</strong></span><b>Trocar</b></button>':'')+
+        /* Cidade no mesmo formato do Bairro: uma lista, um gesto. O
+           botão "Trocar" abria a lista suspensa do topo — eram dois
+           lugares para a mesma escolha, e o de cima saiu. */
+        (cidades.length?'<label class="vitrine-filtro-campo"><span>Cidade</span>'+
+          '<select class="vitrine-sel" onchange="escolherCidadeVitrine(this.value)">'+
+          cidades.map(function(c){
+            const n=(Number(c.totalAlugar)||0)+(Number(c.totalVender)||0);
+            return '<option value="'+esc(c.id)+'"'+(atual&&String(c.id)===String(atual.id)?' selected':'')+'>'+
+              esc(c.nome)+' · '+esc(c.uf)+' ('+n+')</option>';
+          }).join('')+'</select></label>':'')+
         '<label class="vitrine-filtro-campo"><span>Bairro</span><select class="vitrine-sel" onchange="setVitrineFiltro(\'bairro\',this.value)"><option value="">Todos os bairros</option>'+bairros.map(function(b){return '<option'+(f.bairro===b?' selected':'')+'>'+esc(b)+'</option>';}).join('')+'</select></label>'+ 
       '</div></details>'+ 
       '<details class="vitrine-filtro-grupo" open><summary><span>R$</span>Tipo e preço</summary><div class="vitrine-filtro-conteudo">'+
@@ -3583,7 +3653,7 @@ function renderVitrineDetalhe(i,perfil){
         '</div>'
         : '')+
 
-      renderVitrineVisitasLocais(i.id)+renderVitrineSeguranca(i)+renderVitrineParecidos(i)+
+      renderVitrineVisitasLocais(i.id)+renderVitrineParecidos(i)+
 
     /* Quem responde pelo imóvel fica na coluna da direita, embaixo do
        preço e do contato: é ali que a pessoa decide se fala com você, e

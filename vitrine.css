@@ -1508,6 +1508,17 @@
    nao precisa mais desviar dela. */
 .vitrine-public-resultados .vitrine-rodape{margin-left:0;padding-right:var(--s-5);padding-left:var(--s-5);}
 
+/* Reposição do respiro do rodapé no celular.
+   O `padding-bottom:96px` definido lá em cima, dentro de @media(max-width:640px),
+   é anulado pelo atalho `padding` da regra acima: mesma especificidade, e esta vem
+   depois no arquivo, então ganha. Sobravam 32px de respiro contra uma barra fixa
+   de 63px — na rolagem máxima o centro de "Anunciar imóvel" e "Privacidade" caía
+   embaixo da barra e o toque nunca chegava neles.
+   Esta regra precisa continuar DEPOIS daquele atalho para valer. */
+@media(max-width:640px){
+  .vitrine-rodape{padding-bottom:96px;}
+}
+
 @media(max-width:1180px){
   .vitrine-pub-count{display:none;}
   .vitrine-resultados-topo{align-items:flex-start;flex-direction:column;}

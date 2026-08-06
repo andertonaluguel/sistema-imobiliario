@@ -1178,6 +1178,19 @@ assert.ok(normalized.houses.every((item) => !Object.hasOwn(item,'poco_agua')));
 assert.ok(normalized.houses.every((item) => Object.hasOwn(item,'cozinha') && Object.hasOwn(item,'area_servico')));
 assert.ok(normalized.houses.every((item) => Object.hasOwn(item,'publicado') && Object.hasOwn(item,'descricao_publica')));
 
+/* --- Backup V8: a fundação completa da Vitrine precisa ir e voltar --- */
+const vitrineBackup = JSON.parse(await readFile(join(testsDir,'fixtures','exportacao-vitrine-v8.json'),'utf8'));
+const normalizedVitrine = api.normalizeBackupForImport(vitrineBackup);
+assert.equal(normalizedVitrine.vitrine.imoveis.length,1);
+assert.equal(normalizedVitrine.vitrine.imoveis[0].area_util_m2,74.5);
+assert.equal(normalizedVitrine.vitrine.imoveis[0].total_andares,8);
+assert.equal(normalizedVitrine.vitrine.imoveis[0].aceita_estudante,null,
+  'Não informado precisa continuar nulo no backup, sem virar não.');
+assert.deepEqual(Array.from(normalizedVitrine.vitrine.imoveis[0].garantias_aceitas),['caucao','seguro_fianca']);
+assert.equal(normalizedVitrine.vitrine.documentacao[0].observacao_privada,'Conferida em cartório');
+assert.equal(normalizedVitrine.vitrine.anunciantes[0].proprietario_cliente_id,normalizedVitrine.owners[0].id,
+  'O vínculo do anunciante precisa acompanhar o novo ID gerado para o proprietário na importação.');
+
 /* --- Coluna esquecida no backup apaga dado sem avisar ---
    A restauração deleta tudo da conta e reinsere com LISTA EXPLÍCITA de
    colunas. `imoveis.tipo` e `inquilinos.rg` nasceram depois da rotina,
@@ -1276,6 +1289,7 @@ const appSource = await readFile(join(root,'app.js'),'utf8');
 const backupSource = await readFile(join(root,'backup.js'),'utf8');
 const authSource = await readFile(join(root,'auth.js'),'utf8');
 const configSource = await readFile(join(root,'config.js'),'utf8');
+const utilsSource = await readFile(join(root,'utils.js'),'utf8');
 const commercialSource = await readFile(join(root,'commercial.js'),'utf8');
 const dashboardSource = await readFile(join(root,'dashboard.js'),'utf8');
 const financeSource = await readFile(join(root,'finance.js'),'utf8');
@@ -1288,6 +1302,8 @@ const calendarSource = await readFile(join(root,'calendar.js'),'utf8');
 const tenantsSource = await readFile(join(root,'tenants.js'),'utf8');
 const contractsSource = await readFile(join(root,'contracts.js'),'utf8');
 const interestsSource = await readFile(join(root,'interests.js'),'utf8');
+const crmSource = await readFile(join(root,'crm.js'),'utf8');
+const crmCssSource = await readFile(join(root,'crm.css'),'utf8');
 const styleSource = await readFile(join(root,'style.css'),'utf8');
 const tokensCssSource = await readFile(join(root,'tokens.css'),'utf8');
 const rentalUiCssSource = await readFile(join(root,'aluguel-ui.css'),'utf8');
@@ -1306,6 +1322,13 @@ const serviceWorkerSource = await readFile(join(root,'service-worker.js'),'utf8'
 const financeMigrationSource = await readFile(join(root,'migracao-financeiro-v2.sql'),'utf8');
 const backupV7MigrationSource = await readFile(join(root,'migracao-backup-v7.sql'),'utf8');
 const inspectionsSource = await readFile(join(root,'migracao-vistoria-e-chamados.sql'),'utf8');
+const phase0CorrectionSource = await readFile(
+  join(root,'migracao-correcao-manutencao-limpeza.sql'),'utf8'
+);
+const vitrineFoundationSource = await readFile(join(root,'migracao-vitrine-fundacao.sql'),'utf8');
+const vitrineSeoMarcaSource = await readFile(join(root,'migracao-vitrine-seo-marca.sql'),'utf8');
+const vitrineRetentionAgendaSource = await readFile(join(root,'migracao-vitrine-retencao-agenda.sql'),'utf8');
+const crmQualityMigrationSource = await readFile(join(root,'migracao-crm-qualidade.sql'),'utf8');
 
 /* --- O catálogo de migrações não pode envelhecer ---
    diagnostico_migracoes() responde "quais arquivos este banco já recebeu"
@@ -3135,14 +3158,23 @@ assert.match(vitrineCssSource,/\.rent-product-switch\.vitrine/);
    o seletor `.rental-app > .page-header`. Um <section> em volta tirava o
    arredondamento e o respiro que as outras abas tem. */
 assert.doesNotMatch(vitrineSource,/<section class="vitrine-page">/);
-assert.match(vitrineSource,/<nav class="rent-tabs vitrine-nav"/);
 assert.match(vitrineSource,/<div class="page-header vitrine-header">/);
-/* A navegacao vem antes do heroi, igual as outras abas. */
-assert.ok(
-  vitrineSource.indexOf('<nav class="rent-tabs vitrine-nav"') <
-    vitrineSource.indexOf('<div class="page-header vitrine-header">'),
-  'As abas internas vem antes do cabecalho, como no resto do app.'
-);
+/* As doze areas da Vitrine sairam das abas horizontais — quebravam em
+   duas linhas — e foram para a barra lateral do app, como as outras
+   areas. A navegacao horizontal nao pode voltar por descuido. */
+assert.doesNotMatch(vitrineSource,/<nav class="rent-tabs vitrine-nav"/,
+  'As areas da Vitrine ficam na barra lateral, nao em abas horizontais.');
+assert.match(vitrineSource,/function vitrineNavItems\(\)/,
+  'A barra lateral precisa da lista de areas da Vitrine.');
+assert.match(appSource,/appKey==='vitrine'&&typeof vitrineNavItems==='function'/,
+  'sidebarPageGroup precisa montar as areas da Vitrine.');
+/* Cada area precisa continuar alcancavel: a lista da barra tem de
+   cobrir todas as abas que renderVitrineView sabe desenhar. */
+['painel','anuncios','cidades','anunciantes','leads','parceiros','crm',
+ 'retencao','visitas','qualidade','taxas','divulgacao'].forEach(function(area){
+  assert.ok(vitrineSource.includes("['"+area+"',"),
+    'A area '+area+' precisa estar na barra lateral da Vitrine.');
+});
 /* Nada de recriar componente que ja existe. */
 assert.doesNotMatch(vitrineCssSource,/\.vitrine-tabs\{/);
 
@@ -3266,7 +3298,9 @@ assert.match(vitrineSource,/function vitrineMensagemComContexto\(/,'O lead preci
 assert.match(vitrineSource,/Quer comprar.*Quer alugar|Quer comprar/,'O lead diz se a pessoa quer alugar ou comprar.');
 assert.match(vitrineSource,/function vitrineParecidos\(/);
 assert.match(vitrineSource,/\+' '\+\(i\.cidade\|\|''\)/,'A busca considera a cidade.');
-assert.match(vitrineSource,/campo==='tipo'&&valor==='terreno'\) state\.vitrineFiltros\.quartos=0/,
+/* Desde os filtros finos, terreno zera também banheiros e vagas —
+   a asserção completa está no bloco dos filtros finos, mais abaixo. */
+assert.match(vitrineSource,/campo==='tipo'&&valor==='terreno'\)\{ f\.quartos=0/,
   'Trocar para terreno tem de zerar o filtro de quartos escondido.');
 
 const ctxLead=vm.runInContext(`(function(){
@@ -3371,7 +3405,8 @@ assert.equal(ordemVenda,'b,a',
 /* O texto pronto de divulgação tem de levar o link DAQUELE anúncio: é o
    que faz a prévia do WhatsApp mostrar foto, título e preço. */
 assert.match(vitrineSource,/function vitrineUrlImovel\(/);
-assert.match(vitrineSource,/url\.searchParams\.set\('imovel',i\.id\)/);
+assert.match(vitrineSource,/\/imovel\/'\+encodeURIComponent\(i\.id\)/,
+  'O link do anúncio usa rota estável com o ID, não parâmetro cosmético.');
 assert.match(vitrineSource,/const url=vitrineUrlImovel\(i\);/,
   'copiarTextoVitrine usa o link do imóvel, não o da vitrine inteira.');
 
@@ -3555,6 +3590,11 @@ globalThis.fetch=async function(url,opts){
   if(alvo.includes('listar_vitrine_publica')){
     return new Response(JSON.stringify(payloadVitrine),{status:200,headers:{'content-type':'application/json'}});
   }
+  if(alvo.includes('listar_vitrine_sitemap_publico')){
+    return new Response(JSON.stringify([{slug:'corretora',atualizadoEm:'2026-08-05T12:00:00Z',
+      imoveis:[{id:'v9',titulo:'Casa com quintal',tipo:'casa',finalidade:'vender',cidadeSlug:'lajedo',atualizadoEm:'2026-08-05T12:00:00Z'}]}]),
+      {status:200,headers:{'content-type':'application/json'}});
+  }
   throw new Error('fetch inesperado: '+alvo);
 };
 const paginaBase='<!doctype html><html><head><title>Aluguel — Gestão de Casas</title></head><body></body></html>';
@@ -3579,6 +3619,29 @@ try{
   assert.match(htmlHome,/og:title" content="Corretora do Anderton — imóveis e terrenos/);
   assert.match(htmlHome,/1 imóveis disponíveis em Lajedo/);
 
+  const resRota=await edgeMod.default(
+    new Request('https://site.netlify.app/vitrine/corretora/imovel/v9/casa-com-quintal/'),contextoFalso);
+  const htmlRota=await resRota.text();
+  assert.match(htmlRota,/<link rel="canonical" href="https:\/\/site\.netlify\.app\/vitrine\/corretora\/imovel\/v9\/casa-com-quintal\/">/);
+  assert.match(htmlRota,/application\/ld\+json/,'A ficha entrega JSON-LD no HTML do servidor.');
+  assert.match(htmlRota,/"@type":"Offer"/);
+
+  const resFiltro=await edgeMod.default(
+    new Request('https://site.netlify.app/vitrine/corretora/lajedo/comprar/casa/?busca=quintal&ordem=menor'),contextoFalso);
+  const htmlFiltro=await resFiltro.text();
+  assert.match(htmlFiltro,/name="robots" content="noindex,follow"/,'Busca livre não pode ser indexada.');
+  assert.match(htmlFiltro,/rel="canonical" href="https:\/\/site\.netlify\.app\/vitrine\/corretora\/lajedo\/comprar\/casa\/"/);
+  assert.doesNotMatch(htmlFiltro,/canonical[^>]+busca=/,'Filtro cosmético não altera o canonical.');
+
+  const resSitemap=await edgeMod.default(new Request('https://site.netlify.app/sitemap.xml'),contextoFalso);
+  const xmlSitemap=await resSitemap.text();
+  assert.match(xmlSitemap,/\/vitrine\/corretora\/imovel\/v9\/casa-com-quintal\//);
+  assert.match(xmlSitemap,/\/vitrine\/corretora\/lajedo\/comprar\/casa\//);
+  assert.doesNotMatch(xmlSitemap,/\?busca=/);
+
+  const resRobots=await edgeMod.default(new Request('https://site.netlify.app/robots.txt'),contextoFalso);
+  assert.match(await resRobots.text(),/Sitemap: https:\/\/site\.netlify\.app\/sitemap\.xml/);
+
   /* O app interno nunca ganha tags nem é pré-visualizado. */
   const resApp=await edgeMod.default(new Request('https://site.netlify.app/'),contextoFalso);
   assert.equal(resApp,undefined,'Sem ?vitrine, a Edge Function não interfere.');
@@ -3593,12 +3656,396 @@ assert.match(edgeSource,/arquivo_vitrine_publico/,'A foto só é servida se o ba
 const netlifyTomlSource=await readFile(join(root,'netlify.toml'),'utf8');
 assert.match(netlifyTomlSource,/\[\[edge_functions\]\]/);
 assert.match(netlifyTomlSource,/function = "vitrine-preview"/);
+assert.match(indexSource,/<base href="\/">/,'Rotas profundas precisam carregar os assets a partir da raiz.');
+assert.match(indexSource,/name="robots" content="noindex,nofollow"/,
+  'A área autenticada não deve ser indexada; a borda libera apenas a Vitrine pública.');
+assert.match(serviceWorkerSource,/if\(\/\\\.\(\?:js\|css\|json\)\$\/\.test\(url\.pathname\)\)\{[\s\S]{0,260}fetch\(req\)/,
+  'Código e estilos precisam ser rede-primeiro para uma rota nova não abrir com JavaScript antigo.');
 
 /* --- Bloco 2: página pública no padrão novo --- */
-/* O cartão precisa ser alcançável por teclado: era <article onclick>. */
-assert.match(vitrineSource,/<button type="button" class="vitrine-card"/,
-  'O cartão do imóvel tem de ser um botão, não um <article> clicável.');
-assert.doesNotMatch(vitrineSource,/<article class="vitrine-card"/);
+/* O cartão precisa ser alcançável por teclado: era <article onclick>.
+   Desde o carrossel de fotos ele voltou a ser <article>, mas por outro
+   motivo — seta dentro de botão é HTML inválido. O que a regra protege
+   continua o mesmo: quem abre o anúncio é um <button> de verdade, e o
+   <article> não pode ter onclick próprio. */
+assert.match(vitrineSource,/<button type="button" class="vitrine-card-abrir/,
+  'Quem abre o anúncio no cartão tem de ser um botão, alcançável por Tab.');
+assert.doesNotMatch(vitrineSource,/<article class="vitrine-card"[^>]*onclick/,
+  'O <article> do cartão não pode ser clicável: quem navega por teclado não o alcança.');
+/* A capa é clique de mouse sobre a foto — nunca uma segunda parada de Tab
+   para a mesma ação. */
+assert.match(vitrineSource,/class="vitrine-card-capa" tabindex="-1" aria-hidden="true"/,
+  'A capa do cartão duplicaria a parada de Tab do botão do corpo.');
+/* Cada seta diz de qual imóvel é: numa grade de 12, "Próxima foto" doze
+   vezes não informa nada a quem usa leitor de tela. */
+assert.match(vitrineSource,/aria-label="Próxima foto de '\+esc\(i\.titulo\)\+'"/,
+  'As setas do cartão precisam dizer a que imóvel pertencem.');
+/* A grade folheia miniatura, não a foto grande: é o que segura o 4G. */
+assert.match(vitrineSource,/function vitrineCardFotos\(i\)\{[\s\S]{0,220}thumbUrls/,
+  'O carrossel do cartão tem de preferir a miniatura à foto grande.');
+assert.match(vitrineCssSource,/@media \(pointer:coarse\)[\s\S]{0,400}\.vc-nav\{opacity:1/,
+  'No celular a seta do cartão fica visível: não existe passar o mouse.');
+
+/* --- Etapa 3: filtros ativos, comparação, favoritos e desempenho --- */
+assert.match(vitrineSource,/\['area','Maior área'\]/,'A ordenação oferece maior área.');
+assert.match(vitrineSource,/f\.ordem==='area'[\s\S]{0,120}areaM2/,'Maior área precisa ordenar pelo campo de área.');
+assert.match(vitrineSource,/function renderVitrineFiltrosAtivos\(/,'A pessoa precisa enxergar por que a lista foi filtrada.');
+assert.match(vitrineSource,/function removerVitrineFiltro\(/,'Cada filtro ativo precisa poder ser removido sozinho.');
+assert.match(vitrineSource,/vitrine-filtros-mobile-bar/,'O celular precisa de uma gaveta compacta de filtros.');
+assert.match(vitrineCssSource,/\.vitrine-filtros\.is-open\{display:block;\}/,
+  'A gaveta móvel precisa de um estado aberto explícito.');
+assert.match(vitrineSource,/vitrinePreferenciaKey\('favoritos'\)/,
+  'Favoritos precisam persistir separados por vitrine.');
+assert.match(vitrineSource,/atual\.length>=4/,'A comparação fica limitada a quatro imóveis.');
+assert.match(vitrineSource,/state\.vitrineComparacao=\[\];state\.vitrineComparacaoAberta=false;/,
+  'Trocar entre aluguel e venda não pode manter uma comparação misturada.');
+assert.match(vitrineSource,/srcset="'\+esc\(foto\)\+' 640w"/,'A miniatura do cartão declara srcset.');
+assert.match(vitrineSource,/width="640" height="426"/,'A imagem reserva espaço e evita salto de layout.');
+assert.match(vitrineSource,/decoding="async"/,'A decodificação da grade não deve bloquear a interface.');
+assert.match(vitrineSource,/vitrineScroll/,'Voltar do detalhe precisa recuperar a posição da lista.');
+
+const etapa3=vm.runInContext(`(function(){
+  state.vitrinePublic={perfil:{slug:'teste'},cidades:[],imoveis:[
+    {id:'e1',codigo:'E-1',titulo:'Casa menor',tipo:'casa',finalidade:'alugar',cidadeId:'',cidade:'Lajedo',bairro:'Centro',
+      aluguel:900,condominio:0,iptu:0,areaM2:60,quartos:2,banheiros:1,vagas:1,thumbUrls:['mini-1.webp'],fotoUrls:['foto-1.webp'],comodidades:[]},
+    {id:'e2',codigo:'E-2',titulo:'Casa maior',tipo:'casa',finalidade:'alugar',cidadeId:'',cidade:'Lajedo',bairro:'Novo',
+      aluguel:1200,condominio:100,iptu:20,areaM2:140,quartos:3,banheiros:2,vagas:2,thumbUrls:['mini-2.webp'],fotoUrls:['foto-2.webp'],comodidades:[]}
+  ]};
+  state.vitrinePubCidade='';state.vitrinePubFinalidade='alugar';
+  state.vitrineFavoritos=['e1'];state.vitrineComparacao=['e1','e2'];state.vitrineComparacaoAberta=true;
+  state.vitrineFiltros={busca:'',tipo:'casa',quartos:0,banheiros:0,suites:0,vagas:0,conservacao:'',
+    faixa:'',precoMin:'',precoMax:'',areaMin:'50',areaMax:'',bairro:'',ordem:'area',extras:[]};
+  return {ordem:vitrineImoveisFiltrados().map(function(i){return i.id;}),
+    ativos:renderVitrineFiltrosAtivos(),card:renderVitrineCard(state.vitrinePublic.imoveis[0],0),
+    comparar:renderVitrineComparacao()};
+})()`,context);
+assert.deepEqual(Array.from(etapa3.ordem),['e2','e1'],'Maior área ordena do maior para o menor.');
+assert.match(etapa3.ativos,/Casa/);
+assert.match(etapa3.ativos,/Área desde 50 m²/);
+assert.match(etapa3.ativos,/Limpar tudo/);
+assert.match(etapa3.card,/aria-label="Remover dos favoritos"/);
+assert.match(etapa3.card,/srcset="mini-1\.webp 640w"/,'A grade usa a miniatura, não a foto original.');
+assert.match(etapa3.comparar,/Total mensal/);
+assert.match(etapa3.comparar,/Casa menor/);
+assert.match(etapa3.comparar,/Casa maior/);
+
+/* --- Filtros finos: banheiros, vagas, área e valor exato --- */
+/* Os quatro precisam existir nos três lugares, senão o filtro entra na
+   tela mas não filtra, ou filtra e some do link compartilhado. */
+for(const campo of ['banheiros','vagas','precoMin','precoMax','areaMin','areaMax']){
+  assert.match(vitrineSource,new RegExp('f\\.'+campo),
+    `O filtro ${campo} tem de ser lido em vitrine.js.`);
+}
+for(const par of [['banheiros','banheiros'],['vagas','vagas'],['precoMin','precomin'],
+                  ['precoMax','precomax'],['areaMin','areamin'],['areaMax','areamax']]){
+  assert.match(vitrineSource,new RegExp("p\\.set\\('"+par[1]+"'"),
+    `O filtro ${par[0]} tem de entrar no endereço: é o que faz o link filtrado funcionar.`);
+  assert.match(vitrineSource,new RegExp("p\\.get\\('"+par[1]+"'"),
+    `O filtro ${par[0]} tem de ser lido do endereço ao abrir o link.`);
+}
+/* limparVitrineFiltros esquecer um campo deixa filtro fantasma ligado. */
+const limpar=vitrineSource.match(/function limparVitrineFiltros\(\)\{[\s\S]*?\n\}/)[0];
+for(const campo of ['quartos','banheiros','vagas','precoMin','precoMax','areaMin','areaMax','faixa','extras']){
+  assert.ok(limpar.includes(campo+':'),
+    `"Limpar filtros" tem de zerar ${campo} — senão ele continua filtrando invisível.`);
+}
+/* Faixa pronta e valor digitado dizem a mesma coisa: os dois ligados ao
+   mesmo tempo fazem a busca obedecer a um filtro que não está na tela. */
+assert.match(vitrineSource,/campo==='faixa'&&valor\)\{ f\.precoMin='';f\.precoMax='';/,
+  'Escolher a faixa pronta tem de limpar o valor digitado.');
+assert.match(vitrineSource,/campo==='precoMin'\|\|campo==='precoMax'\)&&valor\) f\.faixa='';/,
+  'Digitar um valor tem de desligar a faixa pronta.');
+/* Terreno não tem cômodo: o painel esconde banheiros e vagas, então eles
+   não podem continuar filtrando por trás. */
+assert.match(vitrineSource,/campo==='tipo'&&valor==='terreno'\)\{ f\.quartos=0;f\.banheiros=0;f\.vagas=0;/,
+  'Escolher terreno tem de zerar quartos, banheiros e vagas.');
+/* O campo de valor não é type=number: ler o cursor de um input numérico
+   dá erro em alguns navegadores, e é o cursor que devolve o foco. */
+assert.doesNotMatch(vitrineSource,/vitf_[a-zA-Z]+" type="number"/,
+  'Os campos de valor da Vitrine usam texto com inputmode, não type=number.');
+assert.match(vitrineSource,/function renderVitrineMantendoFoco\(\)/,
+  'Sem devolver o foco, o campo de filtro perde o cursor a cada letra digitada.');
+assert.match(vitrineSource,/id="vitf_busca"/,
+  'O campo de busca precisa de id: é por ele que o foco volta depois do render.');
+
+/* --- Detalhes do imóvel: suítes, andar, idade, conservação, área total --- */
+const migDetalhes=await readFile(join(root,'migracao-vitrine-detalhes.sql'),'utf8');
+for(const col of ['suites','andar','idade_anos','area_total_m2','conservacao']){
+  assert.match(migDetalhes,new RegExp('add column if not exists\\s+'+col),
+    `A migração tem de criar a coluna ${col} de forma reexecutável.`);
+}
+assert.doesNotMatch(migDetalhes,/drop\s+(table|column)/i,
+  'A migração dos detalhes só acrescenta: nada de apagar coluna ou tabela.');
+/* Ela reescreve listar_vitrine_publica. Perder uma chave da versão
+   anterior apagaria da página pública um campo que já funcionava — foto,
+   legenda, CRECI, cidade. Este teste compara as duas listas. */
+const migFotos=await readFile(join(root,'migracao-vitrine-fotos.sql'),'utf8');
+const chavesAntigas=[...migFotos.matchAll(/'([a-zA-Z0-9]+)',\s*(?:i\.|case when i\.)/g)].map(m=>m[1]);
+assert.ok(chavesAntigas.length>20,'Não consegui ler as chaves da função anterior — teste inválido.');
+for(const chave of chavesAntigas){
+  assert.ok(migDetalhes.includes("'"+chave+"'"),
+    `A função pública reescrita perdeu a chave "${chave}" da versão anterior.`);
+}
+for(const chave of ['suites','andar','idadeAnos','areaTotalM2','conservacao']){
+  assert.ok(migDetalhes.includes("'"+chave+"'"),
+    `A função pública tem de devolver ${chave}, senão o campo some da vitrine.`);
+}
+/* Suíte é um quarto que já foi contado. Banco e tela dizem a mesma coisa. */
+assert.match(migDetalhes,/suites <= quartos/,'O banco tem de recusar mais suítes que quartos.');
+assert.match(vitrineSource,/Suítes não pode passar de quartos/,
+  'A tela tem de explicar o limite antes de o banco devolver erro de restrição.');
+/* A lista de conservação vive em dois lugares: se divergirem, a gravação
+   estoura na restrição do banco. */
+const consSql=migDetalhes.match(/conservacao in \(([^)]+)\)/)[1].replace(/'/g,'').split(',').map(s=>s.trim());
+const consJs=[...vitrineSource.matchAll(/\['(na_planta|novo|semi_novo|reformado|bom_estado|precisa_reforma)'/g)].map(m=>m[1]);
+for(const v of consJs){
+  assert.ok(consSql.includes(v),`"${v}" existe no aplicativo mas o banco recusa.`);
+}
+assert.match(supabaseSource,/'na_planta','novo','semi_novo','reformado','bom_estado','precisa_reforma'/,
+  'A gravação valida a conservação contra a mesma lista do banco.');
+/* Não informado é diferente de zero: "0 ano de construção" é uma
+   resposta errada, e o anúncio precisa poder calar. */
+assert.match(supabaseSource,/idade_anos:\(i\.idadeAnos===''\|\|i\.idadeAnos==null\)\?null/,
+  'Idade em branco tem de gravar nulo, não zero.');
+assert.match(supabaseSource,/area_total_m2:\(i\.areaTotalM2===''\|\|i\.areaTotalM2==null\)\?null/,
+  'Área total em branco tem de gravar nulo, não zero.');
+
+/* --- Etapa 1: fundação de dados da Vitrine --- */
+for(const col of ['area_util_m2','total_andares','ano_construcao','disponivel_em','endereco_publico_modo',
+  'garantias_aceitas','indice_reajuste','custos_inclusos','situacao_ocupacao','observacao_privada',
+  'pavimentacao','agua_disponivel','energia_disponivel','esgoto_disponivel','aptidoes_terreno']){
+  assert.match(vitrineFoundationSource,new RegExp('add column if not exists\\s+'+col),
+    `A fundação precisa criar ${col} de forma reexecutável.`);
+}
+for(const tabela of ['vitrine_comodidades_catalogo','vitrine_imovel_comodidades','vitrine_documentacao_imovel']){
+  assert.match(vitrineFoundationSource,new RegExp('create table if not exists public\\.'+tabela));
+  assert.match(vitrineFoundationSource,new RegExp("alter table public\\.%I enable row level security"),
+    'As tabelas estruturadas precisam passar pelo bloco obrigatório de RLS.');
+}
+assert.match(vitrineFoundationSource,/create or replace function public\.listar_vitrine_publica_v2/);
+assert.match(vitrineFoundationSource,/create or replace function public\.salvar_relacoes_fundacao_vitrine/,
+  'Comodidades e documentos precisam ser substituídos na mesma transação.');
+assert.match(vitrineFoundationSource,/create or replace function public\.importar_backup_atomico_v8/);
+assert.match(vitrineFoundationSource,/'observacao_privada'/,
+  'A observação privada precisa existir na persistência.');
+const rpcPublicaV2=vitrineFoundationSource.slice(
+  vitrineFoundationSource.indexOf('create or replace function public.listar_vitrine_publica_v2'),
+  vitrineFoundationSource.indexOf('create or replace function public.importar_backup_atomico_v8')
+);
+assert.doesNotMatch(rpcPublicaV2,/'observacaoPrivada'|d\.observacao_privada/,
+  'A RPC pública não pode expor observações privadas do anúncio ou dos documentos.');
+assert.match(rpcPublicaV2,/endereco_publico_modo='oculto' then '' else i\.bairro/,
+  'Endereço oculto precisa esconder até o bairro.');
+assert.match(vitrineFoundationSource,/foreign key\(user_id,imovel_id\)/,
+  'Os vínculos estruturados precisam provar que pertencem à mesma conta do anúncio.');
+assert.match(supabaseSource,/version:8/,'Exportações e snapshots novos precisam usar o formato V8.');
+assert.match(supabaseSource,/listar_vitrine_publica_v2/);
+assert.match(supabaseSource,/importar_backup_atomico_v8/);
+assert.match(supabaseSource,/Nenhuma alteração do anúncio foi salva/,
+  'Sem a migração, a tela precisa parar em vez de descartar os campos novos.');
+
+/* --- Etapas 4, 5 e 6: ficha premium, retenção e visitas --- */
+for(const tabela of ['vitrine_buscas_salvas','vitrine_alertas_preco','vitrine_agenda_config',
+  'vitrine_disponibilidade','vitrine_visitas']){
+  assert.match(vitrineRetentionAgendaSource,new RegExp('create table if not exists public\\.'+tabela));
+  assert.match(vitrineRetentionAgendaSource,new RegExp("revoke all on public\\.%I from anon"),
+    'As tabelas novas não podem permitir acesso anônimo direto.');
+}
+for(const rpc of ['vitrine_salvar_busca','vitrine_cancelar_busca','vitrine_salvar_alerta_preco',
+  'vitrine_cancelar_alerta_preco','vitrine_solicitar_visita','vitrine_cancelar_visita',
+  'vitrine_reagendar_visita','salvar_agenda_vitrine','listar_vitrine_publica_v3']){
+  assert.match(vitrineRetentionAgendaSource,new RegExp('create or replace function public\\.'+rpc+'\\b'));
+}
+assert.match(vitrineRetentionAgendaSource,/status in \('solicitada','confirmada','reagendada'\)/,
+  'Solicitação e confirmação precisam ser estados distintos e bloquear conflitos ativos.');
+assert.match(vitrineRetentionAgendaSource,/exception when unique_violation[\s\S]{0,120}horario acabou de ser ocupado/,
+  'Uma corrida pelo mesmo horário precisa retornar orientação clara.');
+const publicaV3=sqlFunctionBlock(vitrineRetentionAgendaSource,'listar_vitrine_publica_v3');
+assert.doesNotMatch(publicaV3,/telefone|destino|token_|observacao_privada/i,
+  'A leitura pública da agenda só pode expor disponibilidade, nunca contatos ou tokens.');
+assert.doesNotMatch(vitrineRetentionAgendaSource,/service_role/i,
+  'A implementação não pode embutir credencial privilegiada no SQL ou no navegador.');
+assert.match(vitrineSource,/function renderVitrineComodidadesDetalhe\(/);
+assert.match(vitrineSource,/function renderVitrineDocumentacaoDetalhe\(/);
+assert.match(vitrineSource,/function vitrineTempoRelativo\(/);
+assert.match(vitrineSource,/function renderVitrineBuscaModal\(/);
+assert.match(vitrineSource,/function renderVitrineRecentes\(/);
+assert.match(vitrineSource,/Mostrar apenas diferenças/);
+assert.match(vitrineSource,/function renderVitrineVisitas\(/);
+assert.match(vitrineSource,/function vitrineFormatDate\(/);
+assert.doesNotMatch(vitrineSource,/\bformatDate\(/);
+assert.match(vitrineSource,/Lembrete pendente/);
+assert.match(vitrineSource,/Solicitação não é confirmação/);
+assert.match(vitrineSource,/db\.solicitarVitrineVisita/);
+assert.match(supabaseSource,/listar_vitrine_publica_v3/);
+assert.match(supabaseSource,/async saveVitrineAgenda\(/);
+assert.match(supabaseSource,/rpc\('salvar_agenda_vitrine'/);
+assert.match(supabaseSource,/async solicitarVitrineVisita\(/);
+for(const tabela of ['vitrine_visitas','vitrine_alertas_preco','vitrine_buscas_salvas',
+  'vitrine_disponibilidade','vitrine_agenda_config']){
+  assert.match(sqlFunctionBlock(phase0CorrectionSource,'apagar_dados_operacionais_conta'),new RegExp("to_regclass\\('public\\."+tabela+"'\\)[\\s\\S]{0,140}delete from public\\."+tabela,'i'),
+    'Apagar tudo também precisa remover '+tabela+'.');
+}
+
+/* --- Etapas 7 e 8: CRM operacional e qualidade transversal --- */
+for(const tabela of ['crm_eventos','crm_tarefas','crm_propostas','crm_interessado_imoveis','vitrine_observabilidade']){
+  assert.match(crmQualityMigrationSource,new RegExp('create table if not exists public\\.'+tabela));
+}
+assert.match(crmQualityMigrationSource,/alter table public\.%I force row level security/);
+assert.match(crmQualityMigrationSource,/revoke all on public\.%I from anon/);
+for(const coluna of ['email','origem','campanha','finalidade','responsavel_id','primeira_resposta_em','proxima_acao','proxima_acao_em','motivo_perda','lead_id']){
+  assert.match(crmQualityMigrationSource,new RegExp('alter table public\\.interessados add column if not exists '+coluna));
+}
+assert.match(crmQualityMigrationSource,/create or replace function public\.crm_salvar_interessado/);
+assert.match(crmQualityMigrationSource,/regexp_replace\(i\.telefone,'\\D'/,
+  'A conversão para o CRM precisa deduplicar a pessoa pelo telefone normalizado.');
+assert.match(crmQualityMigrationSource,/lower\(i\.email\)=v_email/,
+  'A deduplicação também precisa reconhecer o mesmo e-mail.');
+assert.match(crmQualityMigrationSource,/create trigger crm_interessado_historico/,
+  'Mudança de etapa, responsável e próxima ação precisa gerar histórico no banco.');
+assert.match(crmQualityMigrationSource,/Primeira resposta registrada/,
+  'O SLA de primeira resposta precisa entrar no histórico do CRM.');
+assert.match(crmQualityMigrationSource,/Motivo de perda registrado/,
+  'O motivo de perda precisa entrar no histórico do CRM.');
+assert.match(crmQualityMigrationSource,/Defina um responsavel antes de avancar o interessado/,
+  'O banco precisa impedir avanço no funil sem responsável.');
+assert.match(crmQualityMigrationSource,/Defina a proxima acao e o prazo antes de avancar o interessado/,
+  'O banco precisa impedir avanço no funil sem próxima ação ou tarefa pendente.');
+assert.match(crmQualityMigrationSource,/crm_proposta_imovel_check/);
+assert.match(crmQualityMigrationSource,/Proposta registra negociação|proposta/i);
+const telemetryRpc=sqlFunctionBlock(crmQualityMigrationSource,'vitrine_registrar_observabilidade');
+assert.doesNotMatch(telemetryRpc,/telefone|email|nome|mensagem|token/i,
+  'Observabilidade pública não pode receber nem persistir dados pessoais.');
+assert.match(telemetryRpc,/created_at<now\(\)-interval '90 days'/,
+  'Telemetria técnica precisa ter retenção limitada.');
+assert.match(sqlFunctionBlock(phase0CorrectionSource,'apagar_dados_operacionais_conta'),/vitrine_observabilidade/,
+  'Apagar tudo também precisa remover a telemetria técnica da conta.');
+for(const etapa of ['novo','qualificacao','contatado','visita_agendada','visita_realizada','proposta','fechado','perdido']){
+  assert.match(crmSource,new RegExp("'"+etapa+"'"));
+}
+assert.match(crmSource,/function renderVitrineCrm\(/);
+assert.match(crmSource,/function abrirCrmDetalhe\(/);
+assert.match(crmSource,/function salvarCrmTarefa\(/);
+assert.match(crmSource,/function salvarCrmProposta\(/);
+assert.match(crmSource,/function renderVitrineQualidade\(/);
+assert.match(crmSource,/etapasAtivas\.includes\(status\)/,
+  'A interface precisa antecipar a regra de responsável e próxima ação do banco.');
+assert.match(crmSource,/await loadVitrineData\(true\);abrirCrmDetalhe/,
+  'A ficha CRM precisa atualizar histórico, tarefas e propostas sem recarregar a página.');
+assert.match(interestsSource,/state\.view===['"]vitrine['"]&&typeof loadVitrineData/,
+  'Cadastro e edição feitos pela Vitrine precisam atualizar o histórico imediatamente.');
+assert.match(crmSource,/Proposta registra negociação; não é contrato/);
+assert.match(supabaseSource,/rpc\('crm_salvar_interessado'/);
+assert.match(supabaseSource,/async insertCrmTask\(/);
+assert.match(supabaseSource,/async insertCrmProposal\(/);
+assert.match(vitrineSource,/function abrirMapaVitrine\(/);
+const abrirDetalheSource=vitrineSource.slice(vitrineSource.indexOf('function abrirVitrineDetalhe'),vitrineSource.indexOf('function fecharVitrineDetalhe'));
+assert.doesNotMatch(abrirDetalheSource,/desenharMapaVitrine/,
+  'Abrir a ficha não deve baixar o mapa antes do visitante pedir.');
+/* --- Busca pública: lateral, Cards, Lista e Mapa --- */
+assert.match(appSource,/vitrinePubModo:\s*'cards'/,
+  'A busca pública precisa começar no modo Cards.');
+for(const funcao of ['renderVitrineResultados','renderVitrineFiltros','renderVitrineModos',
+  'renderVitrineMapaResultados','desenharMapaResultados','setVitrinePubModo']){
+  assert.match(vitrineSource,new RegExp('function '+funcao+'\\('),
+    `A nova busca pública precisa implementar ${funcao}.`);
+}
+assert.match(vitrineSource,/p\.get\('visual'\)/,
+  'Cards, Lista e Mapa precisam sobreviver no link compartilhado.');
+assert.match(vitrineSource,/p\.set\('visual',state\.vitrinePubModo\)/);
+assert.match(vitrineSource,/state\.vitrinePubModo!=='mapa'/,
+  'O mapa da busca só pode carregar quando o visitante escolher Mapa.');
+assert.match(vitrineSource,/VITRINE_MAPA_TILES='https:\/\/tile\.openstreetmap\.org\/\{z\}\/\{x\}\/\{y\}\.png'/,
+  'A URL dos ladrilhos precisa seguir a política atual do OpenStreetMap.');
+assert.doesNotMatch(vitrineSource,/https:\/\/\{s\}\.tile\.openstreetmap\.org/,
+  'O endereço antigo com subdomínios não deve voltar.');
+assert.match(vitrineSource,/endereço pode estar mais perto/,
+  'A entrada por cidades precisa ter apresentação pública, não só uma grade administrativa.');
+/* A lateral de filtros era `position:fixed; top:78px; bottom:0`. Fixed
+   nao sabe onde o conteudo termina: ao rolar ate o fim ela passava por
+   cima do rodape, e o top de 78px (altura do cabecalho) deixava uma
+   faixa vazia quando o cabecalho saia da tela.
+
+   Agora ela e coluna sticky do grid de resultados: gruda no topo
+   enquanto ha conteudo ao lado e para onde a coluna acaba — que e onde
+   o rodape comeca. As tres asserts abaixo sao a trava contra o
+   `fixed` voltar por descuido. */
+assert.match(vitrineCssSource,/\.vitrine-resultados\{[\s\S]{0,220}display:grid;grid-template-columns:304px minmax\(0,1fr\)/,
+  'No desktop os resultados sao um grid de duas colunas: filtros e conteudo.');
+assert.match(vitrineCssSource,/\.vitrine-filtros\{[\s\S]{0,120}position:sticky;[\s\S]{0,120}height:100vh/,
+  'A lateral de filtros e sticky com a altura da tela, para parar no rodape.');
+assert.doesNotMatch(vitrineCssSource,/\.vitrine-filtros\{[\s\S]{0,260}position:fixed;[\s\S]{0,160}top:78px/,
+  'A lateral nao pode voltar a ser fixed: ela cobria o rodape no fim da pagina.');
+assert.match(vitrineCssSource,/\.vitrine-filtros-scroll\{[\s\S]{0,180}overflow-y:auto/,
+  'A lateral fixa precisa ter rolagem própria sem mover os resultados.');
+assert.match(vitrineSource,/aria-hidden="true">×<\/span> Limpar/,
+  'A ação de limpar filtros precisa permanecer visível no topo da lateral.');
+assert.match(vitrineSource,/function vitrineOpcoesContagem[\s\S]{0,900}vitrine-contagem-opcoes/,
+  'Quartos, banheiros, suítes e vagas precisam usar botões rápidos.');
+assert.match(vitrineCssSource,/\.vitrine-grid\.is-lista\{/);
+assert.match(vitrineCssSource,/\.vitrine-mapa-resultados\{/);
+assert.match(vitrineCssSource,/@media\(max-width:900px\)[\s\S]{0,2600}\.vitrine-filtros\.is-open\{display:block;/,
+  'No celular a lateral precisa virar uma gaveta de filtros.');
+assert.match(vitrineSource,/registrarVitrineObservabilidade\(slug,'carga_publica'/);
+assert.match(vitrineSource,/registrarVitrineObservabilidade\(vitrinePerfilSlug\(\),'erro_lead'/);
+assert.match(vitrineSource,/Visita ['"]?\+vitrineStatusVisitaLabel\(valor\)/,
+  'A situação da visita precisa alimentar o histórico e a etapa do CRM.');
+assert.match(vitrineSource,/function restaurarFocoVitrinePublica\(/,
+  'Modais públicos precisam devolver o foco ao controle que os abriu.');
+assert.match(vitrineSource,/restaurarFocoVitrinePublica\(\)/,
+  'Fechamentos por botão ou Escape precisam restaurar o foco público.');
+assert.match(utilsSource,/modalPreviousFocus/);
+assert.match(utilsSource,/e\.key!==['"]Tab['"]/);
+for(const arquivo of ['crm.js','crm.css']){
+  assert.ok(indexSource.includes(arquivo),arquivo+' precisa ser carregado pelo index.');
+  assert.ok(buildSource.includes("'"+arquivo+"'"),arquivo+' precisa entrar no build fechado.');
+  assert.ok(serviceWorkerSource.includes("'./"+arquivo+"'"),arquivo+' precisa funcionar offline.');
+}
+assert.match(crmCssSource,/var\(--r-/,'O CRM precisa usar os raios do design system.');
+
+/* --- Etapa 2: base pública, SEO e marca --- */
+for(const coluna of ['descricao_publica','cidade_sede','uf_sede','marca_tema','logo_path']){
+  assert.match(vitrineSeoMarcaSource,new RegExp('add column if not exists '+coluna),
+    `A identidade pública precisa persistir ${coluna}.`);
+}
+assert.match(vitrineSeoMarcaSource,/marca_tema in \('floresta','oceano','terracota','grafite'\)/,
+  'A marca usa paletas aprovadas, não cor arbitrária.');
+assert.match(vitrineSeoMarcaSource,/create or replace function public\.listar_vitrine_sitemap_publico\(\)/);
+assert.match(vitrineSeoMarcaSource,/i\.status='ativo'/,
+  'O sitemap só pode receber anúncios ativos.');
+assert.match(vitrineSeoMarcaSource,/p\.logo_path=p_path/,
+  'A borda só serve a logo que o perfil público registrou.');
+assert.match(vitrineSeoMarcaSource,/create or replace function public\.salvar_logo_vitrine/);
+const publicaSeo=vitrineSeoMarcaSource.slice(
+  vitrineSeoMarcaSource.indexOf('create or replace function public.listar_vitrine_publica_v2'),
+  vitrineSeoMarcaSource.indexOf('create or replace function public.listar_vitrine_sitemap_publico')
+);
+assert.doesNotMatch(publicaSeo,/observacao_privada|observacaoPrivada/,
+  'Marca e SEO não podem reintroduzir observação privada na API pública.');
+assert.match(vitrineSource,/function vitrineRotaPublica\(/);
+assert.match(vitrineSource,/function normalizarRotaVitrinePublica\(/,
+  'Links antigos precisam ser normalizados sem quebrar favoritos existentes.');
+assert.match(vitrineSource,/function atualizarSeoVitrine\(/);
+assert.match(vitrineSource,/function vitrineJsonLd\(/);
+assert.doesNotMatch(vitrineSource,/link\.href=location\.href/,
+  'Canonical não pode copiar busca, ordem e outros filtros cosméticos.');
+assert.match(supabaseSource,/salvar_logo_vitrine/);
+assert.match(appSource,/VITRINE_MARCA_TEMAS/);
+assert.match(appSource,/handleVitrineLogoFile/);
+for(const id of ['vit_total_andares','vit_ano_construcao','vit_endereco_modo','vit_disponivel_em',
+  'vit_indice_reajuste','vit_obs_privada']){
+  assert.ok(vitrineSource.includes('id="'+id+'"'),`O formulário administrativo precisa ter ${id}.`);
+}
+assert.match(vitrineSource,/function vitrineTriSelect\(/,
+  'Sim, não e não informado precisam ser escolhas distintas no formulário.');
+assert.match(vitrineSource,/comodidadeCodigos:marcados/);
+assert.match(vitrineSource,/documentacao:VITRINE_DOCUMENTOS\.map/);
+/* O campo de andar fica no HTML e só é escondido: trocar casa por
+   apartamento no meio do cadastro tem de mostrá-lo sem reabrir o modal. */
+assert.match(vitrineSource,/id="vit_andar_wrap"/,
+  'O campo de andar precisa de um invólucro com id para ser mostrado ao trocar o tipo.');
+assert.match(vitrineSource,/andarWrap\.hidden=!vitrineTemAndar\(tipo\)/,
+  'Trocar o tipo tem de mostrar ou esconder o andar na hora.');
 /* Foco visível e alvo de toque, como no resto do app. */
 assert.match(vitrineCssSource,/\.vitrine-card:focus-visible/);
 assert.match(vitrineCssSource,/pointer:coarse[\s\S]{0,240}var\(--toque\)/,
@@ -3663,7 +4110,7 @@ assert.match(serviceWorkerSource,/\.\/vitrine\.js/);
 assert.match(serviceWorkerSource,/\.\/vitrine\.css/);
 /* O mapa precisa dos ladrilhos liberados no CSP. */
 const headersSource = await readFile(join(root,'_headers'),'utf8');
-assert.match(headersSource,/img-src[^;]*tile\.openstreetmap\.org/);
+assert.match(headersSource,/img-src[^;]*https:\/\/tile\.openstreetmap\.org/);
 /* Leaflet vem do cdnjs, que o CSP já confiava para o jsPDF: nenhum
    domínio novo foi aberto para scripts. */
 assert.doesNotMatch(headersSource,/script-src[^;]*unpkg/);
@@ -3973,8 +4420,44 @@ assert.match(
 );
 assert.match(
   maintenanceSource,
-  /id:existing\?existing\.id:\(expenseData\?newOperationId\(\):''\)/
+  /id:existing\?existing\.id:newOperationId\(\)/
 );
+assert.match(maintenanceSource,/tenantId:existing\?existing\.tenantId:''/);
+assert.match(supabaseSource,/sb\.rpc\('criar_chamado_manutencao'/);
+assert.match(
+  supabaseSource,
+  /missingOptionalRpc\(res\.error\)[\s\S]{0,220}inquilino_id:null/
+);
+const createMaintenanceBlock=sqlFunctionBlock(
+  phase0CorrectionSource,'criar_chamado_manutencao'
+);
+assert.match(createMaintenanceBlock,/pode_escrever_vistoria_chamado\(v_owner,v_ator\)/i);
+assert.match(createMaintenanceBlock,/select \* into v_row from public\.chamados c where c\.id=p_id/i);
+assert.match(createMaintenanceBlock,/p_id,v_owner,p_imovel_id,null/i);
+
+/* Apagar tudo e transacional no banco. O navegador nunca remove arquivos
+   antes do commit nem tenta contornar RLS com uma lista local de tabelas. */
+assert.match(supabaseSource,/sb\.rpc\('apagar_dados_operacionais_conta'\)/);
+const wipeAdapter=supabaseSource.slice(
+  supabaseSource.indexOf('async wipeAll()'),
+  supabaseSource.indexOf('\n  }\n};',supabaseSource.indexOf('async wipeAll()'))
+);
+assert.doesNotMatch(wipeAdapter,/\.from\([^)]*\)\.delete\(/);
+assert.ok(
+  wipeAdapter.indexOf("sb.rpc('apagar_dados_operacionais_conta')")<
+    wipeAdapter.indexOf('removeStoragePaths(paths)'),
+  'O commit do banco deve acontecer antes da limpeza de arquivos.'
+);
+const wipeSqlBlock=sqlFunctionBlock(
+  phase0CorrectionSource,'apagar_dados_operacionais_conta'
+);
+assert.match(wipeSqlBlock,/v_ator<>v_owner/i);
+for(const table of [
+  'chamados','vistorias','financeiro_recebimentos','financeiro_cobrancas',
+  'vitrine_imoveis','proprietarios_clientes','imoveis','inquilinos'
+]){
+  assert.match(wipeSqlBlock,new RegExp('delete\\s+from\\s+public\\.'+table+'\\b','i'));
+}
 assert.match(
   maintenanceSource,
   /button\.onclick=function\(\)[\s\S]{0,100}saveMaintenanceCall\(houseId,item\.id,'confirmado'\)/

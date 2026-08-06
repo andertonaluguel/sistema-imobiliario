@@ -457,9 +457,18 @@
 .rental-app .house-card{
   border-color:var(--rent-line);border-left-width:1px;border-radius:var(--r-lg);padding:18px;
   box-shadow:var(--rent-shadow-small);
+  /* A tarja é filha do cartão e ia até a borda; com o raio dela e o do
+     cartão ligeiramente fora de fase, ela sobrava por cima da linha e
+     dava a impressão de estar saltando para fora. Recortar no cartão
+     resolve na raiz — a tarja passa a terminar exatamente onde o
+     cartão termina. */
+  overflow:hidden;
 }
 .rental-app .house-card::before{
-  content:"";display:block;height:5px;margin:-18px -18px 15px;border-radius:var(--r-lg) var(--r-lg) 0 0;background:#A4B2AB;
+  /* 3px em vez de 5: é sinal de situação, não título. Quatro cartões
+     lado a lado com faixa grossa viram quatro tarjas competindo com o
+     nome do imóvel. */
+  content:"";display:block;height:3px;margin:-18px -18px 15px;border-radius:0;background:#A4B2AB;
 }
 .rental-app .house-card.tab-brass::before{background:var(--rent-gold);}
 .rental-app .house-card.tab-rust::before{background:var(--rent-danger);}

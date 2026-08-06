@@ -101,6 +101,11 @@
   --warn:#D99A0E; --warn-soft:#FBEFC2; --warn-deep:#8A6300;
   --slate-soft:#E7E9E4;
   --manut:#3E6B8A; --manut-soft:#DCE7ED;
+  /* Confiança na vitrine: o visto de validação e a estrela da nota.
+     Ficam fora da paleta da marca de propósito — são convenção que a
+     pessoa já traz de fora, e reconhecer vem antes de combinar. */
+  --visto:#1D8AE0; --visto-ink:#FFFFFF;
+  --estrela:#E0A21D;
   --cover-muted:#B9CCC3;
   --accent-on-cover:#E2BE78;
   --accent-contrast:#14322A;

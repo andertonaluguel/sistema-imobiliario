@@ -21,3 +21,8 @@ Thumbs.db
 
 # Pasta de trabalho temporaria
 tmp/
+
+# Estado local da CLI do Supabase (criado por `supabase link`).
+# Nao contem senha, mas e estado desta maquina: aponta para o projeto
+# linkado aqui e nao faz sentido para quem clonar o repositorio.
+supabase/.temp/

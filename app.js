@@ -55,7 +55,15 @@ const state = {
   vitrinePublicMode: false,
   vitrinePublic: null,
   vitrineDetalheId: null,
-  vitrineFiltros: {busca:'',tipo:'',quartos:0,faixa:'',bairro:'',ordem:'destaque',extras:[]},
+  /* null = ainda não perguntamos ao banco; [] = perguntamos e não há
+     ninguém para este inquilino avaliar. A diferença importa: sem ela o
+     portal repetiria a consulta a cada render. */
+  portalResponsaveis: null,
+  portalNotaRascunho: {},
+  /* Formulário da página Anunciar: {caminho, enviado}. */
+  vitrineParceiroModal: null,
+  vitrineFiltros: {busca:'',tipo:'',quartos:0,banheiros:0,suites:0,vagas:0,conservacao:'',
+    faixa:'',precoMin:'',precoMax:'',areaMin:'',areaMax:'',bairro:'',responsavelId:'',categoria:'',ordem:'destaque',extras:[]},
   vitrine: {anunciantes:[],imoveis:[],leads:[],taxas:[],cidades:[],carregado:false},
   /* Página pública da Vitrine: cidade escolhida e aba alugar/vender. */
   vitrinePubCidade: '',
@@ -63,9 +71,33 @@ const state = {
   /* Quantos cartões estão na tela e qual foto está aberta em tela cheia.
      A lista inteira de uma vez pesava dezenas de MB no 4G do interior. */
   vitrinePubLimite: 12,
+  /* Visualizacao da busca publica. O mapa continua sob demanda: escolher
+     Cards ou Lista nao baixa nenhum ladrilho nem inicia o Leaflet. */
+  vitrinePubModo: 'cards',
+  /* Preferencias locais da busca publica. Favoritos e comparacao ficam no
+     aparelho do visitante ate a etapa de conta/CRM; a gaveta e a tabela sao
+     apenas estado de interface. */
+  vitrineFavoritos: [],
+  vitrineComparacao: [],
+  vitrineComparacaoAberta: false,
+  vitrineComparacaoSoDiferencas: false,
+  vitrineFiltrosMobile: false,
+  vitrineScrollLista: 0,
+  vitrineBuscaModal: false,
+  vitrineBuscasSalvas: [],
+  vitrineRecentes: [],
+  vitrineAlertaModal: null,
+  vitrineVisitaModal: null,
+  vitrineVisitasLocais: [],
   vitrineLightbox: null,
+  vitrineMapaAtivo: false,
   vitrineFotos: {},
   vitrineTab: 'painel',
+  crmBusca: '',
+  crmResponsavel: '',
+  crmOrigem: '',
+  crmDetalheId: '',
+  crmQualidadePeriodo: 7,
   offlineMode: false,
   offlineSavedAt: '',
   uiMode: loadUiMode(),
@@ -102,7 +134,7 @@ const state = {
   casaBusca: '', casaFiltro: 'todas',
   /* ordem: 'nome' | 'vencimento' | 'valor' | 'situacao'
      visao:  'cartoes' | 'lista'  — com 30 casas o cartão inviabiliza */
-  casaOrdem: 'atencao', casaVisao: 'cartoes',
+  casaOrdem: 'atencao', casaVisao: 'cartoes', inqVisao: 'cartoes',
   inqBusca: '', inqFiltro: 'todos',
   /* Central de Pendências: os filtros são de tela, não de banco —
      a lista inteira é calculada a cada render. */
@@ -438,8 +470,12 @@ function sidebarPageGroup(appKey){
       ['commercial','Visão Comercial','irClientes()','&#9670;',true]
     ] };
   }
-  /* Vitrine mantém a navegação interna do próprio conteúdo (não é
-     redesenhada nesta etapa): sem lista de páginas na barra. */
+  /* A Vitrine tem doze áreas. Em abas horizontais elas quebravam em
+     duas linhas e empurravam o conteúdo para baixo; na barra lateral
+     cabem inteiras, com o mesmo desenho das outras áreas do app. */
+  if(appKey==='vitrine'&&typeof vitrineNavItems==='function'){
+    return { label:'Vitrine', items:vitrineNavItems() };
+  }
   return { label:appDisplayName(appKey), items:[] };
 }
 function sidebarNavButton(item,active,kind){
@@ -937,6 +973,22 @@ function renderUserThemeSwitch(){
 }
 function cancelConfigModal(){ applyAppTheme(loadLocalUserTheme()); closeModal(); }
 function returnFromConfigToMenu(){ applyAppTheme(loadLocalUserTheme()); openMenuModal(); }
+const VITRINE_MARCA_TEMAS=[
+  {id:'floresta',nome:'Floresta',cores:['#14322A','#C39A5A','#F7F6F2']},
+  {id:'oceano',nome:'Oceano',cores:['#123B57','#2F7D8C','#F4F8FA']},
+  {id:'terracota',nome:'Terracota',cores:['#6E2F25','#C97954','#FBF5EF']},
+  {id:'grafite',nome:'Grafite',cores:['#252A2D','#737B80','#F7F7F5']}
+];
+function renderVitrineMarcaTemas(selected){
+  const atual=selected||'floresta';
+  return '<div class="vitrine-brand-options" role="radiogroup" aria-label="Paleta da Vitrine">'+
+    VITRINE_MARCA_TEMAS.map(function(t){
+      return '<label class="vitrine-brand-option"><input type="radio" name="f_public_brand" value="'+t.id+'"'+
+        (t.id===atual?' checked':'')+'><span><i aria-hidden="true">'+
+        t.cores.map(function(c){return '<b style="background:'+c+'"></b>';}).join('')+
+        '</i><strong>'+esc(t.nome)+'</strong></span></label>';
+    }).join('')+'</div>';
+}
 function openConfigModal(){
   if(!canAdministerAccount()){showToast('Sua função não permite alterar as configurações do app.','error');return;}
   const cfg = state.config||{};
@@ -953,6 +1005,13 @@ function openConfigModal(){
        diz quem está falando — e sem isso não se anuncia em plataforma
        de publicidade nenhuma. */
     '<label class="field"><span>CRECI (opcional)</span><input id="f_public_creci" maxlength="30" value="'+esc(owner.creci||'')+'" placeholder="CRECI-PE 00000-F"></label>'+
+    '<label class="field"><span>Descrição pública</span><textarea id="f_public_description" maxlength="320" rows="3" placeholder="O que diferencia sua imobiliária e sua região de atendimento">'+esc(owner.descricao_publica||'')+'</textarea></label>'+
+    '<div class="field-row"><label class="field"><span>Cidade-sede</span><input id="f_public_city" maxlength="120" value="'+esc(owner.cidade_sede||'')+'"></label>'+
+    '<label class="field"><span>UF</span><input id="f_public_uf" maxlength="2" value="'+esc(owner.uf_sede||'')+'" placeholder="PE"></label></div>'+
+    '<div class="field"><span>Identidade visual</span>'+renderVitrineMarcaTemas(owner.marca_tema||'floresta')+'</div>'+
+    '<div class="vitrine-brand-logo"><div><strong>Logo da Vitrine</strong><small>'+(owner.logo_path?'Logo personalizada enviada.':'Usando o símbolo padrão do aplicativo.')+'</small></div>'+
+      '<div><button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById(\'vitrineLogoInput\').click()">'+(owner.logo_path?'Trocar logo':'Enviar logo')+'</button>'+
+      (owner.logo_path?'<button type="button" class="btn btn-ghost btn-sm" onclick="removerVitrineLogo()">Remover</button>':'')+'</div></div>'+
     (owner.slug_publico?'<button class="btn btn-ghost" onclick="copyPublicLink()">Copiar link dos anúncios</button>':''):'';
   openModal(
     '<h3 class="modal-title">Configurações do app</h3>'+
@@ -987,11 +1046,20 @@ async function saveConfig(){
       const profile={slug:document.getElementById('f_public_slug').value.trim().toLowerCase(),
         nome:document.getElementById('f_public_name').value.trim(),
         contato:document.getElementById('f_public_contact').value.trim(),
-        creci:creciEl?creciEl.value.trim():''};
+        creci:creciEl?creciEl.value.trim():'',
+        descricao:document.getElementById('f_public_description').value.trim(),
+        cidadeSede:document.getElementById('f_public_city').value.trim(),
+        ufSede:document.getElementById('f_public_uf').value.trim().toUpperCase(),
+        marcaTema:(document.querySelector('input[name="f_public_brand"]:checked')||{}).value||'floresta'};
+      if(profile.ufSede&&!/^[A-Z]{2}$/.test(profile.ufSede))throw new Error('Informe a UF com duas letras, por exemplo PE.');
       await db.savePublicProfile(profile);
       state.ownerProfile.slug_publico=profile.slug;state.ownerProfile.nome_publico=profile.nome;
       state.ownerProfile.contato_publico=profile.contato.replace(/\D/g,'');
       state.ownerProfile.creci=profile.creci;
+      state.ownerProfile.descricao_publica=profile.descricao;
+      state.ownerProfile.cidade_sede=profile.cidadeSede;
+      state.ownerProfile.uf_sede=profile.ufSede;
+      state.ownerProfile.marca_tema=profile.marcaTema;
     }
     state.config = cfg;
     applyAppTheme(loadLocalUserTheme());
@@ -1000,6 +1068,29 @@ async function saveConfig(){
     render();
     showToast('Dados salvos.', 'success');
   }catch(e){ console.error(e); showToast((e&&e.message)||'Erro ao salvar. Tente novamente.', 'error'); }
+}
+
+async function handleVitrineLogoFile(file){
+  if(!state.isPrimaryOwner){showToast('Somente o proprietário principal pode alterar a marca.','error');return;}
+  try{
+    if(!/^image\/(jpeg|png|webp)$/i.test(file.type||'')||file.size>8*1024*1024){
+      throw new Error('Use uma imagem JPG, PNG ou WebP de até 8 MB.');
+    }
+    const blob=await compressImage(file,640,0.86);
+    const result=await db.saveVitrineLogoFile(blob,(state.ownerProfile&&state.ownerProfile.logo_path)||'');
+    state.ownerProfile.logo_path=result.path;
+    state.ownerProfile.logo_url=result.url;
+    openConfigModal();
+    showToast('Logo da Vitrine atualizada.','success');
+  }catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível enviar a logo.','error');}
+}
+async function removerVitrineLogo(){
+  if(!state.isPrimaryOwner)return;
+  try{
+    await db.removeVitrineLogo((state.ownerProfile&&state.ownerProfile.logo_path)||'');
+    state.ownerProfile.logo_path='';state.ownerProfile.logo_url='';
+    openConfigModal();showToast('Logo removida.','success');
+  }catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível remover a logo.','error');}
 }
 
 /* ---------- backup e zona de risco ---------- */
@@ -1011,7 +1102,7 @@ function openBackupCenterModal(){
   openModal('<h3 class="modal-title">Backup</h3>'+
     '<p class="modal-text">'+(canManage?'Exporte, importe e restaure seus dados em um só lugar.':'Baixe uma cópia dos dados ou consulte o histórico. Sua função não permite importar nem restaurar.')+'</p>'+
     '<div class="form-section-title">Exportação externa no seu aparelho</div>'+
-    '<p class="modal-text">Inclui os dados da área de aluguéis, fotos de imóveis, documentos e fotos de energia disponíveis. Ainda não inclui vistorias, fotos de chamados, convites nem acessos do Portal; uma substituição incompatível é bloqueada antes de apagar dados. A importação pelo navegador aceita arquivos de até 200 MB. Última exportação: <strong>'+esc(lastLabel)+'</strong>.</p>'+
+    '<p class="modal-text">Inclui os dados da área de aluguéis e a fundação da Vitrine: cidades, proprietários, anúncios, condições, comodidades e documentação estruturada. Também inclui fotos de imóveis, documentos e fotos de energia disponíveis. Ainda não inclui fotos, leads e taxas da Vitrine, vistorias, fotos de chamados, convites nem acessos do Portal; uma substituição incompatível é bloqueada antes de apagar dados. A importação pelo navegador aceita arquivos de até 200 MB. Última exportação: <strong>'+esc(lastLabel)+'</strong>.</p>'+
     '<div class="menu-list"><button class="btn btn-primary" onclick="doExportBackup()">Baixar exportação externa</button>'+
     (canManage?'<button class="btn btn-ghost" onclick="triggerImport()">Importar arquivo de backup</button>':'')+'</div>'+
     '<div class="form-section-title">Backups automáticos</div>'+
@@ -1331,12 +1422,20 @@ async function resetAll(){
     const auth=await sb.auth.signInWithPassword({email:email,password:password});
     if(auth.error){showToast('Senha incorreta. Os dados não foram apagados.','error');return;}
     await db.wipeAll();
-    state.houses=[]; state.tenants=[]; state.interests=[]; state.eventos=[]; state.photoCache={}; state.documentCache={}; state.tenantAccess=[];
+    state.houses=[]; state.tenants=[]; state.interests=[]; state.eventos=[];
+    state.owners=[]; state.team=[]; state.tenantAccess=[];
+    state.photoCache={}; state.documentCache={};
+    state.vitrine={anunciantes:[],imoveis:[],leads:[],taxas:[],cidades:[],carregado:false};
+    state.vitrineFotos={};
     closeModal();
     state.view='dashboard';
     render();
     showToast('Dados apagados.', 'success');
-  }catch(e){ console.error(e); showToast('Erro ao apagar. Tente novamente.', 'error'); }
+  }catch(e){
+    console.error(e);
+    const migrationPending=e&&/correcao segura de Apagar tudo/i.test(e.message||'');
+    showToast(migrationPending?e.message:'Erro ao apagar. Tente novamente.', 'error');
+  }
 }
 
 /* ---------- render principal ---------- */
@@ -1361,7 +1460,12 @@ function renderFullScreen(html){ _shellSignature=null; return html; }
 function render(){
   const app = document.getElementById('app');
   setTimeout(anunciarTela, 0);
-  if(state.vitrinePublicMode){app.innerHTML=renderFullScreen(renderVitrinePublicaPage());return;}
+  if(state.vitrinePublicMode){
+    app.innerHTML=renderFullScreen(renderVitrinePublicaPage());
+    if(typeof prepararModalVitrinePublica==='function')setTimeout(prepararModalVitrinePublica,0);
+    if(typeof prepararVitrinePublicaAposRender==='function')setTimeout(prepararVitrinePublicaAposRender,0);
+    return;
+  }
   if(state.publicMode){app.innerHTML=renderFullScreen(renderPublicListingsPage());return;}
   if(state.recovery){ app.innerHTML=renderFullScreen(renderRecoveryScreen()); return; }
   if(!state.session){ app.innerHTML=renderFullScreen(renderAuthScreen()); return; }
@@ -1457,7 +1561,9 @@ function buildMainShell(viewHtml){
 async function boot(){
   const params=new URLSearchParams(location.search);
   /* Vitrine pública: sem login, sem sessão, sem carregar nada do app. */
-  const vitrineSlug=(params.get('vitrine')||'').trim();
+  const vitrineSlug=(typeof vitrineSlugDaUrlPublica==='function'
+    ?vitrineSlugDaUrlPublica()
+    :(params.get('vitrine')||'').trim());
   if(vitrineSlug && typeof bootVitrinePublica==='function'){
     await bootVitrinePublica(vitrineSlug);
     return;

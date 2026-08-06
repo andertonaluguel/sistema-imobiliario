@@ -101,6 +101,20 @@ function renderTenantCard(t){
 /* busca + filtro de inquilinos */
 function setInqBusca(v){ state.inqBusca = v; aplicarFiltroInq(); }
 function setInqFiltro(f){ state.inqFiltro = f; aplicarFiltroInq(); }
+/* Cartão ou lista, igual a Imóveis. Com nove pessoas o cartão já pede
+   rolagem; com trinta, comparar quem está sem casa vira caça ao tesouro.
+   Só troca a classe do contêiner — o HTML de cada inquilino é o mesmo,
+   então nada re-renderiza e a busca não perde o foco. */
+function setInqVisao(v){
+  state.inqVisao = v;
+  const grid = document.getElementById('inqGrid');
+  if(grid) grid.classList.toggle('house-grid-list', v==='lista');
+  document.querySelectorAll('#inqToolbar .casa-visao-opcao').forEach(function(b){
+    const ativo = b.getAttribute('data-visao')===v;
+    b.classList.toggle('active', ativo);
+    b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+  });
+}
 function aplicarFiltroInq(){
   const grid = document.getElementById('inqGrid');
   if(!grid) return;
@@ -143,8 +157,17 @@ function renderInquilinosView(){
           (canViewSensitiveTenantData()?'Nome, contato, CPF completo, imóvel ou contrato…':'Nome, contato, imóvel ou contrato…')+
           '" value="'+esc(state.inqBusca||'')+'" oninput="setInqBusca(this.value)"></div>'+
       '<div class="filter-chips">'+chips+'</div>'+
+      '<div class="casa-visao" role="group" aria-label="Forma de exibir os inquilinos">'+
+        '<button class="btn btn-ghost casa-visao-opcao'+(state.inqVisao!=='lista'?' active':'')+'" data-visao="cartoes" '+
+          'aria-pressed="'+(state.inqVisao!=='lista')+'" aria-label="Ver em cartões" title="Cartões" '+
+          'onclick="setInqVisao(\'cartoes\')"><span aria-hidden="true">▦</span></button>'+
+        '<button class="btn btn-ghost casa-visao-opcao'+(state.inqVisao==='lista'?' active':'')+'" data-visao="lista" '+
+          'aria-pressed="'+(state.inqVisao==='lista')+'" aria-label="Ver em lista" title="Lista" '+
+          'onclick="setInqVisao(\'lista\')"><span aria-hidden="true">☰</span></button>'+
+      '</div>'+
     '</div>';
-  const grid = '<div class="house-grid" id="inqGrid">'+state.tenants.map(renderTenantCard).join('')+'</div>'+
+  const grid = '<div class="house-grid'+(state.inqVisao==='lista'?' house-grid-list':'')+'" id="inqGrid">'+
+      state.tenants.map(renderTenantCard).join('')+'</div>'+
     '<div class="empty-state" id="inqEmpty" style="display:none">Nenhum inquilino encontrado com esse filtro.</div>';
   return header + toolbar + grid;
 }

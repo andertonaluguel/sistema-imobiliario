@@ -214,26 +214,187 @@ a{color:inherit;}
 
    Nada de HTML diferente: só a classe do contêiner muda, então
    alternar não redesenha nada e a busca não perde o foco.
+
+   Especificidade proposital: `.house-grid.house-grid-list` (0,2,0) e
+   `… .house-card` (0,3,0). Mais adiante neste arquivo e no
+   aluguel-ui.css existem `.house-grid` e `.rental-app .house-card`,
+   que ganhariam da versão de classe única e deixavam a lista presa
+   no desenho de cartão.
    -------------------------------------------------------------------- */
-.house-grid-list{grid-template-columns:1fr;gap:var(--s-2);}
-.house-grid-list .house-card{
-  display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) auto;
+.house-grid.house-grid-list{grid-template-columns:1fr;gap:var(--s-2);}
+
+/* A linha, da esquerda para a direita:
+   nome+endereço · inquilino · próxima ação · valores · situação.
+   Cada peça recebe coluna e linha explícitas porque no HTML elas
+   não vêm nessa ordem (a etiqueta de situação nasce logo depois do
+   nome, dentro de .house-card-top). */
+.house-grid.house-grid-list .house-card{
+  position:relative;overflow:hidden;
+  display:grid;
+  grid-template-columns:minmax(0,1.7fr) minmax(0,1.2fr) minmax(0,1.8fr) minmax(0,1.5fr) minmax(88px,auto);
   align-items:center;gap:var(--s-3);
+  min-height:0;
   padding:var(--s-3) var(--s-4);
+  border-left-width:1px;
 }
+/* A faixa colorida do cartão é um ::before de fluxo normal — dentro
+   de um grid ela viraria mais uma célula e empurrava tudo de lugar.
+   Na linha ela vira a tarja da borda esquerda. */
+/* Na lista a tarja é a borda esquerda da linha. Mesma lógica do cartão:
+   3px, e recortada pelo raio do próprio cartão em vez de tentar imitar
+   o raio por conta própria — era o desencontro entre os dois raios que
+   fazia a tarja saltar da linha. */
+.house-grid.house-grid-list .house-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;
+  width:3px;height:auto;margin:0;border-radius:0;
+  background:var(--ink-faint);
+}
+.house-grid.house-grid-list .house-card.tab-brass::before{background:var(--brass);}
+.house-grid.house-grid-list .house-card.tab-rust::before{background:var(--rust);}
+.house-grid.house-grid-list .house-card.tab-warn::before{background:var(--warn);}
+.house-grid.house-grid-list .house-card.tab-slate::before{background:var(--ink-faint);}
+.house-grid.house-grid-list .house-card.tab-manut::before{background:var(--manut);}
+/* linha não pula ao passar o mouse: em lista o deslocamento vertical
+   embaralha a leitura das colunas */
+.house-grid.house-grid-list .house-card:hover{transform:none;}
+
 .house-grid-list .house-card-top{display:contents;}
-.house-grid-list .house-name{font-size:var(--t-md);}
-/* na lista, o que é detalhe do cartão sai de cena: features,
-   fotos e blocos de apoio. O essencial — nome, inquilino, valor
-   e situação — continua visível. */
+.house-grid-list .house-card-top>div{grid-column:1;grid-row:1;min-width:0;}
+.house-grid-list .chip{grid-column:5;grid-row:1;justify-self:end;}
+.house-grid-list .house-card-tenant{grid-column:2;grid-row:1;min-width:0;}
+.house-grid-list .rent-tenant-home{grid-column:3;grid-row:1;min-width:0;}
+.house-grid-list .house-card-values,
+.house-grid-list .simple-house-value{grid-column:4;grid-row:1;min-width:0;}
+
+/* na lista, o que é detalhe do cartão sai de cena: características,
+   compatibilidades e botões de ação. O essencial — nome, inquilino,
+   próxima ação, valor e situação — continua visível. */
 .house-grid-list .house-features,
-.house-grid-list .house-lead-matches,
+.house-grid-list .house-lead-match,
 .house-grid-list .house-card-actions,
-.house-grid-list .house-photo-strip{display:none;}
-.house-grid-list .chip{justify-self:end;}
-@media(max-width:640px){
-  .house-grid-list .house-card{grid-template-columns:minmax(0,1fr) auto;}
+.house-grid-list .simple-house-actions{display:none;}
+
+/* tudo em uma linha só: o que não couber é cortado com reticências,
+   e não empilhado, senão as colunas deixam de se alinhar entre as casas */
+.house-grid-list .house-name{font-size:var(--t-md);}
+.house-grid-list .house-name,
+.house-grid-list .house-address,
+.house-grid-list .house-card-tenant strong,
+.house-grid-list .rent-tenant-home{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+.house-grid-list .house-card-tenant{padding:7px var(--s-3);}
+.house-grid-list .rent-tenant-home{min-height:0;padding:8px var(--s-3);}
+.house-grid-list .house-card-values>div{padding:7px 9px;}
+.house-grid-list .simple-house-value{padding:7px var(--s-3);}
+.house-grid-list .simple-house-value strong{font-size:var(--t-md);}
+
+/* estreitando, as colunas de apoio saem antes das essenciais */
+@media(max-width:1180px){
+  .house-grid.house-grid-list .house-card{
+    grid-template-columns:minmax(0,1.7fr) minmax(0,1.2fr) minmax(0,1.5fr) minmax(88px,auto);
+  }
+  .house-grid-list .rent-tenant-home{display:none;}
+  .house-grid-list .house-card-values,
+  .house-grid-list .simple-house-value{grid-column:3;}
+  .house-grid-list .chip{grid-column:4;}
+}
+@media(max-width:900px){
+  .house-grid.house-grid-list .house-card{
+    grid-template-columns:minmax(0,1.6fr) minmax(0,1.4fr) minmax(88px,auto);
+  }
+  .house-grid-list .house-card-tenant{display:none;}
+  .house-grid-list .house-card-values,
+  .house-grid-list .simple-house-value{grid-column:2;}
+  .house-grid-list .chip{grid-column:3;}
+}
+/* ---------- inquilinos em lista --------------------------------------
+   O cartão de inquilino usa as mesmas classes de contêiner (.house-grid
+   / .house-card), então herda a linha de graça — mas o conteúdo dele é
+   outro: avatar, nome+telefone, onde mora, situação do portal. Estas
+   regras colocam cada peça na coluna certa.
+
+   Ordem no HTML: [avatar, nome+telefone] dentro de .rent-tenant-head,
+   depois a etiqueta, depois onde mora, depois o rodapé do portal. */
+.house-grid-list .rent-tenant-head{display:contents;}
+.house-grid-list .rent-tenant-avatar{grid-column:1;grid-row:1;width:38px;height:38px;font-size:var(--t-md);}
+.house-grid-list .rent-tenant-head>div{grid-column:2;grid-row:1;min-width:0;}
+.house-grid-list .rent-tenant-home{grid-column:3;grid-row:1;}
+.house-grid-list .rent-tenant-portal{
+  grid-column:4;grid-row:1;margin-top:0;padding-top:0;border-top:0;min-width:0;
+}
+.house-grid-list .rent-tenant-card .chip{grid-column:5;grid-row:1;}
+.house-grid.house-grid-list .house-card.rent-tenant-card{
+  grid-template-columns:auto minmax(0,1.5fr) minmax(0,1.6fr) minmax(0,1.5fr) minmax(88px,auto);
+}
+.house-grid-list .rent-tenant-portal span{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--t-xs);
+}
+/* Em lista o "· Acesso individual" é detalhe que não cabe na coluna. */
+.house-grid-list .rent-tenant-portal small{display:none;}
+@media(max-width:1180px){
+  .house-grid.house-grid-list .house-card.rent-tenant-card{
+    grid-template-columns:auto minmax(0,1.6fr) minmax(0,1.6fr) minmax(88px,auto);
+  }
+  .house-grid-list .rent-tenant-portal{display:none;}
+  .house-grid-list .rent-tenant-card .chip{grid-column:4;}
+}
+@media(max-width:900px){
+  .house-grid.house-grid-list .house-card.rent-tenant-card{
+    grid-template-columns:auto minmax(0,1.6fr) minmax(88px,auto);
+  }
+  .house-grid-list .rent-tenant-home{display:none;}
+  .house-grid-list .rent-tenant-card .chip{grid-column:3;}
+}
+@media(max-width:640px){
+  .house-grid.house-grid-list .house-card.rent-tenant-card{
+    grid-template-columns:auto minmax(0,1fr) auto;
+  }
+  .house-grid-list .rent-tenant-card .chip{grid-column:3;grid-row:1;}
+}
+
+/* mais abaixo, em telas pequenas, a caixa de valores quebra em duas
+   linhas para caber no cartão. Na lista ela tem a largura da linha
+   inteira e continua deitada. */
+@media(max-width:720px){
+  .house-grid-list .house-card-values{grid-template-columns:1fr 1fr 1.12fr;}
+  .house-grid-list .house-card-values.no-energy{grid-template-columns:1fr 1.12fr;}
+  .house-grid-list .house-card-values .house-total{grid-column:auto;border-top:0;}
+  .house-grid-list .house-card-values>div:nth-child(2){border-right:1px solid var(--line);}
+  .house-grid-list .house-card-values>div:last-child{border-right:0;}
+}
+@media(max-width:640px){
+  .house-grid.house-grid-list .house-card{
+    grid-template-columns:minmax(0,1fr) auto;row-gap:var(--s-2);
+  }
+  .house-grid-list .chip{grid-column:2;}
+  .house-grid-list .house-card-values,
+  .house-grid-list .simple-house-value{grid-column:1/3;grid-row:2;}
+}
+
+/* ---------- portal: avaliar quem administra --------------------------
+   Fica no fim da aba Contrato porque é ali que a relação está descrita.
+   O botão só acende com uma nota escolhida: comentário sem estrela não
+   é avaliação, é recado. */
+.portal-avaliacao .panel-title{margin:var(--s-1) 0 var(--s-2);}
+.portal-aval-item{
+  padding:var(--s-3) 0;border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:var(--s-2);
+}
+.portal-aval-item strong{font-family:var(--font-display);font-size:var(--t-md);}
+.portal-aval-estrelas{display:flex;gap:var(--s-1);}
+.portal-aval-estrela{
+  min-width:var(--toque);min-height:var(--toque);
+  padding:0;border:0;background:none;cursor:pointer;
+  font-size:26px;line-height:1;color:var(--line);
+}
+.portal-aval-estrela.on{color:var(--estrela);}
+.portal-aval-item textarea{
+  width:100%;padding:10px var(--s-3);
+  border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--paper);font:inherit;font-size:var(--t-sm);resize:vertical;
+}
+.portal-aval-acoes{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);}
 
 /* ---------- portal: o que está em aberto ----------------------------- */
 .portal-aberto .alert-badge{margin-left:var(--s-2);}
@@ -977,6 +1138,9 @@ body{min-width:320px;background:
 .house-lead-match{display:flex;align-items:center;gap:5px;width:max-content;max-width:100%;padding:5px 9px;border:1px solid var(--line);border-radius:var(--r-full);background:var(--card);color:var(--ink-soft);font-size:var(--t-xs)}.house-lead-match.has-matches{border-color:#E2C987;background:#FFF8E6;color:#7A571D}.house-lead-match span{font-size:12px}.house-lead-match strong{font:700 var(--t-xs) var(--font-mono)}
 
 .form-section-title{margin:20px 0 10px;padding-top:14px;border-top:1px solid var(--line);font:700 var(--t-xs) var(--font-display);letter-spacing:.4px;color:var(--ink)}
+.form-details{margin:14px 0;padding:0 14px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--paper)}
+.form-details>summary{cursor:pointer;padding:14px 2px;font:700 var(--t-sm) var(--font-display);color:var(--ink)}
+.form-details[open]>summary{border-bottom:1px solid var(--line);margin-bottom:4px}
 .feature-check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-2);margin-bottom:14px}.feature-check-grid .field-check,.feature-check-grid>label{display:flex;align-items:center;gap:var(--s-2);margin:0;padding:10px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--paper);font-size:11px;font-weight:600;color:var(--ink)}.feature-check-grid input{width:16px;height:16px;accent-color:var(--cover)}
 .field-check>span{display:flex;flex-direction:column;gap:2px}.field-check>span small{color:var(--ink-soft);font-size:var(--t-xs);font-weight:400;line-height:1.35}.module-toggle{margin-top:18px}.house-energy-settings{padding:13px;border:1px solid var(--brass);border-radius:var(--r-md);background:var(--brass-soft)}.house-energy-settings .field-check{background:transparent;border:0;padding:0}.house-energy-settings .field{margin-bottom:0}
 .house-description-intro{display:flex;flex-direction:column;gap:var(--s-1);margin-bottom:15px}.house-description-intro strong{font:700 14px var(--font-display)}.house-description-intro span{font-size:var(--t-xs);line-height:1.45;color:var(--ink-soft)}
@@ -1065,3 +1229,14 @@ body{min-width:320px;background:
 /* Histórico de alterações: lista longa, então rola dentro do modal em vez
    de empurrar os botões para fora da tela. */
 .audit-list{max-height:52vh;overflow-y:auto}
+.vitrine-brand-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-2);margin-top:var(--s-2);}
+.vitrine-brand-option input{position:absolute;opacity:0;pointer-events:none;}
+.vitrine-brand-option>span{display:flex;align-items:center;gap:var(--s-2);min-height:46px;padding:var(--s-2);border:2px solid var(--line);border-radius:var(--r-md);cursor:pointer;}
+.vitrine-brand-option input:checked+span{border-color:var(--brass);background:var(--brass-soft);}
+.vitrine-brand-option input:focus-visible+span{outline:3px solid var(--brass);outline-offset:2px;}
+.vitrine-brand-option i{display:flex;overflow:hidden;width:54px;height:24px;border-radius:var(--r-sm);}
+.vitrine-brand-option i b{flex:1;}
+.vitrine-brand-logo{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:var(--s-3);margin:var(--s-3) 0;border:1px solid var(--line);border-radius:var(--r-md);background:var(--paper);}
+.vitrine-brand-logo small{display:block;color:var(--ink-soft);margin-top:2px;}
+.vitrine-brand-logo>div:last-child{display:flex;gap:var(--s-2);flex-wrap:wrap;}
+@media(max-width:560px){.vitrine-brand-options{grid-template-columns:1fr}.vitrine-brand-logo{align-items:flex-start;flex-direction:column}}

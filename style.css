@@ -1269,3 +1269,17 @@ body{min-width:320px;background:
 .vitrine-brand-logo small{display:block;color:var(--ink-soft);margin-top:2px;}
 .vitrine-brand-logo>div:last-child{display:flex;gap:var(--s-2);flex-wrap:wrap;}
 @media(max-width:560px){.vitrine-brand-options{grid-template-columns:1fr}.vitrine-brand-logo{align-items:flex-start;flex-direction:column}}
+
+/* ---------- alvo de toque no celular ----------------------------------
+   A Vitrine já cresce seus controles em (pointer:coarse); o resto do app
+   ficou de fora e manteve botões de 28 a 34px, que o dedo erra. Estes
+   nascem com width/height fixos, então min-width tem de vir junto do
+   min-height — só a altura levanta o alvo pela metade.
+   Escopo em (pointer:coarse): no computador, com mouse, nada muda. */
+@media (pointer:coarse){
+  .modal-x,
+  .icon-action,
+  .cal-nav button,
+  .year-switcher button,
+  .month-switcher button{min-width:var(--toque);min-height:var(--toque);}
+}

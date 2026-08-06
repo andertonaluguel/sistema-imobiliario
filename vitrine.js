@@ -2550,6 +2550,71 @@ function voltarVitrineDaPrivacidade(){
 function toggleVitrineFiltrosMobile(aberto){const novo=aberto===undefined?!state.vitrineFiltrosMobile:!!aberto;if(novo)lembrarFocoVitrinePublica();state.vitrineFiltrosMobile=novo;render();if(!novo)restaurarFocoVitrinePublica();}
 
 /* ---------- entrada por cidade ---------- */
+/* ------------------------------------------------------------
+   ARTE DO HERÓI
+
+   Um mapa de cidade desenhado em SVG, quase fundido no verde da marca.
+   Feito à mão em vez de foto por três razões: não pesa no carregamento
+   (é texto), não envelhece quando o imóvel da foto aluga, e não depende
+   de ninguém subir imagem.
+
+   A opacidade é baixa de propósito — é textura, não ilustração. Se der
+   para "ver o mapa" à primeira vista, está forte demais e rouba o
+   título.
+   ------------------------------------------------------------ */
+function vitrineArteCidade(){
+  /* O monumento de Lajedo, em traço, no verde da marca — arte enviada
+     pelo próprio dono do site.
+
+     Vai como <img> e não inline: são 330 KB de path, que dentro do
+     vitrine.js viriam junto em toda navegação. Como arquivo, o
+     navegador guarda em cache uma vez e pronto.
+
+     `alt` vazio e aria-hidden: é decoração. Quem usa leitor de tela
+     não ganha nada ouvindo "monumento" antes do título. */
+  return '<img class="vh-arte" src="/vitrine-lajedo.svg" alt="" aria-hidden="true" '+
+    'loading="lazy" decoding="async">';
+}
+const VITRINE_HERO_TIPOS=[
+  ['casa','Casas','⌂'],['apartamento','Apartamentos','▤'],
+  ['comercial','Pontos comerciais','▥'],['terreno','Terrenos','◱'],['chacara','Chácaras','✦']
+];
+/* A cidade que o herói representa: a primeira com imóvel. Enquanto
+   houver uma só, é sempre ela. */
+function vitrineCidadesComImovel(){
+  return (((state.vitrinePublic||{}).cidades)||[]).filter(function(c){
+    return (Number(c.totalAlugar)||0)+(Number(c.totalVender)||0)>0;
+  });
+}
+function vitrineCidadePrincipal(){
+  const cidades=((state.vitrinePublic||{}).cidades)||[];
+  return cidades.find(function(c){
+    return (Number(c.totalAlugar)||0)+(Number(c.totalVender)||0)>0;
+  })||cidades[0]||null;
+}
+function marcarFinalidadeHero(btn){
+  const grupo=btn.parentNode;
+  grupo.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b===btn);});
+}
+function vitrineIrParaLista(extra){
+  const c=vitrineCidadePrincipal();
+  if(c) state.vitrinePubCidade=String(c.id);
+  state.vitrineDetalheId=null;
+  state.vitrinePubLimite=VITRINE_PAGINA;
+  Object.assign(state.vitrineFiltros,extra||{});
+  gravarFiltrosNaUrl(true);render();
+  window.scrollTo({top:0,behavior:'auto'});
+}
+function buscarNaVitrine(ev){
+  if(ev&&ev.preventDefault)ev.preventDefault();
+  const termo=(document.getElementById('vh_termo')||{}).value||'';
+  const fim=document.querySelector('.vh-busca-fim button.on');
+  state.vitrinePubFinalidade=(fim&&fim.getAttribute('data-fim')==='vender')?'vender':'alugar';
+  vitrineIrParaLista({busca:termo.trim(),tipo:'',categoria:''});
+}
+function buscarTipoNaVitrine(tipo){
+  vitrineIrParaLista({tipo:tipo,categoria:'',busca:''});
+}
 function renderVitrineCidadesPublicas(dados){
   const cidades=(dados.cidades||[]).slice().sort(function(a,b){
     return (a.ordem-b.ordem)||String(a.nome).localeCompare(String(b.nome),'pt-BR');
@@ -2558,42 +2623,44 @@ function renderVitrineCidadesPublicas(dados){
   const total=imoveis.length;
   const contato=String(perfil.contato||'').replace(/\D/g,'');
   const wa=contato?'https://wa.me/'+(contato.length<=11?'55'+contato:contato):'';
+  /* A cidade principal é o assunto da tela. Enquanto houver uma só,
+     perguntar "qual cidade?" é obstáculo: a pessoa escolhe entre uma
+     opção. O herói fala de Lajedo e a busca leva direto à lista. */
+  const principal=cidades.find(function(c){
+    return (Number(c.totalAlugar)||0)+(Number(c.totalVender)||0)>0;
+  })||cidades[0]||null;
+  const nomeCidade=principal?principal.nome:(perfil.cidadeSede||'');
   return '<main class="vitrine-cidades-page">'+
-    '<section class="vitrine-cidades-hero" aria-labelledby="vitrineHeroTitulo"><div class="vitrine-cidades-hero-copy">'+
-      '<span class="eyebrow">IMÓVEIS ESCOLHIDOS PARA VOCÊ</span>'+
-      '<h2 id="vitrineHeroTitulo">Seu próximo endereço pode estar mais perto do que imagina.</h2>'+
-      '<p>'+esc(perfil.descricao||'Encontre casas, apartamentos, pontos comerciais e terrenos com informações claras e atendimento de perto.')+'</p>'+
-      '<div class="vitrine-cidades-hero-acoes"><button class="btn btn-primary" onclick="document.getElementById(\'cidadesAtendidas\').scrollIntoView({behavior:\'smooth\'})">Escolher uma cidade</button>'+
-        (wa?'<a class="btn btn-ghost" href="'+esc(wa)+'" target="_blank" rel="noopener">Falar com atendimento</a>':'')+
-      '</div><div class="vitrine-cidades-confianca"><span>Atendimento local</span><span>Informações transparentes</span><span>Contato direto</span></div>'+ 
-    /* No lugar da foto grande do imóvel: o começo da busca.
-       A foto era decoração — ocupava a metade nobre da tela, atrasava o
-       carregamento (imagem de 760px na primeira dobra) e mostrava UM
-       imóvel para quem ainda não disse nem em que cidade procura. Aqui
-       a pessoa já responde as três perguntas que o site faz e cai
-       direto no resultado. */
-    '</div><div class="vitrine-cidades-hero-visual">'+
-      '<form class="vitrine-hero-busca" onsubmit="iniciarBuscaVitrine(event)">'+
-        '<span class="eyebrow">COMECE POR AQUI</span>'+
-        '<label class="vhb-campo"><span>Cidade</span>'+
-          '<select id="vhb_cidade">'+cidades.map(function(c){
-            const n=(Number(c.totalAlugar)||0)+(Number(c.totalVender)||0);
-            return '<option value="'+esc(c.id)+'">'+esc(c.nome)+' · '+esc(c.uf)+' ('+n+')</option>';
-          }).join('')+'</select></label>'+
-        '<div class="vhb-linha">'+
-          '<label class="vhb-campo"><span>Quero</span><select id="vhb_fim">'+
-            '<option value="alugar">Alugar</option><option value="vender">Comprar</option></select></label>'+
-          '<label class="vhb-campo"><span>Tipo</span><select id="vhb_cat">'+
-            '<option value="">Todos</option>'+VITRINE_CATEGORIAS.map(function(c){
-              return '<option value="'+c.id+'">'+esc(c.rotulo)+'</option>';
-            }).join('')+'</select></label>'+
-        '</div>'+
-        '<button type="submit" class="vhb-enviar">Ver imóveis</button>'+
-        '<p class="vhb-nota"><strong>'+total+'</strong> imóve'+(total===1?'l':'is')+
-          ' disponíve'+(total===1?'l':'is')+' agora</p>'+
-      '</form>'+
-    '</div></section>'+
-    '<section class="vitrine-cidades-escolha" id="cidadesAtendidas" aria-labelledby="vitrineCidadesTitulo">'+
+    '<section class="vitrine-hero" aria-labelledby="vitrineHeroTitulo">'+
+      vitrineArteCidade()+
+      '<div class="vh-conteudo">'+
+        '<span class="eyebrow">'+(nomeCidade?esc(nomeCidade.toUpperCase())+(principal&&principal.uf?' · '+esc(principal.uf):''):'IMÓVEIS E TERRENOS')+'</span>'+
+        '<h2 id="vitrineHeroTitulo">Imóveis para alugar e comprar'+(nomeCidade?' em '+esc(nomeCidade):'')+'.</h2>'+
+        '<p>'+esc(perfil.descricao||'Casas, apartamentos, pontos comerciais, terrenos e chácaras — com informações claras e atendimento de perto.')+'</p>'+
+        '<form class="vh-busca" onsubmit="buscarNaVitrine(event)">'+
+          '<div class="vh-busca-campo">'+
+            '<i aria-hidden="true">⌕</i>'+
+            '<input id="vh_termo" placeholder="Bairro, rua ou código do imóvel" aria-label="Buscar por bairro, rua ou código">'+
+          '</div>'+
+          '<div class="vh-busca-fim" role="group" aria-label="O que você procura">'+
+            '<button type="button" class="on" data-fim="alugar" onclick="marcarFinalidadeHero(this)">Alugar</button>'+
+            '<button type="button" data-fim="vender" onclick="marcarFinalidadeHero(this)">Comprar</button>'+
+          '</div>'+
+          '<button type="submit" class="vh-busca-enviar">Ver imóveis</button>'+
+        '</form>'+
+        '<div class="vh-tipos">'+VITRINE_HERO_TIPOS.map(function(t){
+          return '<button type="button" onclick="buscarTipoNaVitrine(\''+t[0]+'\')">'+
+            '<span aria-hidden="true">'+t[2]+'</span>'+esc(t[1])+'</button>';
+        }).join('')+'</div>'+
+        '<div class="vh-selos"><span>Atendimento local</span><span>Informações transparentes</span><span>Contato direto</span>'+
+          (wa?'<a href="'+esc(wa)+'" target="_blank" rel="noopener">Falar no WhatsApp</a>':'')+'</div>'+
+      '</div>'+
+    '</section>'+
+    /* Cidade vazia na lista é promessa que o site não cumpre. Enquanto
+       houver uma só com imóvel, a escolha de cidade não aparece: o
+       herói já disse qual é. */
+    (vitrineCidadesComImovel().length>1
+      ? '<section class="vitrine-cidades-escolha" id="cidadesAtendidas" aria-labelledby="vitrineCidadesTitulo">'+
     '<div class="vitrine-cidades-intro"><span class="eyebrow">ONDE VOCÊ QUER MORAR OU INVESTIR?</span><h2 id="vitrineCidadesTitulo">Escolha uma cidade</h2>'+
       '<p>Veja apenas os imóveis da região que interessa a você.</p></div>'+
     '<div class="vitrine-cidades-grid">'+cidades.map(function(c){
@@ -2610,7 +2677,8 @@ function renderVitrineCidadesPublicas(dados){
           (vender?'<i class="venda">'+vender+' à venda</i>':'')+
           (vazia?'<i class="vazio">em breve</i>':'')+
         '</span><span class="vitrine-cidade-abrir">Ver imóveis <b aria-hidden="true">→</b></span></span></button>';
-    }).join('')+'</div></section>'+ 
+    }).join('')+'</div></section>'
+      : '')+ 
     '<section class="vitrine-cidades-ajuda"><div><span class="eyebrow">ATENDIMENTO HUMANO</span><h2>Não encontrou o que procura?</h2><p>Conte para a gente o tipo de imóvel, a faixa de valor e a região. Avisamos quando aparecer uma opção compatível.</p></div>'+
       (wa?'<a class="btn btn-primary" href="'+esc(wa)+'" target="_blank" rel="noopener">Conversar no WhatsApp</a>':'')+
     '</section></main>';
@@ -2695,20 +2763,6 @@ function setVitrineCategoria(id){
 /* O "Trocar" da lateral de filtros abria a tela de cidades e a pessoa
    perdia filtro e rolagem. Agora ele abre a mesma lista suspensa do
    topo — uma escolha só, um jeito só de fazê-la. */
-/* As três escolhas do herói viram estado de uma vez só — um render, e
-   a pessoa já chega na lista filtrada em vez de na lista inteira. */
-function iniciarBuscaVitrine(ev){
-  if(ev&&ev.preventDefault)ev.preventDefault();
-  const v=function(id){const e=document.getElementById(id);return e?e.value:'';};
-  state.vitrinePubFinalidade=v('vhb_fim')==='vender'?'vender':'alugar';
-  state.vitrineFiltros.categoria=v('vhb_cat')||'';
-  state.vitrineFiltros.tipo='';
-  state.vitrinePubCidade=v('vhb_cidade')||'';
-  state.vitrineDetalheId=null;
-  state.vitrinePubLimite=VITRINE_PAGINA;
-  gravarFiltrosNaUrl(true);render();
-  window.scrollTo({top:0,behavior:'auto'});
-}
 function escolherCidadeVitrine(id){
   if(window._vitrineMapaResultados){try{window._vitrineMapaResultados.remove();}catch(e){}window._vitrineMapaResultados=null;}
   state.vitrinePubCidade=String(id||'');
@@ -2780,8 +2834,11 @@ function renderVitrineTopoPublico(perfil,dados){
       /* O rótulo diz para onde leva, não o nome da seção. Na entrada do
          site a escolha é a cidade; imóvel só existe depois dela. Chamar
          de "Imóveis" ali prometia uma lista que ainda não há. */
+      /* "Cidades" só faz sentido quando há mais de uma. Com uma só,
+         escolher cidade é escolher entre uma opção — e o rótulo
+         prometia uma tela que não vale a viagem. */
       '<button onclick="irParaImoveisVitrine()">'+
-        (state.vitrinePubCidade?'Imóveis':'Cidades')+'</button>'+
+        ((!state.vitrinePubCidade&&vitrineCidadesComImovel().length>1)?'Cidades':'Imóveis')+'</button>'+
       /* Quem tem imóvel para colocar está no meio de quem procura imóvel.
          O link fica no topo, marcado, porque é a única coisa aqui que
          fala com o outro lado do balcão. */

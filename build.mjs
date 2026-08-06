@@ -53,6 +53,7 @@ const publicFiles = [
   'icon-512.png',
   'icon-maskable-512.png',
   'apple-touch-icon.png',
+  'vitrine-lajedo.svg',
   'marketing/landing-page/index.html',
   'marketing/landing-page/styles.css',
   'marketing/landing-page/config.js',

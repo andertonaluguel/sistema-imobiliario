@@ -3959,8 +3959,18 @@ assert.match(vitrineSource,/VITRINE_MAPA_TILES='https:\/\/tile\.openstreetmap\.o
   'A URL dos ladrilhos precisa seguir a política atual do OpenStreetMap.');
 assert.doesNotMatch(vitrineSource,/https:\/\/\{s\}\.tile\.openstreetmap\.org/,
   'O endereço antigo com subdomínios não deve voltar.');
-assert.match(vitrineSource,/endereço pode estar mais perto/,
-  'A entrada por cidades precisa ter apresentação pública, não só uma grade administrativa.');
+/* A entrada precisa ter apresentacao publica, nao uma grade
+   administrativa. O teste checava a frase do titulo antigo — trocar a
+   copy quebrava o teste sem quebrar nada de verdade. Agora ele checa a
+   ESTRUTURA: heroi, arte de fundo, busca e atalho por tipo. */
+assert.match(vitrineSource,/<section class="vitrine-hero"/,
+  'A entrada precisa de um heroi de apresentacao.');
+assert.match(vitrineSource,/function vitrineArteCidade\(\)/,
+  'O heroi tem arte de fundo propria, sem depender de foto enviada.');
+assert.match(vitrineSource,/class="vh-busca"/,
+  'O heroi precisa da busca: e a primeira acao de quem chega.');
+assert.match(vitrineSource,/VITRINE_HERO_TIPOS/,
+  'O heroi precisa do atalho por tipo de imovel.');
 /* A lateral de filtros era `position:fixed; top:78px; bottom:0`. Fixed
    nao sabe onde o conteudo termina: ao rolar ate o fim ela passava por
    cima do rodape, e o top de 78px (altura do cabecalho) deixava uma

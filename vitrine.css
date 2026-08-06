@@ -1594,3 +1594,116 @@
 .resp-foto-acoes{display:flex;gap:var(--s-2);margin-top:var(--s-2);flex-wrap:wrap;}
 /* No anúncio público a foto ocupa o mesmo círculo das iniciais. */
 .vitrine-resp-avatar.is-foto{object-fit:cover;}
+
+/* ============================================================
+   HERÓI DA ENTRADA — uma cidade
+   Verde da marca com um mapa desenhado por baixo, quase fundido.
+   Textura, não ilustração: se der para "ver o mapa" de cara, está
+   forte demais e rouba o título.
+   ============================================================ */
+.vitrine-hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  border-radius:var(--r-xl);
+  background:var(--cover);color:var(--cover-text);
+}
+/* O monumento de Lajedo. Ancorado à direita: à esquerda mora o texto,
+   e desenho atrás de título é desenho que atrapalha a leitura. É o
+   vazio da direita que dá lugar para ele aparecer.
+
+   `object-fit:cover` com `object-position:right` garante que o corte,
+   quando houver, coma o lado esquerdo do desenho — nunca o monumento. */
+.vh-arte{
+  position:absolute;inset:0 0 0 34%;z-index:-1;
+  width:auto;height:100%;
+  object-fit:cover;object-position:right center;
+  opacity:.9;pointer-events:none;
+}
+/* Emenda com o verde do herói: sem isto aparece a borda reta da
+   imagem cortando o fundo. */
+.vitrine-hero::after{
+  content:'';position:absolute;z-index:-1;inset:0 66% 0 0;
+  background:linear-gradient(90deg,var(--cover) 55%,transparent);
+  pointer-events:none;
+}
+@media(max-width:900px){
+  /* No celular o texto ocupa tudo: a arte vira fundo inteiro, bem mais
+     apagada, para não brigar com a leitura. */
+  .vh-arte{inset:0;width:100%;opacity:.32;object-position:center;}
+  .vitrine-hero::after{inset:0;background:linear-gradient(180deg,var(--cover) 20%,transparent 70%);}
+}
+
+.vh-conteudo{
+  display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-3);
+  max-width:720px;padding:clamp(var(--s-5),5vw,64px);
+}
+.vh-conteudo>.eyebrow{color:var(--accent-on-cover);}
+.vh-conteudo h2{
+  margin:0;max-width:14ch;
+  font:700 clamp(30px,4.4vw,52px)/1.05 var(--font-display);letter-spacing:-1.5px;
+}
+.vh-conteudo>p{margin:0;max-width:52ch;color:var(--cover-muted);line-height:1.55;}
+
+/* A busca: um campo, a finalidade e o botão. Numa linha no desktop,
+   empilhada no celular. */
+.vh-busca{
+  display:flex;flex-wrap:wrap;gap:var(--s-2);width:100%;margin-top:var(--s-2);
+  padding:var(--s-2);border-radius:var(--r-xl);
+  background:color-mix(in srgb,var(--card) 14%,transparent);
+  border:1px solid color-mix(in srgb,var(--cover-text) 22%,transparent);
+}
+.vh-busca-campo{
+  flex:1 1 240px;display:flex;align-items:center;gap:var(--s-2);
+  min-height:48px;padding:0 var(--s-3);
+  border-radius:var(--r-lg);background:var(--card);
+}
+.vh-busca-campo i{font-style:normal;color:var(--ink-soft);font-size:var(--t-md);}
+.vh-busca-campo input{
+  flex:1;min-width:0;border:0;background:none;color:var(--ink);
+  font:inherit;font-size:var(--t-sm);
+}
+.vh-busca-campo input:focus{outline:none;}
+.vh-busca-fim{display:flex;gap:3px;padding:3px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--cover-text) 12%,transparent);}
+.vh-busca-fim button{
+  min-height:42px;padding:0 var(--s-4);border:0;border-radius:var(--r-md);
+  background:transparent;color:var(--cover-muted);
+  font:600 var(--t-sm) var(--font-body);cursor:pointer;
+}
+.vh-busca-fim button.on{background:var(--card);color:var(--cover);}
+.vh-busca-enviar{
+  flex:0 0 auto;min-height:48px;padding:0 var(--s-5);
+  border:0;border-radius:var(--r-lg);cursor:pointer;
+  background:var(--accent-on-cover);color:var(--accent-contrast);
+  font:700 var(--t-md) var(--font-display);
+}
+.vh-busca-enviar:hover{filter:brightness(1.08);}
+
+/* Faixa de tipos: o atalho para quem já sabe o que quer. */
+.vh-tipos{display:flex;flex-wrap:wrap;gap:var(--s-2);margin-top:var(--s-1);}
+.vh-tipos button{
+  display:inline-flex;align-items:center;gap:7px;
+  min-height:38px;padding:0 var(--s-3);
+  border:1px solid color-mix(in srgb,var(--cover-text) 26%,transparent);
+  border-radius:var(--r-full);background:transparent;color:var(--cover-text);
+  font:600 var(--t-xs) var(--font-body);cursor:pointer;
+}
+.vh-tipos button span{font-size:var(--t-md);color:var(--accent-on-cover);}
+.vh-tipos button:hover{background:color-mix(in srgb,var(--cover-text) 12%,transparent);}
+
+.vh-selos{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-3);margin-top:var(--s-2);}
+.vh-selos span{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:var(--t-xs);color:var(--cover-muted);
+}
+.vh-selos span::before{content:'✓';color:var(--accent-on-cover);font-weight:700;}
+.vh-selos a{font-size:var(--t-xs);color:var(--accent-on-cover);font-weight:600;}
+
+@media(max-width:640px){
+  .vh-conteudo{padding:var(--s-5) var(--s-4);}
+  .vh-busca{flex-direction:column;}
+  /* Empilhada, a busca vira coluna — e o `flex:1` que fazia o campo
+     crescer na LARGURA passa a fazê-lo crescer na ALTURA. Sem isto o
+     campo vira um retângulo branco de 240px. */
+  .vh-busca-campo{flex:0 0 auto;width:100%;}
+  .vh-busca-fim,.vh-busca-enviar{width:100%;}
+  .vh-busca-fim button{flex:1;}
+}

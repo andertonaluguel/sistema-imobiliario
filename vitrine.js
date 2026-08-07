@@ -1950,7 +1950,11 @@ function atualizarSeoVitrine(){
   let descricao=perfil.descricao||'';
   if(item){
     const partes=[item.tipo,item.bairro,item.cidade].filter(Boolean);
-    descricao=(partes.join(' em ')+' — '+String(item.descricao||'')).trim().slice(0,160);
+    /* O travessão só entra quando há texto depois dele. Sem isto, imóvel
+       sem descrição virava "comercial em CENTRO em Lajedo —" no resultado
+       de busca: o .trim() tirava o espaço e deixava o traço solto. */
+    const extra=String(item.descricao||'').trim();
+    descricao=(partes.join(' em ')+(extra?' — '+extra:'')).trim().slice(0,160);
   }else{
     const cidade=vitrineCidadePublicaPorId(state.vitrinePubCidade);
     descricao=(descricao||('Imóveis e terrenos'+(cidade?' em '+cidade.nome:'')+' para alugar e comprar.')).slice(0,160);

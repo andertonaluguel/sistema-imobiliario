@@ -3617,7 +3617,14 @@ try{
     new Request('https://site.netlify.app/?vitrine=corretora'),contextoFalso);
   const htmlHome=await resHome.text();
   assert.match(htmlHome,/og:title" content="Corretora do Anderton — imóveis e terrenos/);
-  assert.match(htmlHome,/1 imóveis disponíveis em Lajedo/);
+  /* Concorda com o número: era "1 imóveis disponíveis" no texto que aparece
+     quando alguém cola o link da vitrine numa conversa. */
+  assert.match(htmlHome,/1 imóvel disponível em Lajedo/);
+  assert.doesNotMatch(htmlHome,/1 imóveis/,'O texto compartilhado concorda com o número.');
+  /* Quarto e banheiro só entram quando existem: um ponto comercial
+     anunciava "0 quartos · 0 banheiros" na prévia do WhatsApp. */
+  assert.doesNotMatch(htmlAnuncio,/0 quartos|0 banheiros/,
+    'A prévia não anuncia cômodo que o imóvel não tem.');
 
   const resRota=await edgeMod.default(
     new Request('https://site.netlify.app/vitrine/corretora/imovel/v9/casa-com-quintal/'),contextoFalso);

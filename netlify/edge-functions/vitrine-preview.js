@@ -10,6 +10,9 @@ const ESCAPES={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return ESCAPES[c];});}
 function xml(v){return esc(v);}
 function moeda(v){return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+/* Cópia local do helper de utils.js: esta função roda isolada no edge, sem
+   acesso aos scripts do app. Mesma regra — zero vai para o plural. */
+function plural(n,singular,pluralForma){const v=Number(n)||0;return v+' '+(Math.abs(v)===1?singular:pluralForma);}
 function slugTexto(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,90);}
 function jsonSeguro(v){return JSON.stringify(v).replace(/</g,'\\u003c');}
 
@@ -107,7 +110,13 @@ function dadosSeo(endereco,rota,dados){
     const valor=venda?moeda(item.precoVenda):moeda(item.aluguel)+'/mês';
     titulo=item.titulo+' — '+valor+' · '+nome;
     const partes=[];
-    if(item.tipo!=='terreno')partes.push(item.quartos+' quartos',item.banheiros+' banheiros');
+    /* Só entra o que o imóvel realmente tem. Antes bastava não ser terreno
+       para anunciar "0 quartos · 0 banheiros" — num ponto comercial isso
+       aparecia no WhatsApp de quem recebe o link. */
+    if(item.tipo!=='terreno'){
+      if(Number(item.quartos)>0)partes.push(plural(item.quartos,'quarto','quartos'));
+      if(Number(item.banheiros)>0)partes.push(plural(item.banheiros,'banheiro','banheiros'));
+    }
     if(Number(item.areaM2))partes.push(item.areaM2+' m²');
     if(item.bairro)partes.push(item.bairro);
     if(item.cidade)partes.push(item.cidade);
@@ -123,7 +132,7 @@ function dadosSeo(endereco,rota,dados){
     const acao=rota.finalidade==='vender'?'à venda':'para alugar';
     titulo=(cidade?'Imóveis '+acao+' em '+cidade.nome:nome+' — imóveis e terrenos para alugar e comprar');
     const nomes=cidades.map(function(c){return c.nome;}).filter(Boolean);
-    descricao=(perfil.descricao||((imoveis.length?imoveis.length+' imóveis disponíveis':'Confira os imóveis disponíveis')+
+    descricao=(perfil.descricao||((imoveis.length?plural(imoveis.length,'imóvel disponível','imóveis disponíveis'):'Confira os imóveis disponíveis')+
       (cidade?' em '+cidade.nome:nomes.length?' em '+nomes.join(', '):'.'))).slice(0,160);
     imagem=fotoPublica(endereco.origin,perfil.logoPath||'');
   }

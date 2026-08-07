@@ -410,6 +410,15 @@ function esc(s){
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+/* "venceu há 2 dia(s)" é linguagem de formulário, não de gente. O app já
+   sabe o número na hora de escrever a frase, então pode simplesmente
+   concordar. Devolve número e palavra juntos: plural(1,'dia','dias') dá
+   "1 dia"; plural(0,...) e plural(2,...) dão "0 dias" e "2 dias". */
+function plural(n, singular, pluralForma){
+  const v = Number(n) || 0;
+  return v + ' ' + (Math.abs(v) === 1 ? singular : pluralForma);
+}
+
 /* ---------- bibliotecas externas sob demanda ----------------------------
    jsPDF (356 KB) e Leaflet (144 KB) serviam a dois usos pontuais — gerar
    recibo e abrir mapa — mas vinham no index.html e pesavam em TODA visita,

@@ -108,7 +108,7 @@ function renderMaintenanceTab(h){
   const resolved=calls.filter(function(call){return call.status==='resolvido';}).length;
 
   return '<div class="tab-summary-row">'+
-    '<div>'+active+' em acompanhamento · '+resolved+' resolvido(s)</div>'+
+    '<div>'+active+' em acompanhamento · '+plural(resolved,'resolvido','resolvidos')+'</div>'+
     (mayOperate?'<button class="btn btn-primary btn-sm" onclick="openMaintenanceModal(\''+h.id+'\')">+ Novo chamado</button>':'')+
   '</div>'+
   (calls.length===0

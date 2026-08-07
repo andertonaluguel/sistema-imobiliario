@@ -216,7 +216,7 @@ function openEditInterestModal(id){
       '<p class="modal-text">Sua função permite somente consultar este cadastro.</p>'+
       '<div class="notice-box"><strong>'+esc(item.nome)+'</strong><br>'+esc(item.telefone||'Telefone não informado')+
       '<br>'+esc(interestStatusLabel(item.status))+(item.observacoes?'<br>'+esc(item.observacoes):'')+'</div>'+
-      '<p class="modal-text">'+matches.length+' casa(s) vaga(s) compatível(is).</p>'+
+      '<p class="modal-text">'+plural(matches.length,'casa vaga compatível','casas vagas compatíveis')+'.</p>'+
       '<div class="modal-actions"><span></span><button class="btn btn-primary" onclick="closeModal()">Fechar</button></div>');
     return;
   }

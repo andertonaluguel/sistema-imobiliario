@@ -142,7 +142,7 @@ function renderInquilinosView(){
   const header = '<div class="page-header"><div>'+
       '<div class="eyebrow">MORADORES DOS IMÓVEIS</div>'+
       pageTitleWithIcon(tenantIconSvg(), 'Inquilinos')+
-      '<div class="page-sub">'+state.tenants.length+' pessoa(s) cadastrada(s) · dados pessoais e vínculos organizados separadamente.</div>'+
+      '<div class="page-sub">'+plural(state.tenants.length,'pessoa cadastrada','pessoas cadastradas')+' · dados pessoais e vínculos organizados separadamente.</div>'+
     '</div>'+(canOperateProperties()?'<button class="btn btn-primary btn-sm" onclick="openAddTenantModal()">+ Novo inquilino</button>':'')+'</div>';
   if(state.tenants.length===0){
     return header + emptyState('Nenhum inquilino cadastrado ainda. Cadastre aqui, ou diretamente ao vincular um inquilino a uma casa.', tenantIconSvg());

@@ -708,7 +708,7 @@ function renderFinanceOverview(mes,month){
     '<div class="panel"><div class="panel-title">Resultado por imóvel</div>'+renderMonthlyFinanceTable(month)+'</div>'+
     '<div class="panel"><div class="panel-title">Pendências por vencimento</div><div class="ageing-grid">'+ageing.map(function(bucket){
       return '<div class="ageing-card"><span>'+bucket.label+'</span><strong class="num">'+fmtMoney(bucket.value)+'</strong>'+
-        '<small>'+bucket.count+' imóvel(is)</small></div>';
+        '<small>'+plural(bucket.count,'imóvel','imóveis')+'</small></div>';
     }).join('')+'</div></div>'+
     '<div class="panel"><div class="panel-title">Previsto × recebido nos últimos 12 meses</div>'+renderFinanceCompareChart(chart)+'</div>';
 }
@@ -755,7 +755,7 @@ function renderFinanceExpenses(mes,month){
       '<div class="header-actions">'+renderFinanceMonthSwitcher(mes)+
       (canManageFinance()?'<button class="btn btn-primary btn-sm" onclick="openFinanceExpenseChooser()">Registrar despesa</button>':'')+'</div></div>'+
     '<div class="stat-grid">'+statCard('Despesas em '+monthLabel(mes),fmtMoney(month.expenses),
-      rows.length+' registro(s)',month.expenses?'rust':null)+'</div>'+
+      plural(rows.length,'registro','registros'),month.expenses?'rust':null)+'</div>'+
     '<div class="panel">'+(rows.length?'<div class="ledger">'+rows.map(function(item){
       return '<button class="ledger-row" onclick="openExpenseModal(\''+item.house.id+'\',\''+(item.expense.id||'')+'\')"><div class="ledger-row-main">'+
         esc(item.expense.descricao||'Despesa')+' · '+esc(item.house.nome)+

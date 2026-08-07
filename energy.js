@@ -225,7 +225,7 @@ function renderEnergiaView(){
       statCard('Cobrado',fmtMoney(info.lancado),monthLabel(mes),'warn')+
       statCard('Recebido',fmtMoney(info.recebido),info.lancado?Math.round(info.recebido/info.lancado*100)+'% do cobrado':'sem cobranças','brass')+
       statCard('Consumo',info.kwh.toLocaleString('pt-BR')+' kWh','todos os imóveis',null)+
-      statCard('Leituras pendentes',String(info.leiturasPendentes),info.pagamentosPendentes+' pagamento(s) em aberto',info.leiturasPendentes?'rust':null)+
+      statCard('Leituras pendentes',String(info.leiturasPendentes),plural(info.pagamentosPendentes,'pagamento','pagamentos')+' em aberto',info.leiturasPendentes?'rust':null)+
     '</div>'+
     renderEnergyAnomalias(mes)+
     '<div class="panel"><div class="panel-title">Consumo nos últimos 12 meses</div>'+renderEnergyTrend()+'</div>'+

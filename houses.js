@@ -899,7 +899,7 @@ function openAddHouseModal(){
   if(!requirePropertyPermission())return;
   const access=state.commercialAccess||{},limit=Number(access.limiteCasas)||1;
   if(state.houses.length>=limit){
-    openModal('<h3 class="modal-title">Limite do plano atingido</h3><p class="modal-text">O plano '+esc(commercialPlanLabel(access.plano||'gratuito'))+' permite até <strong>'+limit+' imóvel(is)</strong>. Você já cadastrou '+state.houses.length+'.</p>'+ 
+    openModal('<h3 class="modal-title">Limite do plano atingido</h3><p class="modal-text">O plano '+esc(commercialPlanLabel(access.plano||'gratuito'))+' permite até <strong>'+plural(limit,'imóvel','imóveis')+'</strong>. Você já cadastrou '+state.houses.length+'.</p>'+
       '<p class="modal-hint">Consulte “Meu plano” para revisar o uso e os limites atuais da conta.</p>'+
       '<div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Fechar</button></div>');
     return;

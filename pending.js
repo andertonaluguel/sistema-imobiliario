@@ -80,10 +80,10 @@ function computePendencias(){
     if((g.energiaMeses||[]).length) partes.push(g.energiaMeses.length===1?('energia de '+monthLabel(g.energiaMeses[0])):(g.energiaMeses.length+' meses de energia'));
     if(g.proporcional) partes.push('ajuste inicial do contrato');
     const motivo=g.tipo==='atraso'
-      ? partes.join(' + ')+' — atrasado há '+g.dias+' dia(s)'
+      ? partes.join(' + ')+' — atrasado há '+plural(g.dias,'dia','dias')
       : g.tipo==='tolerancia'
-        ? partes.join(' + ')+' — venceu há '+g.dias+' dia(s), dentro da tolerância de '+(g.toleranciaDias||5)+' dias'
-        : partes.join(' + ')+' — vence em '+g.dias+' dia(s)';
+        ? partes.join(' + ')+' — venceu há '+plural(g.dias,'dia','dias')+', dentro da tolerância de '+plural(g.toleranciaDias||5,'dia','dias')
+        : partes.join(' + ')+' — vence em '+plural(g.dias,'dia','dias');
     itens.push({
       id:'pag-'+g.houseId,
       tipo:parcial?'parcial':'pagamento',
@@ -112,8 +112,8 @@ function computePendencias(){
       prioridade:(vencido||c.nivel==='urgente')?'alta':'media',
       situacao:vencido?'atrasado':'atencao',
       titulo:vencido?'Contrato vencido':'Contrato a vencer',
-      motivo:vencido?('venceu há '+Math.abs(c.dias)+' dia(s)')
-        :c.dias===0?'vence hoje':('vence em '+c.dias+' dia(s)'),
+      motivo:vencido?('venceu há '+plural(Math.abs(c.dias),'dia','dias'))
+        :c.dias===0?'vence hoje':('vence em '+plural(c.dias,'dia','dias')),
       houseId:h.id, imovel:h.nome, pessoa:t?t.nome:'',
       data:h.contratoFim||'', valor:0,
       acaoLabel:mayOperate?'Abrir contrato':'Ver contrato',
@@ -174,7 +174,7 @@ function computePendencias(){
         titulo:call.titulo||'Manutenção',
         motivo:(typeof maintenanceStatusLabel==='function'?maintenanceStatusLabel(status):status)+
           (prazo?(prazoVencido?' · prazo venceu em '+fmtDateBR(prazo):' · prazo '+fmtDateBR(prazo))
-                :(dias>0?' · aberta há '+dias+' dia(s)':' · aberta hoje')),
+                :(dias>0?' · aberta há '+plural(dias,'dia','dias'):' · aberta hoje')),
         houseId:h.id, imovel:h.nome, pessoa:'',
         data:aberturaISO, valor:0,
         acaoLabel:mayOperate?'Abrir manutenção':'Ver manutenção',
@@ -312,7 +312,7 @@ function renderPendenciasResumo(){
   return '<button class="pend-resumo" onclick="irPendencias()">'+
     '<span class="pend-resumo-num num">'+todas.length+'</span>'+
     '<span class="pend-resumo-copy"><strong>Pendências</strong>'+
-      '<small>'+(atrasadas?atrasadas+' atrasada(s)':'nenhuma atrasada')+
+      '<small>'+(atrasadas?plural(atrasadas,'atrasada','atrasadas'):'nenhuma atrasada')+
       (atencao?' · '+atencao+' em atenção':'')+'</small></span>'+
     '<span class="pend-resumo-go" aria-hidden="true">›</span>'+
   '</button>';

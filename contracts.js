@@ -69,7 +69,7 @@ function updateContractFormPreview(){
   root.innerHTML=mode.value==='entrada'
     ? '<strong>Primeiro pagamento:</strong> aluguel completo na entrada; depois, todo dia '+contractBillingDay(draft)+'.'
     : (days
-      ? '<strong>Ajuste inicial:</strong> '+days+' dia(s) × '+fmtMoney(draft.valor/30)+' = <b>'+fmtMoney(amount)+'</b>. Depois, aluguel completo todo dia '+contractBillingDay(draft)+'.'
+      ? '<strong>Ajuste inicial:</strong> '+plural(days,'dia','dias')+' × '+fmtMoney(draft.valor/30)+' = <b>'+fmtMoney(amount)+'</b>. Depois, aluguel completo todo dia '+contractBillingDay(draft)+'.'
       : '<strong>Sem ajuste inicial:</strong> a entrada já coincide com o vencimento.');
 }
 
@@ -159,7 +159,7 @@ function openProrataPaymentModal(houseId,contractId){
   openModal('<h3 class="modal-title">Ajuste inicial do contrato</h3>'+
     '<p class="modal-text">'+esc(h.nome)+' · '+esc(t?t.nome:'Inquilino')+'</p>'+
     '<span class="simple-modal-status '+(overdue?'overdue':'')+'">'+esc(contractProrataStatusLabel(snapshot.status).toUpperCase())+'</span>'+
-    '<p class="modal-hint">'+days+' dia(s) proporcionais. Não há multa nem juros; a tolerância é de 5 dias.</p>'+
+    '<p class="modal-hint">'+plural(days,'dia','dias')+' proporcionais. Não há multa nem juros; a tolerância é de 5 dias.</p>'+
     '<div class="simple-modal-values"><div><span>Previsto</span><strong class="num">'+fmtMoney(snapshot.expected)+'</strong></div>'+
       '<div><span>Recebido</span><strong class="num">'+fmtMoney(snapshot.received)+'</strong></div>'+
       '<div><span>'+(snapshot.credit?'Crédito':'Saldo')+'</span><strong class="num">'+fmtMoney(snapshot.credit||snapshot.remaining)+'</strong></div></div>'+
@@ -373,7 +373,7 @@ function renderContractsTab(h){
     (canOperateProperties()?'<div class="quick-actions"><button class="btn btn-primary btn-sm" onclick="openAssignTenantModal(\''+h.id+'\')">Criar primeiro vínculo</button></div>':'');
   const current=list.filter(function(c){return contractStatusLabel(c)==='ATIVO';});
   const history=list.filter(function(c){return contractStatusLabel(c)!=='ATIVO';});
-  return '<div class="tab-summary-row"><div><strong>'+list.length+'</strong> vínculo(s) preservado(s), incluindo os encerrados</div>'+
+  return '<div class="tab-summary-row"><div><strong>'+list.length+'</strong> '+(list.length===1?'vínculo preservado':'vínculos preservados')+', incluindo os encerrados</div>'+
     (canOperateProperties()&&h.status!=='alugada'?'<button class="btn btn-primary btn-sm" onclick="openAssignTenantModal(\''+h.id+'\')">+ Novo vínculo</button>':'')+'</div>'+
     (current.length
       ? fieldSection(FICO.doc,'Contrato atual')+'<div class="contract-list">'+current.map(function(c){return renderContractCard(h,c);}).join('')+'</div>'

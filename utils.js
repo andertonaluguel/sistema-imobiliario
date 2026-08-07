@@ -390,7 +390,18 @@ function settledPaymentStatus(house,charge,due,graceDays,fallbackPayment){
 
 /* ---------- formatação ---------- */
 function fmtMoney(n){ return (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
-function fmtDateBR(iso){ if(!iso) return '—'; const p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+/* Aceita data ISO e também timestamp ISO completo. Três chamadores já
+   cortavam com .slice(0,10) por saberem que um `2026-08-06T10:00:00Z`
+   virava "06T10:00:00Z/08/2026" — fazendo a checagem aqui, quem chamar
+   amanhã não precisa lembrar. Entrada que não é data devolve travessão em
+   vez de "undefined/undefined/abc". Dia e mês saem sempre com dois
+   dígitos: "2026-1-5" mostrava "5/1/2026" no meio de "06/08/2026". */
+function fmtDateBR(iso){
+  if(!iso) return '—';
+  const p=String(iso).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(!p) return '—';
+  return String(p[3]).padStart(2,'0')+'/'+String(p[2]).padStart(2,'0')+'/'+p[1];
+}
 function maskSensitiveDocument(value){
   const raw=String(value||'').trim();
   if(!raw) return '—';

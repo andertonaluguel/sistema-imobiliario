@@ -1269,6 +1269,22 @@ body{min-width:320px;background:
    nascem com width/height fixos, então min-width tem de vir junto do
    min-height — só a altura levanta o alvo pela metade.
    Escopo em (pointer:coarse): no computador, com mouse, nada muda. */
+/* ---------- texto do usuário não escapa do cartão -------------------------
+   Nome, endereço e observação vêm de quem digita, e nada garante espaço no
+   meio. Um nome longo sem espaço — ou um e-mail, um link colado — media
+   3520px dentro de um cartão de 366px: o texto vazava, era cortado, e o selo
+   de situação ("SEM CASA") era empurrado para fora da tela e sumia.
+
+   `anywhere` em vez de `break-word` de propósito: só o primeiro reduz também
+   a largura mínima do elemento, que é o que devolve o selo para dentro do
+   cartão. Quebra apenas quando a palavra não caberia de outro jeito; texto
+   normal continua quebrando nos espaços. A propriedade é herdada, então
+   marcar o contêiner cobre o conteúdo todo. */
+.house-card,.rent-tenant-card,.ledger-row,.alert-row,.document-row,
+.interest-card,.crm-card,.vitrine-card{
+  overflow-wrap:anywhere;
+}
+
 /* ---------- alvo de toque ------------------------------------------------
    Só em dispositivo de toque — no computador, com ponteiro preciso, 40px é
    confortável e mais denso. Vale para o que se clica; ícone, selo e avatar

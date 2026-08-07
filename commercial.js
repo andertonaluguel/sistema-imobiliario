@@ -223,7 +223,7 @@ async function saveCommercialInvite(){
     telefone:valueOf('com_phone').trim(),documento:valueOf('com_document').trim(),plano:valueOf('com_plan')||'basico',
     valorPago:Number(valueOf('com_value'))||0,formaPagamento:valueOf('com_payment').trim(),referenciaPagamento:valueOf('com_reference').trim(),observacoes:valueOf('com_notes').trim()};
   if(!sale.nome){showToast('Informe o nome do proprietário.','error');return;}
-  if(!sale.email||sale.email.indexOf('@')<1){showToast('Informe um e-mail válido.','error');return;}
+  if(!sale.email||!emailValido(sale.email)){showToast('Informe um e-mail válido.','error');return;}
   const button=document.getElementById('com_save');if(button){button.disabled=true;button.textContent='Salvando…';}
   try{await db.createCommercialSale(sale);closeModal();await refreshCommercialDashboard();showToast(sale.plano==='gratuito'?'Acesso gratuito registrado.':'Venda registrada. Confirme o pagamento para liberar o convite.','success');}
   catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível registrar a venda.','error');if(button){button.disabled=false;button.textContent='Registrar venda';}}
@@ -313,7 +313,7 @@ async function copyCommercialInvite(id){
 }
 
 function openAddPlatformAdminModal(){openModal('<h3 class="modal-title">Adicionar administrador</h3><p class="modal-text">A pessoa precisa criar uma conta gratuita primeiro. Depois, informe o e-mail aqui.</p><label class="field"><span>E-mail</span><input id="platform_admin_email" type="email"></label><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="addPlatformAdmin()">Adicionar</button></div>');}
-async function addPlatformAdmin(){const email=valueOf('platform_admin_email').trim().toLowerCase();if(!email){showToast('Informe o e-mail.','error');return;}try{await db.addPlatformAdmin(email);closeModal();await refreshCommercialDashboard();showToast('Administrador adicionado.','success');}catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível adicionar.','error');}}
+async function addPlatformAdmin(){const email=valueOf('platform_admin_email').trim().toLowerCase();if(!email){showToast('Informe o e-mail.','error');return;}if(!emailValido(email)){showToast('E-mail inválido.','error');return;}try{await db.addPlatformAdmin(email);closeModal();await refreshCommercialDashboard();showToast('Administrador adicionado.','success');}catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível adicionar.','error');}}
 async function removePlatformAdmin(userId){if(!confirm('Remover este administrador da plataforma?'))return;try{await db.removePlatformAdmin(userId);await refreshCommercialDashboard();showToast('Administrador removido.','success');}catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível remover.','error');}}
 
 function exportCommercialClients(){

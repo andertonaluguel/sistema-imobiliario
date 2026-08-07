@@ -188,6 +188,7 @@ function openAddInterestModal(prefill,origemLeadId){
 async function saveNewInterest(origemLeadId){
   if(!requirePropertyPermission())return;
   const item=readInterestForm(); if(!item.nome){showToast('Informe o nome do interessado.','error');return;}
+  if(!emailValido(item.email)){showToast('E-mail inválido. Confira ou deixe em branco.','error');return;}
   try{
     const saved=await db.insertInterest(item,origemLeadId||null);
     const existente=state.interests.find(function(x){return x.id===saved.id;});
@@ -226,6 +227,7 @@ async function saveInterestEdit(id){
   if(!requirePropertyPermission())return;
   const original=state.interests.find(function(x){return x.id===id;}),next=Object.assign({},original,readInterestForm());
   if(!next.nome){showToast('Informe o nome do interessado.','error');return;}
+  if(!emailValido(next.email)){showToast('E-mail inválido. Confira ou deixe em branco.','error');return;}
   try{const saved=await db.updateInterest(next);Object.assign(original,saved||next);if(state.view==='vitrine'&&typeof loadVitrineData==='function')await loadVitrineData(true);closeModal();render();showToast('Interessado atualizado.','success');}
   catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível salvar.','error');}
 }

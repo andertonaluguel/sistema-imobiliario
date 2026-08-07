@@ -267,7 +267,7 @@ async function saveAccountEmail(){
     return;
   }
   const email=((document.getElementById('account_email')||{}).value||'').trim().toLowerCase();
-  if(!email||email.indexOf('@')<1){showToast('Informe um e-mail válido.','error');return;}
+  if(!email||!emailValido(email)){showToast('Informe um e-mail válido.','error');return;}
   const result=await sb.auth.updateUser({email:email},{emailRedirectTo:window.location.origin});
   if(result.error){showToast(traduzAuthErro(result.error.message),'error');return;}
   closeModal();showToast('Confirme a troca pelo link enviado ao novo e-mail.','success');
@@ -865,7 +865,7 @@ async function inviteTeamMember(){
   const nome=((document.getElementById('team_name')||{}).value||'').trim();
   const email=((document.getElementById('team_email')||{}).value||'').trim().toLowerCase();
   const papel=((document.getElementById('team_role')||{}).value||'operacional');
-  if(!nome||!email||email.indexOf('@')<1){showToast('Informe nome e e-mail válidos.','error');return;}
+  if(!nome||!email||!emailValido(email)){showToast('Informe nome e e-mail válidos.','error');return;}
   try{
     await db.inviteTeamMember(nome,email,papel);
     state.team=await db.listTeam();

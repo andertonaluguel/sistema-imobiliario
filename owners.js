@@ -208,6 +208,7 @@ async function saveOwner(id){
   if(!requirePropertyPermission())return;
   const item=readOwnerForm();
   if(item.nome.length<2){showToast('Informe o nome do proprietário.','error');return;}
+  if(!emailValido(item.email)){showToast('E-mail inválido. Confira ou deixe em branco.','error');return;}
   if(item.taxaAdministracao<0||item.taxaAdministracao>100){
     showToast('A taxa de administração vai de 0 a 100%.','error');return;
   }

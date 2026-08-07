@@ -981,7 +981,13 @@
    (residencial/comercial/terreno). Lado a lado porque são a mesma
    decisão para quem chega, e ficam na mesma pílula para ler como um
    conjunto e não como dois filtros soltos. */
-.vitrine-busca-modos{display:flex;gap:var(--s-3);margin-left:auto;flex-wrap:wrap;align-items:center;}
+/* `min-width:0` porque este bloco também é item flex do pai. Item flex nasce
+   com `min-width:auto`, que o proíbe de encolher abaixo do próprio conteúdo:
+   as faixas de finalidade e categoria não quebram linha, então ele esticava
+   para 498px dentro de um pai de 327px. Como nada aqui rola na horizontal,
+   "Comprar", "Comercial" e "Terreno e chácara" ficavam fora da tela no
+   celular, sem jeito de alcançar — e o toque na parte visível caía torto. */
+.vitrine-busca-modos{display:flex;gap:var(--s-3);margin-left:auto;flex-wrap:wrap;align-items:center;min-width:0;}
 .vitrine-categorias{display:flex;gap:6px;padding:4px;border-radius:var(--r-full);background:var(--slate-soft);}
 .vitrine-categorias button{
   display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:8px 15px;
@@ -1173,6 +1179,13 @@
   .vitrine-cidade-barra{padding:12px 14px;}
   .vitrine-finalidade{margin-left:0;width:100%;}
   .vitrine-finalidade button{flex:1;justify-content:center;padding:8px 10px;}
+  /* Quatro categorias com ícone e contador não cabem lado a lado em 327px,
+     e nenhuma das duas faixas rola na horizontal: sem quebrar linha, a
+     última opção fica fora da tela e ninguém alcança.
+     O raio de pílula (999px) só faz sentido numa linha só — em várias vira
+     um bolo arredondado. Ao quebrar, vira raio de bloco. */
+  .vitrine-categorias{flex-wrap:wrap;border-radius:var(--r-lg);}
+  .vitrine-finalidade{flex-wrap:wrap;}
   .vitrine-cidade-row{flex-wrap:wrap;}
 }
 

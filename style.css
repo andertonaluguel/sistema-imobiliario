@@ -53,7 +53,14 @@ a{color:inherit;}
 }
 
 /* ---------- shell ---------- */
-.app-shell{display:flex;flex-direction:column;min-height:100vh;}
+/* 100dvh depois de 100vh, não no lugar dele: quem não conhece a unidade
+   dinâmica ignora a segunda linha e fica com a primeira.
+   No celular, 100vh é a altura COM a barra do navegador escondida. Enquanto
+   essa barra aparece e some durante a rolagem, o shell fica mais alto que a
+   área visível e o conteúdo escorrega sob o dedo — o toque sai no lugar
+   errado. A unidade dinâmica acompanha a área realmente visível.
+   A vitrine.css já usa dvh nos modais; o shell do app tinha ficado de fora. */
+.app-shell{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;}
 .topbar{display:flex;align-items:center;gap:18px;padding:14px 28px;background:var(--cover);color:var(--cover-text);}
 .topbar-brand{display:flex;align-items:center;gap:var(--s-2);background:none;border:none;color:var(--cover-text);}
 .topbar-brand .brand-mark{width:26px;height:26px;flex-shrink:0;color:var(--accent-on-cover);}

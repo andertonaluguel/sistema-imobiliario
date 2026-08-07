@@ -16,7 +16,9 @@
    (cabeçalho enxuto + conteúdo). A barra ocupa toda a altura.
    ------------------------------------------------------------ */
 .app-shell.main-shell{flex-direction:row;align-items:stretch;}
-.app-body{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:100vh;}
+/* Mesma razão do .app-shell em style.css: no celular a barra do navegador
+   aparece e some, e 100vh não acompanha. */
+.app-body{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:100vh;min-height:100dvh;}
 
 /* Cabeçalho enxuto: só a busca geral (e, no celular, o atalho de apps).
    Fica estável ao navegar — só o conteúdo central muda. */

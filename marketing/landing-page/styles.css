@@ -539,3 +539,30 @@ h3 { font-size: 1.25rem; }
   .workflow, .trust { background: #fff; color: #000; }
   .workflow p, .trust p { color: #333 !important; }
 }
+
+/* ---------- alvo de toque no celular ----------------------------------
+   Medido a 375px: "Começar grátis" tinha 40px de altura, "Conhecer o
+   painel" 24px, os links do rodapé 23px e a marca 34px. Esta é a porta de
+   entrada do produto — errar o botão de conversão com o dedo custa caro.
+   Escopado em (pointer:coarse): no computador nada muda. */
+@media (pointer: coarse) {
+  .button,
+  .brand,
+  .inline-cta,
+  .benefit-card a,
+  .nav-menu a,
+  .footer-main nav a,
+  .footer-contact a,
+  .contact-direct a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  /* A marca é ícone + palavra: centralizar sem esticar a linha. */
+  .brand { gap: 8px; }
+  /* `.header-actions .button` (0,2,0) recolocava 40px dentro de
+     max-width:820px e ganhava do seletor de classe única acima — o botão
+     de conversão do topo ficava menor que o dedo justamente no celular.
+     Precisa da mesma especificidade para valer. */
+  .header-actions .button { min-height: 44px; }
+}

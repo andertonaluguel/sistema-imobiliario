@@ -583,6 +583,41 @@ function updateSidebarChrome(){
   }
 }
 
+/* A barra do celular é montada dentro da casca. Quando a casca é
+   reaproveitada — que é o caso de toda navegação entre páginas do mesmo
+   app — ela não é recriada, e o destaque ficava congelado na aba em que a
+   casca nasceu: no celular o marcador não saía de "Resumo".
+   O updateSidebarChrome acima resolve isso para a barra lateral; esta faz
+   o mesmo pela do celular. Reaproveita o próprio renderMobileNav em vez de
+   repetir a regra de "qual item está ativo", que também decide quando a
+   barra deve sumir (ela não aparece em Proprietários, por exemplo). */
+function updateMobileNavChrome(){
+  const shell=document.querySelector('.app-shell.main-shell');
+  if(!shell) return;
+  const atual=shell.querySelector('.mobile-nav');
+  const html=renderMobileNav();
+  if(atual){
+    if(html) atual.outerHTML=html; else atual.remove();
+  } else if(html){
+    shell.insertAdjacentHTML('beforeend',html);
+  }
+}
+
+/* Barra de abas que rola na horizontal (detalhe do imóvel, Minha Casa).
+   Ao trocar de aba o conteúdo é re-renderizado e a barra nasce de novo com
+   scrollLeft zerado: quem tinha rolado até "Documentos" tocava nela, a
+   faixa voltava para o começo e a aba escolhida sumia de vista — parecia
+   que o toque não tinha funcionado. Aqui a aba ativa volta para o campo de
+   visão, centralizada, mexendo só na rolagem da faixa e nunca na da página. */
+function manterAbaAtivaVisivel(){
+  document.querySelectorAll('.tabs,.house-edit-tabs,.rent-tabs,.tabs-pill').forEach(function(barra){
+    if(barra.scrollWidth<=barra.clientWidth+2) return;
+    const ativa=barra.querySelector('.active');
+    if(!ativa) return;
+    barra.scrollLeft=Math.max(0,ativa.offsetLeft-(barra.clientWidth-ativa.offsetWidth)/2);
+  });
+}
+
 /* Conta ativa que ainda não teve nenhum módulo liberado. Sem esta
    tela, a pessoa veria um aplicativo vazio e concluiria que quebrou. */
 function renderSemModulo(){
@@ -1525,11 +1560,13 @@ function render(){
        navegação no lugar. Nada de recriar barra/cabeçalho — sem piscar. */
     viewRoot.innerHTML=renderMainContent(viewHtml);
     updateSidebarChrome();
+    updateMobileNavChrome();
   }
   if(!state.loading && state.session){
     if(state.view==='casas' && typeof aplicarFiltroCasas==='function') aplicarFiltroCasas();
     if(state.view==='inquilinos' && typeof aplicarFiltroInq==='function') aplicarFiltroInq();
     if(typeof fitStatValues==='function') fitStatValues();
+    manterAbaAtivaVisivel();
   }
 }
 /* Assinatura da casca: enquanto igual, a navegação só troca o conteúdo. */

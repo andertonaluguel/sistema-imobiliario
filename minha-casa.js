@@ -646,7 +646,7 @@
       var ehAtual=m.mes===homeState.month;
       return '<div class="mh-fatura-col'+(ehAtual?' is-atual':'')+'" '+
         'title="'+esc(formatMonth(m.mes))+': '+esc(formatMoney(m.total))+
-        (m.nParcelas?' · '+m.nParcelas+' parcela(s)':'')+'">'+
+        (m.nParcelas?' · '+plural(m.nParcelas,'parcela','parcelas'):'')+'">'+
         '<span class="mh-fatura-valor">'+esc(formatMoney(m.total))+'</span>'+
         '<span class="mh-fatura-barra" style="height:'+alt+'%"></span>'+
         '<span class="mh-fatura-mes">'+esc(formatMonth(m.mes))+'</span>'+

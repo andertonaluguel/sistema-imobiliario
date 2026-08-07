@@ -413,7 +413,7 @@ function renderAlerts(o,limit){
       if(temAluguel) partes.push(g.meses.length===1 ? ('aluguel de '+monthLabel(g.meses[0])) : (g.meses.length+' meses de aluguel'));
       if(temEnergia) partes.push(g.energiaMeses.length===1 ? ('energia de '+monthLabel(g.energiaMeses[0])) : (g.energiaMeses.length+' de energia'));
       if(g.proporcional) partes.push('ajuste inicial do contrato');
-      const txt = partes.join(' + ')+' — atrasado há '+g.dias+' dia(s)';
+      const txt = partes.join(' + ')+' — atrasado há '+plural(g.dias,'dia','dias');
       items.push('<div class="alert-row alert-atraso" onclick="'+(isSimpleMode()?'openSimpleHouseSummary(\''+g.houseId+'\')':'openHouse(\''+g.houseId+'\',\''+(temAluguel?'pagamentos':'energia')+'\')')+'">'+
         '<span class="chip">ATRASADO</span>'+
         '<div class="ledger-row-main">'+esc(h.nome)+' — '+txt+'</div>'+
@@ -426,15 +426,15 @@ function renderAlerts(o,limit){
       if(g.proporcional) partes.push('ajuste inicial do contrato');
       items.push('<div class="alert-row alert-tolerancia" onclick="'+(isSimpleMode()?'openSimpleHouseSummary(\''+g.houseId+'\')':'openHouse(\''+g.houseId+'\',\''+(temAluguel?'pagamentos':'energia')+'\')')+'">'+
         '<span class="chip chip-warn">EM TOLERÂNCIA</span>'+
-        '<div class="ledger-row-main">'+esc(h.nome)+' — '+partes.join(' + ')+' venceu há '+g.dias+
-          ' dia(s), dentro da tolerância de '+g.toleranciaDias+' dias, sem multa ou juros</div>'+
+        '<div class="ledger-row-main">'+esc(h.nome)+' — '+partes.join(' + ')+' venceu há '+plural(g.dias,'dia','dias')+
+          ', dentro da tolerância de '+plural(g.toleranciaDias,'dia','dias')+', sem multa ou juros</div>'+
         '<div class="alert-actions">'+btn+registerBtn+'</div>'+
         '<div class="ledger-row-value num warn">'+fmtMoney(g.total)+'</div></div>');
     } else {
       const extra = temEnergia ? ' + energia' : '';
       items.push('<div class="alert-row alert-proximo" onclick="'+(isSimpleMode()?'openSimpleHouseSummary(\''+g.houseId+'\')':'openHouse(\''+g.houseId+'\',\'pagamentos\')')+'">'+
         '<span class="chip">PRÓXIMO</span>'+
-        '<div class="ledger-row-main">'+esc(h.nome)+' — aluguel'+extra+' vence em '+g.dias+' dia(s) ('+monthLabel(g.meses[0])+')</div>'+
+        '<div class="ledger-row-main">'+esc(h.nome)+' — aluguel'+extra+' vence em '+plural(g.dias,'dia','dias')+' ('+monthLabel(g.meses[0])+')</div>'+
         '<div class="alert-actions">'+btn+registerBtn+'</div>'+
         '<div class="ledger-row-value num warn">'+fmtMoney(g.total)+'</div></div>');
     }
@@ -443,8 +443,8 @@ function renderAlerts(o,limit){
   o.contratosVencendo.slice().sort(function(a,b){ return a.dias-b.dias; }).forEach(function(c){
     const h = state.houses.find(function(x){ return x.id===c.houseId; });
     if(!h) return;
-    const situacao = c.dias<0 ? ('vencido há '+Math.abs(c.dias)+' dia(s)')
-      : c.dias===0 ? 'vence hoje' : ('vence em '+c.dias+' dia(s)');
+    const situacao = c.dias<0 ? ('vencido há '+plural(Math.abs(c.dias),'dia','dias'))
+      : c.dias===0 ? 'vence hoje' : ('vence em '+plural(c.dias,'dia','dias'));
     const selo = c.dias<0 ? 'VENCIDO' : c.nivel==='urgente' ? 'RENOVAR JÁ' : 'CONTRATO';
     const tom = c.dias<0 || c.nivel==='urgente' ? 'tab-rust' : 'tab-manut';
     /* Atalho direto para renovar: o aviso sem ação obriga a
@@ -596,7 +596,7 @@ function renderSimpleDashboard(o){
     '</div>'+
     '<div class="stat-grid simple-stat-grid">'+
       statCard('Recebido no mês', fmtMoney(o.recebidoMes + o.energiaRecebida), energyModuleEnabled()?'aluguéis e energia':'aluguéis', 'brass')+
-      statCard('Falta receber', fmtMoney(o.faltaReceber), o.nAtraso?(o.nAtraso+' casa(s) em atraso'):'nenhum atraso', o.faltaReceber>0?'rust':null)+
+      statCard('Falta receber', fmtMoney(o.faltaReceber), o.nAtraso?(plural(o.nAtraso,'casa','casas')+' em atraso'):'nenhum atraso', o.faltaReceber>0?'rust':null)+
     '</div>'+
     '<div class="panel simple-panel">'+
       '<div class="simple-panel-heading"><div><span class="panel-title-inline">Pagamentos para conferir'+(o.nAtraso?'<span class="alert-badge">'+o.nAtraso+'</span>':'')+'</span><small>'+
@@ -617,7 +617,7 @@ function renderOccupancySummary(o){
   const unavailable=o.vagas+o.manutencao;
   const headline=total&&pct===100?'100% das casas estão alugadas':pct+'% das casas estão alugadas';
   const detail=unavailable===0?(o.alugadas+' de '+total+' ocupadas'):
-    (unavailable+' desocupada(s) · '+o.vagas+' vaga(s)'+(o.manutencao?' · '+o.manutencao+' em manutenção':''));
+    (plural(unavailable,'desocupada','desocupadas')+' · '+plural(o.vagas,'vaga','vagas')+(o.manutencao?' · '+o.manutencao+' em manutenção':''));
   return '<div class="occupancy-card"><div class="occupancy-copy"><span>OCUPAÇÃO</span><strong>'+headline+'</strong><small>'+detail+'</small></div>'+
     '<div class="occupancy-meter" role="img" aria-label="'+pct+'% das casas alugadas"><span style="width:'+pct+'%"></span></div></div>';
 }

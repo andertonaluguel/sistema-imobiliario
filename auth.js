@@ -67,8 +67,8 @@ function renderAuthScreen(){
       '<div class="auth-role-line"><span class="auth-role-badge '+(tenant?'tenant':'admin')+'">'+authAccessLabel()+'</span><button onclick="changeAuthAccess()">Trocar acesso</button></div>'+
       '<h1 class="auth-title">'+(tenant?'Criar acesso de inquilino':'Criar conta de administrador')+'</h1>'+ 
       '<p class="auth-sub">'+(tenant?'Use exatamente o e-mail informado ao administrador do imóvel. Esta conta não possui plano de casas.':'Comece com o plano Gratuito de 1 casa. Se recebeu um convite comercial, use exatamente o e-mail liberado.')+'</p>'+ 
-      '<label class="field"><span>E-mail</span><input id="au_email" type="email" autocomplete="email" placeholder="voce@email.com"></label>'+ 
-      '<label class="field"><span>Senha</span><input id="au_pass" type="password" autocomplete="new-password" placeholder="mínimo 8 caracteres, com letra e número"></label>'+ 
+      '<label class="field"><span>E-mail</span><input id="au_email" type="email" autocomplete="email" placeholder="voce@email.com" onkeydown="authEnter(event)"></label>'+ 
+      '<label class="field"><span>Senha</span><input id="au_pass" type="password" autocomplete="new-password" placeholder="mínimo 8 caracteres, com letra e número" onkeydown="authEnter(event)"></label>'+ 
       '<label class="auth-consent"><input id="au_terms" type="checkbox"><span>Li e concordo com os <button type="button" onclick="openPublicTerms()">Termos de Uso e Aviso de Privacidade</button>.</span></label>'+ 
       '<button class="btn btn-primary auth-btn" onclick="doSignUp()">'+(tenant?'Criar acesso de inquilino':'Criar conta')+'</button>'+ 
       '<button class="auth-link" onclick="setAuthView(\'login\')">Já tenho conta — Entrar</button>'
@@ -85,7 +85,7 @@ function renderAuthScreen(){
       '<div class="auth-role-line"><span class="auth-role-badge '+authAccessType+'">'+authAccessLabel()+'</span><button onclick="changeAuthAccess()">Trocar acesso</button></div>'+
       '<h1 class="auth-title">Recuperar senha</h1>'+
       '<p class="auth-sub">Enviamos um link de redefinição para o seu e-mail.</p>'+
-      '<label class="field"><span>E-mail</span><input id="au_email" type="email" autocomplete="email" placeholder="voce@email.com"></label>'+
+      '<label class="field"><span>E-mail</span><input id="au_email" type="email" autocomplete="email" placeholder="voce@email.com" onkeydown="authEnter(event)"></label>'+
       '<button class="btn btn-primary auth-btn" onclick="doSendReset()">Enviar link</button>'+
       '<button class="auth-link" onclick="setAuthView(\'login\')">Voltar para o login</button>'
     );
@@ -94,8 +94,8 @@ function renderAuthScreen(){
     '<div class="auth-role-line"><span class="auth-role-badge '+authAccessType+'">'+authAccessLabel()+'</span><button onclick="changeAuthAccess()">Trocar acesso</button></div>'+
     '<h1 class="auth-title">Entrar como '+authAccessLabel()+'</h1>'+
     '<p class="auth-sub">'+(authAccessType==='tenant'?'Acesse somente seus dados de contrato, pagamentos, energia e arquivos liberados.':'Acesse a gestão de imóveis. A conta Mestre é reconhecida automaticamente.')+'</p>'+
-    '<label class="field"><span>E-mail</span><input id="au_email" type="email" autocomplete="email" placeholder="voce@email.com"></label>'+
-    '<label class="field"><span>Senha</span><input id="au_pass" type="password" autocomplete="current-password" placeholder="sua senha"></label>'+
+    '<label class="field"><span>E-mail</span><input id="au_email" type="email" autocomplete="email" placeholder="voce@email.com" onkeydown="authEnter(event)"></label>'+
+    '<label class="field"><span>Senha</span><input id="au_pass" type="password" autocomplete="current-password" placeholder="sua senha" onkeydown="authEnter(event)"></label>'+
     '<button class="btn btn-primary auth-btn" onclick="doSignIn()">Entrar</button>'+
     '<div class="auth-links">'+
       '<button class="auth-link" onclick="setAuthView(\'reset\')">Esqueci minha senha</button>'+
@@ -108,6 +108,20 @@ function _authInputs(){
   const email = (document.getElementById('au_email')||{}).value || '';
   const pass = (document.getElementById('au_pass')||{}).value || '';
   return { email:email.trim(), pass:pass };
+}
+
+/* Enter envia a tela em que a pessoa está. As telas de acesso são montadas
+   sem <form>, então o envio nativo do Enter não existe: sem isto o botão
+   "Ir" do teclado do celular não faz nada e no computador é preciso
+   alcançar o botão com o mouse. A tela de nova senha vem pelo link do
+   e-mail e não passa por authView — por isso é reconhecida pelo campo. */
+function authEnter(ev){
+  if(ev.key!=='Enter') return;
+  ev.preventDefault();
+  if(document.getElementById('rec_pass')){ doUpdatePassword(); return; }
+  if(authView==='signup'){ doSignUp(); return; }
+  if(authView==='reset'){ doSendReset(); return; }
+  doSignIn();
 }
 
 async function doSignIn(){
@@ -174,8 +188,8 @@ function renderRecoveryScreen(){
   return authShell(
     '<h1 class="auth-title">Definir nova senha</h1>'+
     '<p class="auth-sub">Escolha uma nova senha para a sua conta.</p>'+
-    '<label class="field"><span>Nova senha</span><input id="rec_pass" type="password" autocomplete="new-password" placeholder="mínimo 8 caracteres, com letra e número"></label>'+ 
-    '<label class="field"><span>Repita a nova senha</span><input id="rec_pass2" type="password" autocomplete="new-password" placeholder="repita a senha"></label>'+
+    '<label class="field"><span>Nova senha</span><input id="rec_pass" type="password" autocomplete="new-password" placeholder="mínimo 8 caracteres, com letra e número" onkeydown="authEnter(event)"></label>'+ 
+    '<label class="field"><span>Repita a nova senha</span><input id="rec_pass2" type="password" autocomplete="new-password" placeholder="repita a senha" onkeydown="authEnter(event)"></label>'+
     '<button class="btn btn-primary auth-btn" onclick="doUpdatePassword()">Salvar nova senha</button>'+
     '<button class="auth-link" onclick="cancelRecovery()">Cancelar</button>'
   );

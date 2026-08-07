@@ -83,7 +83,7 @@ function confirmImport(data){
       'Se ele já tiver sido importado aqui, importar de novo <strong>duplica</strong> imóveis, pessoas e lançamentos — e nada vai impedir. Confira antes de continuar.</p>';
   openModal(
     '<h3 class="modal-title">Importar backup?</h3>'+
-    '<p class="modal-text">O arquivo tem <strong>'+nCasas+' casa(s)</strong>, <strong>'+nInq+' inquilino(s)</strong> e <strong>'+nAnuncios+' anúncio(s) da Vitrine</strong>. '+
+    '<p class="modal-text">O arquivo tem <strong>'+plural(nCasas,'casa','casas')+'</strong>, <strong>'+plural(nInq,'inquilino','inquilinos')+'</strong> e <strong>'+nAnuncios+' anúncio(s) da Vitrine</strong>. '+
     'Imóveis, pessoas e lançamentos financeiros serão <strong>adicionados</strong>; as configurações da área de aluguéis serão atualizadas com as do arquivo. Não apague os dados atuais apenas para preparar uma importação.</p>'+
     aviso+
     '<div class="modal-actions"><span></span><div class="modal-actions-right">'+

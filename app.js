@@ -267,7 +267,7 @@ async function saveAccountEmail(){
     return;
   }
   const email=((document.getElementById('account_email')||{}).value||'').trim().toLowerCase();
-  if(!email||email.indexOf('@')<1){showToast('Informe um e-mail válido.','error');return;}
+  if(!email||!emailValido(email)){showToast('Informe um e-mail válido.','error');return;}
   const result=await sb.auth.updateUser({email:email},{emailRedirectTo:window.location.origin});
   if(result.error){showToast(traduzAuthErro(result.error.message),'error');return;}
   closeModal();showToast('Confirme a troca pelo link enviado ao novo e-mail.','success');
@@ -715,6 +715,16 @@ function maskSensitiveDocument(value){
   return 'Documento protegido';
 }
 function requireAccountPermission(allowed,message){
+  /* No modo de consulta offline não existe gravação — não há fila de
+     sincronização. O banner avisa, mas os botões continuavam vivos: a
+     pessoa tocava, esperava a chamada falhar e recebia um erro genérico
+     ("Erro ao adicionar o imóvel") que não diz que o problema é a internet.
+     Como todo require*Permission passa por aqui, um aviso claro neste ponto
+     cobre as 132 guardas de ação do app. */
+  if(state.offlineMode){
+    showToast('Sem internet — modo de consulta. Esta ação precisa de conexão.','error');
+    return false;
+  }
   if(allowed) return true;
   showToast(message||'Sua função permite somente consultar estes dados.','error');
   return false;
@@ -855,7 +865,7 @@ async function inviteTeamMember(){
   const nome=((document.getElementById('team_name')||{}).value||'').trim();
   const email=((document.getElementById('team_email')||{}).value||'').trim().toLowerCase();
   const papel=((document.getElementById('team_role')||{}).value||'operacional');
-  if(!nome||!email||email.indexOf('@')<1){showToast('Informe nome e e-mail válidos.','error');return;}
+  if(!nome||!email||!emailValido(email)){showToast('Informe nome e e-mail válidos.','error');return;}
   try{
     await db.inviteTeamMember(nome,email,papel);
     state.team=await db.listTeam();

@@ -188,6 +188,7 @@ function openAddInterestModal(prefill,origemLeadId){
 async function saveNewInterest(origemLeadId){
   if(!requirePropertyPermission())return;
   const item=readInterestForm(); if(!item.nome){showToast('Informe o nome do interessado.','error');return;}
+  if(!emailValido(item.email)){showToast('E-mail inválido. Confira ou deixe em branco.','error');return;}
   try{
     const saved=await db.insertInterest(item,origemLeadId||null);
     const existente=state.interests.find(function(x){return x.id===saved.id;});
@@ -215,7 +216,7 @@ function openEditInterestModal(id){
       '<p class="modal-text">Sua função permite somente consultar este cadastro.</p>'+
       '<div class="notice-box"><strong>'+esc(item.nome)+'</strong><br>'+esc(item.telefone||'Telefone não informado')+
       '<br>'+esc(interestStatusLabel(item.status))+(item.observacoes?'<br>'+esc(item.observacoes):'')+'</div>'+
-      '<p class="modal-text">'+matches.length+' casa(s) vaga(s) compatível(is).</p>'+
+      '<p class="modal-text">'+plural(matches.length,'casa vaga compatível','casas vagas compatíveis')+'.</p>'+
       '<div class="modal-actions"><span></span><button class="btn btn-primary" onclick="closeModal()">Fechar</button></div>');
     return;
   }
@@ -226,6 +227,7 @@ async function saveInterestEdit(id){
   if(!requirePropertyPermission())return;
   const original=state.interests.find(function(x){return x.id===id;}),next=Object.assign({},original,readInterestForm());
   if(!next.nome){showToast('Informe o nome do interessado.','error');return;}
+  if(!emailValido(next.email)){showToast('E-mail inválido. Confira ou deixe em branco.','error');return;}
   try{const saved=await db.updateInterest(next);Object.assign(original,saved||next);if(state.view==='vitrine'&&typeof loadVitrineData==='function')await loadVitrineData(true);closeModal();render();showToast('Interessado atualizado.','success');}
   catch(e){console.error(e);showToast((e&&e.message)||'Não foi possível salvar.','error');}
 }

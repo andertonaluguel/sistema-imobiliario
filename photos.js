@@ -149,7 +149,7 @@ function renderFotosTab(h){
   const photos = rawPhotos.filter(function(p){ return !!safePhotoSrc(p.dados); });
   const access=state.commercialAccess||{},limit=Number(access.limiteArmazenamento)||0,used=Number(access.armazenamentoUsado)||0;
   const storageText=limit>0?' · '+commercialBytes(used)+' de '+commercialBytes(limit)+' usados':'';
-  return '<div class="tab-summary-row"><div>'+photos.length+' foto(s)'+storageText+'</div>'+
+  return '<div class="tab-summary-row"><div>'+plural(photos.length,'foto','fotos')+storageText+'</div>'+
     (canOperateProperties()?'<button class="btn btn-primary btn-sm" '+(limit>0&&used>=limit?'disabled':'')+' onclick="triggerPhotoUpload(\''+h.id+'\')">+ Adicionar fotos</button>':'')+'</div>'+
     '<div class="photo-grid">'+(photos.length===0?emptyState('Nenhuma foto adicionada ainda.', photoIconSvg()):photos.map(function(p){
       return '<div class="photo-thumb"><img src="'+esc(safePhotoSrc(p.dados))+'" alt="Foto da casa '+esc(h.nome)+'">'+

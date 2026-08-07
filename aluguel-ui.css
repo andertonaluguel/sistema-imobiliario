@@ -666,3 +666,18 @@
   .rent-tenant-portal{align-items:flex-start;flex-direction:column;}
   .rent-more-grid{grid-template-columns:1fr;}
 }
+
+/* ---------- alvo de toque: nao desfazer a politica do style.css ----------
+   style.css define, em (pointer:coarse), min-height 44px para .btn, .tab,
+   .filter-chip, .top-search-btn e companhia. As regras deste arquivo usam
+   .rental-app / .rental-shell (especificidade 0,2,0), vencem aquele bloco
+   e recolocavam 37, 38, 42 e 43px — no celular o alvo voltava a ficar
+   menor que o dedo. Aqui a politica e reposta com a mesma especificidade
+   das regras que a estavam derrubando, e so no toque: no computador a
+   densidade continua igual. */
+@media (pointer:coarse){
+  .rental-app .filter-chip,
+  .rental-app .tab,
+  .rental-app .search-input{min-height:var(--toque);}
+  .rental-shell .top-search-btn{width:var(--toque);height:var(--toque);min-height:var(--toque);}
+}

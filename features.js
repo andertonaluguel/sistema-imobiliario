@@ -70,7 +70,7 @@ function copyPublicLink(){
   copyTextValue(publicListingsUrl(slug),'Link dos anúncios copiado.');
 }
 function publicFeatureBadges(h){
-  const items=[(Number(h.quartos)||0)+' quarto(s)',(Number(h.banheiros)||0)+' banheiro(s)'];
+  const items=[plural(Number(h.quartos)||0,'quarto','quartos'),plural(Number(h.banheiros)||0,'banheiro','banheiros')];
   if(h.sala)items.push('Sala');if(h.cozinha)items.push('Cozinha');if(h.garagem)items.push('Garagem');
   if(h.quintal)items.push('Quintal');if(h.areaServico)items.push('Área de serviço');
   return items.map(function(item){return '<span>'+esc(item)+'</span>';}).join('');

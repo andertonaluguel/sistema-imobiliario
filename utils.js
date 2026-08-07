@@ -390,7 +390,18 @@ function settledPaymentStatus(house,charge,due,graceDays,fallbackPayment){
 
 /* ---------- formatação ---------- */
 function fmtMoney(n){ return (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
-function fmtDateBR(iso){ if(!iso) return '—'; const p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+/* Aceita data ISO e também timestamp ISO completo. Três chamadores já
+   cortavam com .slice(0,10) por saberem que um `2026-08-06T10:00:00Z`
+   virava "06T10:00:00Z/08/2026" — fazendo a checagem aqui, quem chamar
+   amanhã não precisa lembrar. Entrada que não é data devolve travessão em
+   vez de "undefined/undefined/abc". Dia e mês saem sempre com dois
+   dígitos: "2026-1-5" mostrava "5/1/2026" no meio de "06/08/2026". */
+function fmtDateBR(iso){
+  if(!iso) return '—';
+  const p=String(iso).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(!p) return '—';
+  return String(p[3]).padStart(2,'0')+'/'+String(p[2]).padStart(2,'0')+'/'+p[1];
+}
 function maskSensitiveDocument(value){
   const raw=String(value||'').trim();
   if(!raw) return '—';
@@ -408,6 +419,65 @@ function esc(s){
   return String(s==null?'':s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* "venceu há 2 dia(s)" é linguagem de formulário, não de gente. O app já
+   sabe o número na hora de escrever a frase, então pode simplesmente
+   concordar. Devolve número e palavra juntos: plural(1,'dia','dias') dá
+   "1 dia"; plural(0,...) e plural(2,...) dão "0 dias" e "2 dias". */
+function plural(n, singular, pluralForma){
+  const v = Number(n) || 0;
+  return v + ' ' + (Math.abs(v) === 1 ? singular : pluralForma);
+}
+
+/* ---------- bibliotecas externas sob demanda ----------------------------
+   jsPDF (356 KB) e Leaflet (144 KB) serviam a dois usos pontuais — gerar
+   recibo e abrir mapa — mas vinham no index.html e pesavam em TODA visita,
+   inclusive na tela de login e na Vitrine pública, que nunca usam nenhuma
+   das duas. Meio megabyte por visita para código que quase ninguém executa.
+
+   Aqui elas passam a ser buscadas na hora do uso. Quem chama continua com
+   a mesma guarda de indisponibilidade que já existia, então uma falha de
+   rede cai exatamente no comportamento de antes: a mensagem de que o
+   recurso está indisponível, sem quebrar a tela. */
+const _recursosExternos={};
+function carregarRecursoExterno(url,tipo){
+  if(_recursosExternos[url]) return _recursosExternos[url];
+  _recursosExternos[url]=new Promise(function(resolve,reject){
+    const el=tipo==='css'?document.createElement('link'):document.createElement('script');
+    if(tipo==='css'){ el.rel='stylesheet'; el.href=url; } else { el.src=url; }
+    el.onload=function(){ resolve(true); };
+    el.onerror=function(){ delete _recursosExternos[url]; reject(new Error('Falha ao carregar '+url)); };
+    document.head.appendChild(el);
+  });
+  return _recursosExternos[url];
+}
+async function garantirJsPDF(){
+  if(window.jspdf&&window.jspdf.jsPDF) return true;
+  try{ await carregarRecursoExterno('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); }
+  catch(e){ console.warn('jsPDF indisponível:',e); }
+  return !!(window.jspdf&&window.jspdf.jsPDF);
+}
+async function garantirLeaflet(){
+  if(typeof L!=='undefined') return true;
+  try{
+    await Promise.all([
+      carregarRecursoExterno('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css','css'),
+      carregarRecursoExterno('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js')
+    ]);
+  }catch(e){ console.warn('Leaflet indisponível:',e); }
+  return typeof L!=='undefined';
+}
+
+/* O app monta os campos sem <form>, então `type="email"` não valida nada:
+   a checagem nativa do navegador só roda no envio de um formulário, que
+   aqui nunca acontece. Sem isto, "joao" entrava como e-mail e só aparecia
+   o problema muito depois, na hora de liberar o Portal do inquilino.
+   Vazio continua válido — o campo é opcional em quase todo lugar. */
+function emailValido(valor){
+  const v=String(valor==null?'':valor).trim();
+  if(!v) return true;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
 /* ---------- status de pagamento ---------- */

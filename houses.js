@@ -899,7 +899,7 @@ function openAddHouseModal(){
   if(!requirePropertyPermission())return;
   const access=state.commercialAccess||{},limit=Number(access.limiteCasas)||1;
   if(state.houses.length>=limit){
-    openModal('<h3 class="modal-title">Limite do plano atingido</h3><p class="modal-text">O plano '+esc(commercialPlanLabel(access.plano||'gratuito'))+' permite até <strong>'+limit+' imóvel(is)</strong>. Você já cadastrou '+state.houses.length+'.</p>'+ 
+    openModal('<h3 class="modal-title">Limite do plano atingido</h3><p class="modal-text">O plano '+esc(commercialPlanLabel(access.plano||'gratuito'))+' permite até <strong>'+plural(limit,'imóvel','imóveis')+'</strong>. Você já cadastrou '+state.houses.length+'.</p>'+
       '<p class="modal-hint">Consulte “Meu plano” para revisar o uso e os limites atuais da conta.</p>'+
       '<div class="modal-actions"><button class="btn btn-primary" onclick="closeModal()">Fechar</button></div>');
     return;
@@ -927,7 +927,7 @@ function openAddHouseModal(){
         '<div class="modal-actions-right">'+
           '<button class="btn btn-ghost wizard-back" onclick="houseWizardBack()">Voltar</button>'+
           '<button class="btn btn-primary wizard-next" onclick="houseWizardNext()">Continuar</button>'+
-          '<button class="btn btn-primary wizard-submit" onclick="addHouse()">Cadastrar imóvel</button>'+
+          '<button id="btn_add_house" class="btn btn-primary wizard-submit" onclick="addHouse()">Cadastrar imóvel</button>'+
         '</div>'+
       '</div>'+
     '</div>'
@@ -939,6 +939,10 @@ async function addHouse(){
   const endereco = document.getElementById('f_endereco').value.trim();
   const tipoEl = document.getElementById('f_tipo');
   const tipo = normalizeImovelTipo(tipoEl?tipoEl.value:'casa');
+  /* Trava de duplo toque, no mesmo formato dos fluxos de dinheiro. */
+  const submitButton=document.getElementById('btn_add_house');
+  if(submitButton&&submitButton.disabled)return;
+  if(submitButton){submitButton.disabled=true;submitButton.textContent='Cadastrando…';}
   try{
     const draft=readHouseCharacteristics({ nome:nome, endereco:endereco, tipo:tipo, status:'vaga',
       proprietarioClienteId:readHouseOwner(null),
@@ -947,7 +951,10 @@ async function addHouse(){
     state.houses.push(novo);
     if(state.commercialAccess)state.commercialAccess.quantidadeCasas=state.houses.length;
     closeModal(); render();
-  }catch(e){ console.error(e); showToast(e&&e.message&&e.message.toLowerCase().includes('limite')?e.message:'Erro ao adicionar o imóvel.', 'error'); }
+  }catch(e){
+    console.error(e); showToast(e&&e.message&&e.message.toLowerCase().includes('limite')?e.message:'Erro ao adicionar o imóvel.', 'error');
+    if(submitButton){submitButton.disabled=false;submitButton.textContent='Cadastrar imóvel';}
+  }
 }
 function openEditHouseModal(houseId){
   if(!requirePropertyPermission())return;

@@ -42,19 +42,12 @@ a{color:inherit;}
 }
 .skip-link:focus{top:var(--s-2);}
 
-/* Alvo de toque. Só em dispositivo de toque — no desktop, com
-   ponteiro preciso, 40px é confortável e mais denso.
-   Vale para o que é clicável; ícone, selo e avatar ficam fora. */
-@media (pointer:coarse){
-  .btn,.mh-btn,.tab,.tab-pill,.rent-tab,.mh-tab,
-  .mobile-nav-item,.portal-nav-item,.menu-btn,.top-search-btn,
-  .filter-chip,.panel-toggle,.house-edit-tabs button,
-  .month-switcher>button,.mh-month-switcher>button,
-  .vitrine-row-actions .btn,.rent-more-grid button{
-    min-height:var(--toque);
-  }
-  .menu-btn,.top-search-btn{min-width:var(--toque);}
-}
+/* Alvo de toque: o bloco vive no FIM deste arquivo, não aqui.
+   Ele estava neste ponto e não fazia efeito nenhum. `@media` não soma
+   especificidade: `.btn{min-height:40px}`, declarado mais adiante com a
+   mesma especificidade, ganhava por vir depois. A política estava escrita,
+   documentada e morta — no celular o botão continuava com 40px, o .btn-sm
+   com 32 e o filter-chip com 37. Procure por "alvo de toque" no fim. */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}
 }
@@ -891,10 +884,14 @@ a{color:inherit;}
 .chart-cur-note{color:var(--brass-deep);font-weight:600;}
 
 /* ---- painel de Alertas (cobrança: próximo / atrasado) ---- */
-.alert-row{display:flex;align-items:center;gap:var(--s-3);padding:13px 16px;border-radius:var(--r-md);margin-bottom:var(--s-2);cursor:pointer;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);transition:transform .15s var(--ease),box-shadow .15s var(--ease);}
+.alert-row{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3);padding:13px 16px;border-radius:var(--r-md);margin-bottom:var(--s-2);cursor:pointer;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);transition:transform .15s var(--ease),box-shadow .15s var(--ease);}
 .alert-row:last-child{margin-bottom:0;}
 .alert-row:hover{transform:translateX(2px);box-shadow:var(--shadow-hover);}
-.alert-row .ledger-row-main{flex:1;font-size:13px;}
+/* Base de 240px: o painel de Alertas vive numa coluna de ~577px do painel,
+   estreita em qualquer largura de tela. Sem uma base mínima, o selo, os dois
+   botões e o valor espremiam este texto em 100px e ele quebrava em 8 linhas.
+   Com wrap na linha, abaixo disso o texto passa a ocupar a linha inteira. */
+.alert-row .ledger-row-main{flex:1 1 240px;font-size:13px;}
 .alert-row .ledger-row-sub{font-size:var(--t-xs);color:var(--ink-soft);margin-top:2px;}
 .alert-row .ledger-row-value{font-family:var(--font-mono);font-weight:600;min-width:84px;text-align:right;}
 .alert-atraso{background:var(--rust-soft);border-color:transparent;}
@@ -1265,3 +1262,54 @@ body{min-width:320px;background:
 .vitrine-brand-logo small{display:block;color:var(--ink-soft);margin-top:2px;}
 .vitrine-brand-logo>div:last-child{display:flex;gap:var(--s-2);flex-wrap:wrap;}
 @media(max-width:560px){.vitrine-brand-options{grid-template-columns:1fr}.vitrine-brand-logo{align-items:flex-start;flex-direction:column}}
+
+/* ---------- alvo de toque no celular ----------------------------------
+   A Vitrine já cresce seus controles em (pointer:coarse); o resto do app
+   ficou de fora e manteve botões de 28 a 34px, que o dedo erra. Estes
+   nascem com width/height fixos, então min-width tem de vir junto do
+   min-height — só a altura levanta o alvo pela metade.
+   Escopo em (pointer:coarse): no computador, com mouse, nada muda. */
+/* ---------- texto do usuário não escapa do cartão -------------------------
+   Nome, endereço e observação vêm de quem digita, e nada garante espaço no
+   meio. Um nome longo sem espaço — ou um e-mail, um link colado — media
+   3520px dentro de um cartão de 366px: o texto vazava, era cortado, e o selo
+   de situação ("SEM CASA") era empurrado para fora da tela e sumia.
+
+   `anywhere` em vez de `break-word` de propósito: só o primeiro reduz também
+   a largura mínima do elemento, que é o que devolve o selo para dentro do
+   cartão. Quebra apenas quando a palavra não caberia de outro jeito; texto
+   normal continua quebrando nos espaços. A propriedade é herdada, então
+   marcar o contêiner cobre o conteúdo todo. */
+.house-card,.rent-tenant-card,.ledger-row,.alert-row,.document-row,
+.interest-card,.crm-card,.vitrine-card{
+  overflow-wrap:anywhere;
+}
+
+/* ---------- alvo de toque ------------------------------------------------
+   Só em dispositivo de toque — no computador, com ponteiro preciso, 40px é
+   confortável e mais denso. Vale para o que se clica; ícone, selo e avatar
+   ficam de fora.
+
+   PRECISA CONTINUAR NO FIM DO ARQUIVO. `@media` não soma especificidade,
+   então este bloco só vence `.btn{min-height:40px}` e `.btn-sm{min-height:32px}`
+   porque vem depois deles. Foi por estar no começo que a política nunca
+   pegou. Regra nova de altura de controle vai ACIMA daqui.
+
+   Os quatro primeiros nascem com width E height fixos: aí min-width tem de
+   vir junto, senão o alvo cresce só na vertical e o dedo erra de lado. */
+@media (pointer:coarse){
+  .btn,.mh-btn,.btn-sm,.tab,.tab-pill,.rent-tab,.mh-tab,
+  .mobile-nav-item,.portal-nav-item,.menu-btn,.top-search-btn,
+  .filter-chip,.panel-toggle,.house-edit-tabs button,
+  .month-switcher>button,.mh-month-switcher>button,
+  .month-switcher input,.mh-month-switcher input,
+  .finance-section-nav button,
+  .vitrine-row-actions .btn,.rent-more-grid button,
+  .onboarding-step{
+    min-height:var(--toque);
+  }
+  .menu-btn,.top-search-btn,
+  .modal-x,.icon-action,.cal-nav button,.year-switcher button{
+    min-width:var(--toque);min-height:var(--toque);
+  }
+}

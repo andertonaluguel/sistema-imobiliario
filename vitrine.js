@@ -309,7 +309,7 @@ function renderVitrinePainel(){
       vitrineStat(contatos,'Contatos','')+
       vitrineStat(fmtMoney(recebido),'Taxas recebidas no mês','gold')+
     '</div>'+
-    (leadsNovos.length?'<div class="vitrine-alert lead"><div><strong>'+leadsNovos.length+' contato(s) sem atendimento</strong>'+
+    (leadsNovos.length?'<div class="vitrine-alert lead"><div><strong>'+plural(leadsNovos.length,'contato','contatos')+' sem atendimento</strong>'+
       '<span>Lead parado é dinheiro perdido.</span></div>'+
       '<button class="btn btn-primary btn-sm" onclick="setVitrineTab(\'leads\')">Atender</button></div>':'')+
     renderVitrineAnuncios(true);
@@ -783,7 +783,7 @@ function confirmarExcluirVitrineCidade(id){
   const usados=(state.vitrine.imoveis||[]).filter(function(i){return String(i.cidadeId||'')===String(id);}).length;
   openModal('<h3 class="modal-title">Excluir '+esc(c.nome)+'?</h3>'+
     '<p class="modal-text">'+(usados
-      ? '<strong>'+usados+' anúncio(s)</strong> estão nesta cidade. Eles não serão apagados, mas ficarão sem cidade e sairão dos cards do site. Se quiser apenas tirá-la do ar, use “Mostrar no site”.'
+      ? '<strong>'+plural(usados,'anúncio','anúncios')+'</strong> '+(usados===1?'está':'estão')+' nesta cidade. Eles não serão apagados, mas ficarão sem cidade e sairão dos cards do site. Se quiser apenas tirá-la do ar, use “Mostrar no site”.'
       : 'A cidade será removida dos cards do site.')+'</p>'+
     '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn btn-danger" onclick="excluirVitrineCidade(\''+id+'\')">Excluir cidade</button></div>');
@@ -1166,7 +1166,7 @@ function renderVitrineAnunciantes(){
     'quem você cadastra aqui aparece lá, e vice-versa.</p></div>'+
     '<button class="btn btn-primary btn-sm" onclick="openOwnerModal()">+ Proprietário</button></div>'+
     (orfaos.length
-      ? '<div class="notice-box">'+orfaos.length+' anunciante(s) antigo(s) ainda sem cadastro de proprietário. '+
+      ? '<div class="notice-box">'+plural(orfaos.length,'anunciante antigo','anunciantes antigos')+' ainda sem cadastro de proprietário. '+
         'Abra o anúncio e escolha o proprietário para ligá-los.</div>'
       : '')+
     (donos.length?'<div class="vitrine-table-wrap"><table class="vitrine-table"><thead><tr>'+
@@ -1341,7 +1341,7 @@ function renderVitrineParceiros(){
     '<p>Quem preencheu o formulário da página pública de anunciar. '+
     'São contatos comerciais — não se misturam com os leads dos imóveis.</p></div>'+
     '<button class="btn btn-ghost btn-sm" onclick="copyTextValue(\''+esc(link)+'\',\'Link da página copiado.\')">Copiar link da página</button></div>'+
-    (abertos.length?'<div class="notice-box">'+abertos.length+' contato(s) esperando resposta.</div>':'')+
+    (abertos.length?'<div class="notice-box">'+plural(abertos.length,'contato','contatos')+' esperando resposta.</div>':'')+
     (lista.length
       ? '<div class="vitrine-table-wrap"><table class="vitrine-table"><thead><tr>'+
         '<th>Quem</th><th>Quer</th><th>Cidade</th><th>Imóveis</th><th>Situação</th><th></th></tr></thead><tbody>'+
@@ -1664,7 +1664,7 @@ function copiarTextoVitrine(id){
       ((i.frenteM&&i.fundoM)?' · '+i.frenteM+'×'+i.fundoM+'m':'')+
       (i.murado?' · murado':'')+(i.esquina?' · esquina':'')
     : '🛏 '+i.quartos+' quartos · 🛁 '+i.banheiros+' banheiros'+
-      (i.vagas?' · 🚗 '+i.vagas+' vaga(s)':'')+(i.areaM2?' · 📐 '+i.areaM2+'m²':'');
+      (i.vagas?' · 🚗 '+plural(i.vagas,'vaga','vagas'):'')+(i.areaM2?' · 📐 '+i.areaM2+'m²':'');
   const texto='🏠 *'+i.titulo+'*\n'+
     '📍 '+[i.bairro,i.cidade].filter(Boolean).join(' · ')+'\n'+
     linhaPreco+'\n'+linhaSpecs+'\n'+
@@ -1950,7 +1950,11 @@ function atualizarSeoVitrine(){
   let descricao=perfil.descricao||'';
   if(item){
     const partes=[item.tipo,item.bairro,item.cidade].filter(Boolean);
-    descricao=(partes.join(' em ')+' — '+String(item.descricao||'')).trim().slice(0,160);
+    /* O travessão só entra quando há texto depois dele. Sem isto, imóvel
+       sem descrição virava "comercial em CENTRO em Lajedo —" no resultado
+       de busca: o .trim() tirava o espaço e deixava o traço solto. */
+    const extra=String(item.descricao||'').trim();
+    descricao=(partes.join(' em ')+(extra?' — '+extra:'')).trim().slice(0,160);
   }else{
     const cidade=vitrineCidadePublicaPorId(state.vitrinePubCidade);
     descricao=(descricao||('Imóveis e terrenos'+(cidade?' em '+cidade.nome:'')+' para alugar e comprar.')).slice(0,160);
@@ -4014,13 +4018,14 @@ function vitrineMapaPopup(i){
   const local=[i.bairro,i.cidade].filter(Boolean).join(' · ');
   return '<div class="vitrine-mapa-popup"><small>'+esc(local||'Localização sob consulta')+'</small><strong>'+esc(i.titulo)+'</strong><b>'+esc(vitrineMapaPrecoCurto(i))+(state.vitrinePubFinalidade==='vender'?'':' / mês')+'</b><button type="button" onclick="abrirVitrineDetalhe(\''+esc(i.id)+'\')">Ver imóvel</button></div>';
 }
-function desenharMapaResultados(){
+async function desenharMapaResultados(){
   const el=document.getElementById('vitrineMapaResultados');
   if(!el)return;
   const itens=vitrineImoveisFiltrados().filter(function(i){
     return Number.isFinite(Number(i.latitude))&&Number.isFinite(Number(i.longitude))&&Number(i.latitude)!==0&&Number(i.longitude)!==0;
   });
   if(!itens.length)return;
+  await garantirLeaflet();
   if(typeof L==='undefined'){
     el.innerHTML='<div class="vitrine-mapa-off">Mapa indisponível no momento.</div>';
     return;
@@ -4055,12 +4060,13 @@ function desenharMapaResultados(){
 
 /* Mapa da ficha. Se o anuncio estiver como aproximado, `i.latitude` e
    `i.longitude` ja chegam aproximados da funcao publica do banco. */
-function desenharMapaVitrine(id){
+async function desenharMapaVitrine(id){
   const el=document.getElementById('vitrineMapa');
   if(!el)return;
   const dados=state.vitrinePublic||{};
   const i=(dados.imoveis||[]).find(function(x){return x.id===id;});
   if(!i||!i.latitude||!i.longitude)return;
+  await garantirLeaflet();
   if(typeof L==='undefined'){
     el.innerHTML='<div class="vitrine-mapa-off">Mapa indisponível no momento.</div>';
     return;

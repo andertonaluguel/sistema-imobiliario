@@ -3617,7 +3617,14 @@ try{
     new Request('https://site.netlify.app/?vitrine=corretora'),contextoFalso);
   const htmlHome=await resHome.text();
   assert.match(htmlHome,/og:title" content="Corretora do Anderton — imóveis e terrenos/);
-  assert.match(htmlHome,/1 imóveis disponíveis em Lajedo/);
+  /* Concorda com o número: era "1 imóveis disponíveis" no texto que aparece
+     quando alguém cola o link da vitrine numa conversa. */
+  assert.match(htmlHome,/1 imóvel disponível em Lajedo/);
+  assert.doesNotMatch(htmlHome,/1 imóveis/,'O texto compartilhado concorda com o número.');
+  /* Quarto e banheiro só entram quando existem: um ponto comercial
+     anunciava "0 quartos · 0 banheiros" na prévia do WhatsApp. */
+  assert.doesNotMatch(htmlAnuncio,/0 quartos|0 banheiros/,
+    'A prévia não anuncia cômodo que o imóvel não tem.');
 
   const resRota=await edgeMod.default(
     new Request('https://site.netlify.app/vitrine/corretora/imovel/v9/casa-com-quintal/'),contextoFalso);
@@ -4124,7 +4131,21 @@ assert.match(headersSource,/img-src[^;]*https:\/\/tile\.openstreetmap\.org/);
 /* Leaflet vem do cdnjs, que o CSP já confiava para o jsPDF: nenhum
    domínio novo foi aberto para scripts. */
 assert.doesNotMatch(headersSource,/script-src[^;]*unpkg/);
-assert.match(indexSource,/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet/);
+const utilsCarregador = await readFile(join(root,'utils.js'),'utf8');
+assert.match(utilsCarregador,/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet/);
+
+/* Leaflet e jsPDF são carregados SOB DEMANDA, não no index.html.
+   Juntos passam de 500 KB e serviam a dois usos pontuais — mapa e recibo —
+   mas pesavam em toda visita, inclusive na tela de login e na Vitrine
+   pública. Se alguém devolver as tags ao index.html, meio megabyte volta
+   para cima de quem só quer ver um anúncio. */
+assert.doesNotMatch(indexSource,/<script[^>]*cdnjs\.cloudflare\.com\/ajax\/libs\/(leaflet|jspdf)/);
+assert.match(utilsCarregador,/function garantirLeaflet\(/);
+assert.match(utilsCarregador,/function garantirJsPDF\(/);
+/* Quem usa precisa esperar o carregamento, senão a guarda de
+   indisponibilidade dispara antes de a biblioteca chegar. */
+assert.match(await readFile(join(root,'reports.js'),'utf8'),/await garantirJsPDF\(\)/);
+assert.match(await readFile(join(root,'vitrine.js'),'utf8'),/await garantirLeaflet\(\)/);
 
 /* --- Métodos de dados --- */
 assert.match(supabaseSource,/async loadVitrine\(\)/);

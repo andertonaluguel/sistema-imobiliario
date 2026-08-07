@@ -115,7 +115,7 @@ function renderDocumentRows(docs,houseId,ownerMode){
 function renderDocumentsTab(h){
   const docs=state.documentCache[h.id];
   if(docs===undefined) return '<div class="empty-state">Carregando documentos…</div>';
-  return '<div class="tab-summary-row"><div><strong>'+docs.length+'</strong> arquivo(s) privado(s)</div>'+ 
+  return '<div class="tab-summary-row"><div><strong>'+docs.length+'</strong> '+(docs.length===1?'arquivo privado':'arquivos privados')+'</div>'+
     (canOperateProperties()?'<button class="btn btn-primary btn-sm" onclick="openDocumentUploadModal(\''+h.id+'\')">+ Adicionar documento</button>':'')+'</div>'+
     renderDocumentRows(docs,h.id,true);
 }

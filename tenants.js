@@ -142,7 +142,7 @@ function renderInquilinosView(){
   const header = '<div class="page-header"><div>'+
       '<div class="eyebrow">MORADORES DOS IMÓVEIS</div>'+
       pageTitleWithIcon(tenantIconSvg(), 'Inquilinos')+
-      '<div class="page-sub">'+state.tenants.length+' pessoa(s) cadastrada(s) · dados pessoais e vínculos organizados separadamente.</div>'+
+      '<div class="page-sub">'+plural(state.tenants.length,'pessoa cadastrada','pessoas cadastradas')+' · dados pessoais e vínculos organizados separadamente.</div>'+
     '</div>'+(canOperateProperties()?'<button class="btn btn-primary btn-sm" onclick="openAddTenantModal()">+ Novo inquilino</button>':'')+'</div>';
   if(state.tenants.length===0){
     return header + emptyState('Nenhum inquilino cadastrado ainda. Cadastre aqui, ou diretamente ao vincular um inquilino a uma casa.', tenantIconSvg());
@@ -192,7 +192,7 @@ function openAddTenantModal(){
     '</details>'+
     '<div class="modal-actions sticky-actions"><span></span><div class="modal-actions-right">'+
       '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
-      '<button class="btn btn-primary" onclick="saveNewTenant()">Cadastrar</button>'+
+      '<button id="btn_save_tenant" class="btn btn-primary" onclick="saveNewTenant()">Cadastrar</button>'+
     '</div></div>'
   );
   setTimeout(function(){const el=document.getElementById('f_nome');if(el)el.focus();},20);
@@ -201,7 +201,16 @@ async function saveNewTenant(){
   if(!requirePropertyPermission())return;
   const nome = document.getElementById('f_nome').value.trim();
   if(!nome){ showToast('Informe o nome do inquilino.', 'error'); const el=document.getElementById('f_nome'); if(el) el.focus(); return; }
+  const emailEl=document.getElementById('f_email');
+  if(!emailValido(emailEl?emailEl.value:'')){
+    showToast('E-mail inválido. Confira ou deixe em branco.', 'error'); if(emailEl) emailEl.focus(); return;
+  }
   const rgEl=document.getElementById('f_rg');
+  /* Trava de duplo toque, no mesmo formato dos fluxos de dinheiro: dois
+     toques antes da rede responder criavam dois inquilinos iguais. */
+  const submitButton=document.getElementById('btn_save_tenant');
+  if(submitButton&&submitButton.disabled)return;
+  if(submitButton){submitButton.disabled=true;submitButton.textContent='Cadastrando…';}
   try{
     const novo = await db.insertTenant({
       nome:nome,
@@ -214,7 +223,10 @@ async function saveNewTenant(){
     state.tenants.push(novo);
     render();
     offerLinkNewTenant(novo.id, novo.nome);
-  }catch(e){ console.error(e); showToast('Erro ao cadastrar.', 'error'); }
+  }catch(e){
+    console.error(e); showToast('Erro ao cadastrar.', 'error');
+    if(submitButton){submitButton.disabled=false;submitButton.textContent='Cadastrar';}
+  }
 }
 /* Cadastro e vínculo são passos separados: depois de cadastrar, oferece
    vincular a um imóvel (sem misturar contrato no cadastro da pessoa). */
@@ -309,6 +321,10 @@ async function saveTenantEdit(tenantId){
   if(!requirePropertyPermission())return;
   const original = state.tenants.find(function(x){ return x.id===tenantId; });
   if(!original)return;
+  const emailEl=document.getElementById('f_email');
+  if(!emailValido(emailEl?emailEl.value:'')){
+    showToast('E-mail inválido. Confira ou deixe em branco.', 'error'); if(emailEl) emailEl.focus(); return;
+  }
   const next=Object.assign({},original,{
     nome:document.getElementById('f_nome').value.trim()||original.nome,
     telefone:document.getElementById('f_tel').value.trim(),
@@ -560,6 +576,10 @@ async function saveAssignTenant(houseId){
     if(!tenantId){
       const nome = document.getElementById('f_nome').value.trim();
       if(!nome){ showToast('Informe o nome do inquilino ou selecione um existente.', 'error'); return; }
+      const emailEl=document.getElementById('f_email');
+      if(!emailValido(emailEl?emailEl.value:'')){
+        showToast('E-mail inválido. Confira ou deixe em branco.', 'error'); if(emailEl) emailEl.focus(); return;
+      }
       const novo = await db.insertTenant({
         nome:nome,
         telefone: document.getElementById('f_tel').value.trim(),

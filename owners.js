@@ -135,7 +135,7 @@ function renderProprietariosView(){
         '</div>'
       : '')+
     (semDono.length&&state.owners&&state.owners.length
-      ? '<div class="notice-box">'+semDono.length+' imóvel(is) ainda sem proprietário definido. '+
+      ? '<div class="notice-box">'+plural(semDono.length,'imóvel','imóveis')+' ainda sem proprietário definido. '+
         'Enquanto estiverem assim, não entram em nenhum extrato.</div>'
       : '')+
     renderCarteiraResumo(lista)+
@@ -208,6 +208,7 @@ async function saveOwner(id){
   if(!requirePropertyPermission())return;
   const item=readOwnerForm();
   if(item.nome.length<2){showToast('Informe o nome do proprietário.','error');return;}
+  if(!emailValido(item.email)){showToast('E-mail inválido. Confira ou deixe em branco.','error');return;}
   if(item.taxaAdministracao<0||item.taxaAdministracao>100){
     showToast('A taxa de administração vai de 0 a 100%.','error');return;
   }
@@ -232,7 +233,7 @@ function confirmDeleteOwner(id){
   openModal('<h3 class="modal-title">Excluir '+esc(o.nome)+'?</h3>'+
     '<p class="modal-text">O cadastro sai da lista. '+
     (casas.length
-      ? '<strong>'+casas.length+' imóvel(is)</strong> ficam sem proprietário definido — eles não são apagados, só deixam de ter dono declarado e saem dos extratos.'
+      ? '<strong>'+plural(casas.length,'imóvel','imóveis')+'</strong> '+(casas.length===1?'fica':'ficam')+' sem proprietário definido — '+(casas.length===1?'ele não é apagado, só deixa':'eles não são apagados, só deixam')+' de ter dono declarado e '+(casas.length===1?'sai':'saem')+' dos extratos.'
       : 'Nenhum imóvel está vinculado a ele.')+'</p>'+
     '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
       '<button class="btn btn-ghost" onclick="openOwnerModal(\''+id+'\')">Cancelar</button>'+

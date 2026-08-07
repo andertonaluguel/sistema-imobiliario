@@ -390,8 +390,9 @@ function downloadFinanceCsv(){
   const a=document.createElement('a'); a.href=url; a.download='financeiro-'+mes+'.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
-function downloadFinancePdf(){
+async function downloadFinancePdf(){
   const mes=state.financeMonth||currentMonthStr(), info=computeMonthlyFinance(mes);
+  await garantirJsPDF();
   const jsPDF=window.jspdf&&window.jspdf.jsPDF; if(!jsPDF){showToast('Gerador de PDF indisponível.','error');return;}
   const cash=(state.financeMode||'competencia')==='caixa';
   const doc=new jsPDF(); let y=22;
@@ -429,8 +430,9 @@ function downloadAnnualFinanceCsv(){
   const anchor=document.createElement('a');anchor.href=url;anchor.download='relatorio-anual-'+year+'.csv';
   anchor.click();URL.revokeObjectURL(url);
 }
-function downloadAnnualFinancePdf(){
+async function downloadAnnualFinancePdf(){
   const year=state.relatorioAno,totals=computeAnnualTotals(year);
+  await garantirJsPDF();
   const jsPDF=window.jspdf&&window.jspdf.jsPDF;
   if(!jsPDF){showToast('Gerador de PDF indisponível.','error');return;}
   const doc=new jsPDF();let y=22;
@@ -706,7 +708,7 @@ function renderFinanceOverview(mes,month){
     '<div class="panel"><div class="panel-title">Resultado por imóvel</div>'+renderMonthlyFinanceTable(month)+'</div>'+
     '<div class="panel"><div class="panel-title">Pendências por vencimento</div><div class="ageing-grid">'+ageing.map(function(bucket){
       return '<div class="ageing-card"><span>'+bucket.label+'</span><strong class="num">'+fmtMoney(bucket.value)+'</strong>'+
-        '<small>'+bucket.count+' imóvel(is)</small></div>';
+        '<small>'+plural(bucket.count,'imóvel','imóveis')+'</small></div>';
     }).join('')+'</div></div>'+
     '<div class="panel"><div class="panel-title">Previsto × recebido nos últimos 12 meses</div>'+renderFinanceCompareChart(chart)+'</div>';
 }
@@ -753,7 +755,7 @@ function renderFinanceExpenses(mes,month){
       '<div class="header-actions">'+renderFinanceMonthSwitcher(mes)+
       (canManageFinance()?'<button class="btn btn-primary btn-sm" onclick="openFinanceExpenseChooser()">Registrar despesa</button>':'')+'</div></div>'+
     '<div class="stat-grid">'+statCard('Despesas em '+monthLabel(mes),fmtMoney(month.expenses),
-      rows.length+' registro(s)',month.expenses?'rust':null)+'</div>'+
+      plural(rows.length,'registro','registros'),month.expenses?'rust':null)+'</div>'+
     '<div class="panel">'+(rows.length?'<div class="ledger">'+rows.map(function(item){
       return '<button class="ledger-row" onclick="openExpenseModal(\''+item.house.id+'\',\''+(item.expense.id||'')+'\')"><div class="ledger-row-main">'+
         esc(item.expense.descricao||'Despesa')+' · '+esc(item.house.nome)+

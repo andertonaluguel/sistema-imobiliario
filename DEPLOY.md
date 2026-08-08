@@ -112,11 +112,49 @@ A importação agora é transacional: se alguma etapa falhar, nenhuma parte é g
 
 ## Publicações futuras
 
-1. Faça as alterações no projeto.
-2. Execute os testes.
-3. Execute `node build.mjs`.
-4. Publique novamente somente `dist/`.
-5. Verifique login, painel, importação e cabeçalhos de segurança.
+> **Arrastar a pasta `dist/` no painel do Netlify não serve mais.**
+> Desde que a Vitrine ganhou a *edge function* `vitrine-preview`, o site
+> depende de código que roda no servidor. Arrastar a pasta publica os
+> arquivos estáticos e **remove a edge function**, sem erro nenhum: o site
+> abre perfeito e, em silêncio, param de funcionar a prévia dos links no
+> WhatsApp, o `/og-foto`, o `/robots.txt` e o `/sitemap.xml`.
+> Comprovado em 08/08/2026 — o pacote subiu completo e mesmo assim a
+> função sumiu, porque empacotá-la exige um build ou a CLI.
+
+Use um dos dois caminhos abaixo.
+
+### A. Repositório conectado ao Netlify (recomendado)
+
+Configuração única em **Site configuration → Build & deploy → Continuous
+deployment**, apontando para `github.com/andertonaluguel/sistema-imobiliario`.
+O `netlify.toml` já traz o comando certo:
+
+```
+node tests/run-tests.mjs && node build.mjs
+```
+
+O `&&` é a trava: teste vermelho aborta a publicação. A partir daí,
+publicar é `git push` — e a edge function é empacotada pelo build.
+
+### B. CLI do Netlify
+
+```
+npx netlify-cli login     (uma vez)
+npx netlify-cli deploy --prod
+```
+
+A CLI empacota a edge function junto. É como o site vinha sendo publicado
+— os artefatos em `.netlify/edge-functions-dist/` são dela.
+
+### Depois de publicar, confira
+
+1. O service worker trocou de versão (`aluguel-<hash>`).
+2. `/robots.txt` responde texto, não HTML.
+3. `/sitemap.xml` responde XML com as URLs dos imóveis.
+4. A ficha de um imóvel traz as tags `og:` com título, preço e foto.
+
+Os itens 2 a 4 são o teste de que a edge function subiu. Se qualquer um
+devolver HTML, ela ficou de fora.
 
 ## Checklist da versão Aluguéis 1.3
 

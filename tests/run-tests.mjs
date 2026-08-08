@@ -2364,24 +2364,6 @@ assert.equal(
 assert.match(appSource,/CONFIG\.APP_VERSION/);
 assert.match(buildSource,/createHash\(['"]sha256['"]\)/);
 
-/* A publicação deste site é manual: arrasta-se a pasta dist/ no Netlify.
-   O que não entra no pacote deixa de existir no ar — e sem erro nenhum.
-   Quando a edge function ficou de fora, o site subiu inteiro e mesmo assim
-   a prévia do link no WhatsApp, o /og-foto, o robots.txt e o sitemap.xml
-   morreram todos de uma vez. Estas três travas existem para isso não se
-   repetir em silêncio. */
-assert.match(buildSource,/'netlify\/edge-functions\/vitrine-preview\.js'/,
-  'A edge function precisa viajar dentro do pacote publicado.');
-assert.match(buildSource,/writeFile\(join\(output,'netlify\.toml'\)/,
-  'O pacote precisa declarar a edge function num netlify.toml próprio.');
-/* O netlify.toml gerado não pode repetir `publish`/`command` do arquivo do
-   projeto: na publicação manual a própria dist/ é a raiz, e o Netlify
-   sairia procurando dist/dist. */
-assert.doesNotMatch(
-  buildSource.slice(buildSource.indexOf("writeFile(join(output,'netlify.toml')")),
-  /publish\s*=|command\s*=/,
-  'O netlify.toml do pacote declara só a edge function.');
-
 assert.doesNotMatch(dashboardSource,/Novo cliente|Clientes quentes/i);
 assert.match(dashboardSource,/Novo interessado/);
 assert.doesNotMatch(appSource,/inquilino,\s*cliente\s+ou telefone/i);

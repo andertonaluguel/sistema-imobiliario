@@ -62,7 +62,14 @@ const publicFiles = [
   'marketing/mockups/screenshots/financeiro-desktop.png',
   'marketing/mockups/screenshots/detalhe-imovel-mobile.png',
   'marketing/mockups/screenshots/portal-inquilino-mobile.png',
-  'marketing/mockups/finais/mockup-hero-dashboard.png'
+  'marketing/mockups/finais/mockup-hero-dashboard.png',
+  // A edge function precisa viajar DENTRO do pacote. A publicacao deste
+  // site e manual — arrasta-se a pasta dist/ no Netlify —, entao o que nao
+  // esta aqui simplesmente deixa de existir no ar. Quando ela ficou de
+  // fora, o site subiu inteiro e mesmo assim a previa do link no WhatsApp,
+  // o /og-foto, o robots.txt e o sitemap.xml morreram todos de uma vez,
+  // sem nenhum erro aparecer.
+  'netlify/edge-functions/vitrine-preview.js'
 ];
 
 
@@ -82,5 +89,19 @@ await Promise.all(publicFiles.filter((file) => file!=='service-worker.js')
 const worker = (await readFile(join(root,'service-worker.js'),'utf8'))
   .replace(/const CACHE = '[^']+';/, `const CACHE = 'aluguel-${version}';`);
 await writeFile(join(output,'service-worker.js'), worker, 'utf8');
+
+/* netlify.toml enxuto, escrito e nao copiado.
+   O do projeto declara `publish = "dist"` e o comando de build — correto
+   para quem constroi a partir do repositorio, errado aqui: numa publicacao
+   manual a propria dist/ vira a raiz, e o Netlify sairia procurando
+   dist/dist. Este declara so o que o pacote precisa para funcionar
+   sozinho: a edge function que monta a previa dos links. */
+await writeFile(join(output,'netlify.toml'),
+`# Gerado por build.mjs para a publicacao manual da pasta dist/.
+# Aqui a propria dist/ e a raiz do deploy: nada de publish nem de build.
+[[edge_functions]]
+  path = "/*"
+  function = "vitrine-preview"
+`, 'utf8');
 
 console.log(`Publicação ${version} preparada com ${publicFiles.length} arquivos em dist/.`);
